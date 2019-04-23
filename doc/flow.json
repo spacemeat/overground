@@ -1,0 +1,395 @@
+{
+  "sqvd:vertexDefinition": {
+    "members": [
+      "pos:vec2",
+      "color:vec3",
+      "texcCord:vec2"
+    ],
+    "bindings": [ {
+      "binding": 0,
+      "stride": "$this.members.size",
+      "inputRate": "Vertex"
+    } ],
+    "attributes": [ {
+      "binding": 0,
+      "location": 0,
+      "format": "R32G32Sfloat",
+      "offset": "$this.members.pos.offset"
+    }, {
+      "binding": 0,
+      "location": 1,
+      "format": "R32G32B32Sfloat",
+      "offset": "$this.members.color.offset"
+    }, {
+      "binding": 0,
+      "location": 2,
+      "format": "R32G32Sfloat",
+      "offset": "$this.members.texCoord.offset"
+    } ]
+  },
+
+  "sq:mesh": {
+    "vertexDefinition": "$sqvd",
+    "vertices": [
+      [[-0.5, -0.5], [0.0, 1.0, 1.0], [1.0, 0.0]],
+      [[0.5, -0.5], [1.0, 0.0, 0.0], [0.0, 0.0]],
+      [[0.5, 0.5], [1.0, 1.0, 0.0], [0.0, 1.0]],
+      [[-0.5, 0.5], [1.0, 0.0, 1.0], [1.0, 1.0]]
+    ],
+    "indexDefinition": "int16",
+    "indices": [0, 1, 2, 2, 3, 0],
+    "texture": "texture.jpg"
+  },
+
+  "txqd:uniformBuffers": [
+    [ "model:mat4", "view:mat4", "proj:mat4" ]
+  ],
+
+  "mainWindow:glfwWindow": {
+    "width": 800,
+    "height": 800,
+    "fullScreent": false,
+    "title": "Projectera"
+  },
+
+  "inst:vulkanInstance": {
+    "appInfo": {
+      "appName": "Projectera",
+      "appVersion": "1.0.0",
+      "engineName": "Non Engine",
+      "engineVersion": "1.0.0",
+      "vulkanApiVersion": "1.0"
+    },
+    "validationEnabled": "true",
+    "appExtensions": [
+      "VK_EXT_DEBUG_REPORT_EXTENSION_NAME"
+    ],
+    "validationLayers": [
+      "VK_LAYER_LUNARG_standard_validation"
+    ]
+  },
+
+  "surface:vulkanSurfaceKHR": {
+    "vulkanInstance": "$inst",
+    "window": "$mainWindow"
+  },
+
+  "phd:vulkanPhysicalDevice": {
+    "vulkanInstance": "$inst",
+    "queueFamilies": [ "graphics", "presentation" ],
+    "surfaceSupport": [ "$surface" ],
+    "extensions": ["VK_KHR_SWAPCHAIN_EXTENSION_NAME"],
+    "supportedFeatures": [ "samplerAnisotropy" ]
+  },
+
+  "d:vulkanLogicalDevice": {
+    "vulkanInstance": "$inst",
+    "queues": {
+      "graphics": {
+        "priorities": [ 1.0 ]
+      },
+      "presentation": {
+        "priorities": [ 1.0 ]
+      }
+    },
+    "physicalDevice": "$phd"
+  },
+
+  "sc:swapChain": {
+    "device": "$d",
+    "format": [ "R8G8B8Unorm" ],
+    "colorSpace": [ "SrgbNonlinear" ],
+    "presentMode": [ "Mailbox", "Fifo", "Immediate" ],
+    "extent": [ "$mainWindow.width", "$mainWindow.height" ],
+    "surface": "$surface",
+    "usage": "eColorAttachment",
+    "compositeAlpha": "Opaque",
+    "clipped": true
+  },
+
+  "rp:renderPass": {
+    "attachments": [ {
+      "format": "$sc.format",
+      "samples": 1,
+      "loadOp": "Clear",
+      "storeOp": "Store",
+      "stencilLoadOp": "DontCare",
+      "stencilStoreOp": "DontCare",
+      "initialLayout": "Undefined",
+      "finalLayout": "PresentSrcKHR"
+    } ],
+    "subpasses": [ {
+      "pipelineBindPoint": "Graphics",
+      "colorAttachments": [ {
+        "attachment": 0,
+        "attachmentLayout": "ColorAttachmentOptimal"
+      } ]
+    } ],
+    "dependencies": [ {
+      "srcSubpass": "External",
+      "dstSubpass": 0,
+      "srcStageMask": "ColorAttachmentOutput",
+      "srcAccessMask": 0,
+      "dstStageMask": "ColorAttachmentOutput",
+      "dstAccessMask": "ColorAttachmentRead | ColorAttachmentWrite"
+    } ]
+  },
+
+  "scfs:swapChainFramebuffers": [ {
+    "vulkanDevice": "$d",
+    "renderPass": "$rp",
+    "swapChain": "$sc",
+    "layers": 1
+  } ],                "#":"TODO: Get layers set?",
+
+  "gp:graphicsPipelines": [ {
+    "vulkanDevice": "$d",
+    "shaderStages": [ {
+      "stage": "vertex",
+      "module": "res/display/vert.spv",
+      "name": "main"
+    }, {
+      "stage": "fragment",
+      "module": "res/display/frag.spv",
+      "name": "main"
+    } ],
+    "vertexInputState": "$sqvd",
+    "inputAssemblyState": {
+      "topology": "TriangleList",
+      "setPrimitiveRestartEnable": false
+    },
+    "viewportState": {
+      "viewport": {
+        "X": "0",
+        "y": "0",
+        "width": "$sc.extent.width",
+        "height": "$sc.extent.height",
+        "minDepth": 0.0,
+        "maxDepth": 1.0
+      },
+      "scissor": {
+        "x": "0",
+        "y": "0",
+        "extent": "$sc.extent"
+      }
+    },
+    "rasterizationState": {
+      "depthClampEnable": false,
+      "rasterizationDiscardEnable": false,
+      "polygonMode": "Fill",
+      "lineWidth": 1.0,
+      "cullMode": "Back",
+      "frontFace": "Clockwise",
+      "depthBiasEnable": false
+    },
+    "multisampleState": {
+      "sampleShadingEnable": false,
+      "rasterizationSamples": 1,
+      "minSampleShading": 1.0
+    },
+    "depthStencilState": {},
+    "colorBlendState": {
+      "logicOpEnable": false,
+      "logicOp": "Copy",
+      "attachments": [ {
+        "colorWriteMask": "R|G|B|A",
+        "blendEnable": false,
+        "srcColorBlendFactor": "One",
+        "dstColorBlendFactor": "Zero",
+        "colorBlendOp": "Add",
+        "srcAlphaBlendFactor": "One",
+        "dstAlphaBlendFactor": "Zero",
+        "alphaBlendOp": "Add"
+      } ],
+      "blendConstants": [ 0.0, 0.0, 0.0, 0.0 ]
+    },
+    "dynamicState": {},
+    "layout": {
+      "setLayouts": "$dsl",
+      "pushConstantRanges": []
+    },
+    "renderPass": "$rp"
+  } ],
+
+  "cp:commandPool": {
+    "vulkanDevice": "$d",
+    "queueFamily": "Graphics"
+  },
+
+  "cbs:commandBuffers": {
+    "vulkanDevice": "$d",
+    "level": "Primary",
+    "beginFlags": "SimultaneousUse",
+    "cmds": { "for": "i", "in": "$sc.images", "append": {
+      "beginRenderPass": {
+        "renderPass": "$rp",
+        "framebuffer": "$scfs[i]",
+        "renderArea": [[0, 0], "$sc.extent"],
+        "clearValues": [ {
+          "color": [0, 0, 0, 1]
+        } ],
+        "subpassContents": "InLine"
+      },
+      "bindPipeline": {
+        "pipelineBindPoint": "Graphics",
+        "pipeline": "$gp"
+      },
+      "bindVertexBuffers": {
+        "offset": 0,
+        "buffers": [ {
+          "buffer": "$vbs[0]",
+          "offset": 0
+        } ]
+      },
+      "bindIndexBuffer": {
+        "offset": 0,
+        "buffer": "$ibs[0]"
+      },
+      "bindDescriptorSets": {
+        "pipelineBindPoint": "Graphics",
+        "layout": "$gp[0].layout",
+        "firstIndex": 0,
+        "descriptorSets": [ "$dss[0]" ]
+      },
+      "drawIndexed": {
+        "count": "$ibs[0].size",
+        "instances": 1,
+        "firstIndexIndex": 0,
+        "indexValueOffset": 0,
+        "instancingOffset": 0
+      }
+    } }
+  },
+
+  "vbs:vertexBuffers": [ {
+    "vulkanDevice": "$d",
+    "size": "$sq.vertices.size",
+    "stagingUsage": "TransferSrc",
+    "stagingProperties": "HostVisible | HostCoherent",
+    "data": "$sq.vertices.data",
+    "usage": "VertexBuffer | TransferDst",
+    "properties": "DeviceLocal"
+  } ],
+
+  "ibs:indexBuffers": [ {
+    "vulkanDevice": "$d",
+    "size": "$sq.indices.size",
+    "stagingUsage": "TransferSrc",
+    "stagingProperties": "HostVisible | HostCoherent",
+    "data": "$sq.indices.data",
+    "usage": "IndexBuffer | TransferDst",
+    "properties": "DeviceLocal"
+  } ],
+
+  "ubs:uniformBuffers": { "for": "i", "in": "$sc.images", "append": {
+    "vulkanDevice": "$d",
+    "data": "$txqd[0]",
+    "stagingUsage": "TransferSrc",
+    "stagingProperties": "HostVisible | HostCoherent",
+    "usage": "IndexBuffer | TransferDst",
+    "properties": "DeviceLocal"
+  } },
+
+  "txs:textures": [ {
+    "vulkanDevice": "$d",
+    "data": "res/display/texture.jpg",
+    "stagingUsage": "TransferSrc",
+    "stagingProperties": "HostVisible | HostCoherent",
+    "format": "R8G8B8A8Unorm",
+    "tiling": "Optimal",
+    "usage": "TransferDst | Sampled",
+    "properties": "DeviceLocal",
+    "imageLayout": "ShaderReadOnlyOptimal",
+    "views": [ {
+      "type": "2d",
+      "subResource": {
+        "aspectMask": "Color",
+        "baseMipLevel": 0,
+        "levelCount": 1,
+        "baseArrayLayer": 0,
+        "layerCount": 1
+      }
+    } ]
+  } ],
+
+  "samps:samplers": [ {
+    "magFilger": "Linear",
+    "minFilter": "Linear",
+    "addressModeU": "Repeat",
+    "addressModeV": "Repeat",
+    "addressModeW": "Repeat",
+    "anisotropyEnable": true,
+    "maxAnisotropy": 16,
+    "borderColor": "IntOpaqueBlack",
+    "unnormalizedCoordinates": false,
+    "compareEnable": false,
+    "compareOp": "Always",
+    "mipmapMode": "Linear",
+    "mipLodBias": 0,
+    "minLod": 0,
+    "maxLod": 0
+  } ],
+
+  "dsl:descriptorSetLayouts": [ {
+    "vulkanDevice": "$d",
+    "layouts": [ {
+      "binding": 0,
+      "type": "UniformBuffer",
+      "count": 1,
+      "stageFlags": "Vertex"
+    }, {
+      "binding": 1,
+      "type": "eCombinedImageSampler",
+      "count": 1,
+      "stageFlags": "Fragment"
+    } ]
+  } ],
+
+  "dp:descriptorPool": {
+    "vulkanDevice": "$d",
+    "sizes": [ {
+      "type": "UniformBuffer",
+      "descriptorCount": "$sc.images.size"
+    }, {
+      "type": "eCombinedImageSampler",
+      "descriptorCount": "$sc.images.size"
+    } ],
+    "maxSets": "$sc.images.size"
+  },
+
+  "dss:descriptorSets": [ {
+    "vulkanDevice": "$d",
+    "descriptorPool": "$dp",
+    "setLayouts": "$dsl[0].layouts",
+    "sets": { "for": "i", "in": "$sc.images", "append": {
+      "writeDescriptorSets": [ {
+        "dstBinding": 0,
+        "dstArrayElement": 0,
+        "descriptorType": "UniformBuffer",
+        "bufferInfo": {
+          "buffer": "$ubs[i]",
+          "offset": 0,
+          "range": "$ubs[i].size"
+        }
+      }, {
+        "dstBinding": 1,
+        "dstArrayElement": 0,
+        "descriptorType": "CombinedImageSampler",
+        "imageInfo": {
+          "imageLayout": "ShaderReadOnlyOptimal",
+          "imageView": "$txs[0].views[0]",
+          "sampler": "$samps[0]"
+        }
+      } ]
+      }
+    }
+  } ],
+
+  "mfif:maxFramesInFlight": 2,
+
+  "syncs:syncObjects": { "for": "i", "count": "$mfif", "append": [
+    "imgAvailable:semaphore",
+    "renderFinish:semaphore",
+    "inFlightFence:fence!"
+  ] }
+}

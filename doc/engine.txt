@@ -1,0 +1,26 @@
+Process:
+
+load config
+  get starting scenes
+make window
+load scene files
+  get all other files for scene
+  load all other dependent files
+  join
+latch scene
+  make or ref-increment buffers
+  load textures
+  fill buffers &/| textures
+  make renderpasses
+  make pipelines
+  fill pipelines
+while scene data is loaded
+  render frame n
+    for each renderpass
+      for each pipeline
+        draw instances
+  do animations for frame n + 1
+    for each animated object
+      animate()
+  present frame n
+

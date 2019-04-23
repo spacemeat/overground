@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+
+# VS Code
+*.ipch
+mmap_address.bin
+
+# Project-specific
+bin/*

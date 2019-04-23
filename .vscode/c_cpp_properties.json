@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "~/src/balls/vulkan/1.1.77.0/x86_64/include",
+                "${workspaceFolder}/../humon/inc",
+                "${workspaceFolder}/inc",
+                "${workspaceFolder}/assets/inc",
+                "${workspaceFolder}/jobs/inc",
+                "${workspaceFolder}/pools/inc",
+                "${workspaceFolder}/graphics/inc"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
