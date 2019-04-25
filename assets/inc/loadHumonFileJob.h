@@ -25,7 +25,7 @@ namespace overground
     humon::nodePtr_t rootNode;
   };
 
-  extern JobPool<LoadHumonFileJob> LoadHumonFileJobs;
+  extern JobPool<LoadHumonFileJob> loadHumonFileJobs;
 }
 
 #endif // #ifndef LOADHUMONFILE_H

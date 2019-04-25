@@ -20,21 +20,29 @@ JobManager::~JobManager()
 }
 
 
-void JobManager::setNumWorkers(unsigned int numWorkers)
+void JobManager::setNumWorkers(unsigned int numWorkers, Worker * callingWorker)
 {
   assert(numWorkers <= numCores * 8);
 
   auto numWorkersBefore = workers.size();
-  while (workers.size() < numWorkers)
-  {
-    workers.emplace_back(new Worker(this));
-  }
-  while (workers.size() > numWorkers)
-  {
-    delete workers.back();
-    workers.pop_back();
-  }
 
+  if (numWorkersBefore < numWorkers)
+  {
+    lock_guard lock(mx_workers);
+    while (workers.size() < numWorkers)
+      { workers.emplace_back(new Worker(this)); }
+  }  
+
+  else
+  {
+    for (int i = 0; i < (int) numWorkersBefore - (int) numWorkers; ++i)
+    {
+      // The worker will be removed from workers when its
+      // current job is done.
+      workers[workers.size() - i - 1]->die();
+    }
+  }
+  
   if (running && numWorkers > numWorkersBefore)
   {
     for (auto it = workers.begin() + numWorkersBefore; it < workers.end(); ++it)
@@ -47,14 +55,14 @@ void JobManager::setNumWorkers(unsigned int numWorkers)
 
 void JobManager::increaseWorkers(unsigned int numWorkers)
 {
-  setNumWorkers(workers.size() + numWorkers);
+  setNumWorkers(workers.size() + numWorkers, nullptr);
 }
 
 
-void JobManager::decreaseWorkers(unsigned int numWorkers)
+void JobManager::decreaseWorkers(unsigned int numWorkers, Worker * callingWorker)
 {
   setNumWorkers(workers.size() - min(
-    static_cast<unsigned int>(workers.size()), numWorkers));
+    static_cast<unsigned int>(workers.size()), numWorkers), callingWorker);
 }
 
 
@@ -62,6 +70,7 @@ void JobManager::startWorkers()
 {
   if (running == false)
   {
+    lock_guard lock(mx_workers);
     running = true;
     for (auto worker : workers)
     {
@@ -75,6 +84,7 @@ void JobManager::stopWorkers()
 {
   if (running)
   {
+    lock_guard lock(mx_workers);
     running = false;
     for (auto worker : workers)
     {
@@ -87,9 +97,27 @@ void JobManager::stopWorkers()
 void JobManager::join()
 {
   setNumWorkers(0);
-  for (auto worker : workers)
+
   {
-    worker->join();
+    size_t ws = 0;
+    {
+      lock_guard lock(mx_workers);
+      ws = workers.size();
+    }
+
+    while (ws > 0)
+    {
+      unique_lock<mutex> lock(mx_join);
+      cv_join.wait(lock, [&]
+      {
+        {
+          lock_guard lock(mx_workers);
+          ws = workers.size();
+        }
+
+        return ws == 0;
+      });
+    }
   }
 }
 
@@ -123,6 +151,31 @@ int JobManager::getNumJobsEnqueued()
   }
   
   return num;
+}
+
+
+void JobManager::workerDying(Worker * worker)
+{
+  for (auto it = workers.rbegin(); it != workers.rend(); ++it)
+  {
+    if (* it == worker)
+    {
+      {
+        lock_guard lock(mx_workers);
+        workers.erase((it + 1).base());
+      }
+      // The Worker object has now been destroyed.
+      // The caller was a member fn of Worker, and this
+      // is the very last thing it's doing. THIS MUST
+      // ALWAYS BE THE CASE or I will find you and I will
+      // do things even Liam Neeson wouldn't do.
+
+      // Notify a new cv for anyone trying to join on this thread.
+      cv_join.notify_one();
+
+      break;
+    }
+  }
 }
 
 

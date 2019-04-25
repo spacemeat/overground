@@ -25,9 +25,6 @@ Worker::Worker(Worker const & rhs)
 
 Worker::~Worker()
 {
-  dying = true;
-  running = false;
-  thread.join();
 }
 
 
@@ -62,7 +59,17 @@ void Worker::stop()
 }
 
 
-void Worker::join()
+void Worker::die()
+{
+  dying = true;
+  running = false;
+  // don't even wait for the timeout; just die now pls
+  cv_jobReady.notify_one();   // in case we're waiting for jobs
+  cv_start.notify_one();      // in case we're stopped
+}
+
+
+void Worker::joinDyingThread()
 {
   thread.join();
 }
@@ -111,5 +118,9 @@ void Worker::threadFn()
       // be managed elsewise.
     }
   }
+
+  // Calling this results in the destructor being called.
+  // DO NOTHING with *this after this call.
+  jobManager->workerDying(this);
 }
 

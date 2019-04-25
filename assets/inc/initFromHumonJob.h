@@ -56,11 +56,11 @@ namespace overground
   }
 
 
-  extern JobPool<InitFromHumonJob<Mesh>> InitMeshJobs;
-  extern JobPool<InitFromHumonJob<Model>> InitModelJobs;
-  extern JobPool<InitFromHumonJob<RenderPass>> InitRenderPassJobs;
-  extern JobPool<InitFromHumonJob<Material>> InitMaterialJobs;
-  extern JobPool<InitFromHumonJob<Shader>> InitShaderJobs;
+  extern JobPool<InitFromHumonJob<Mesh>> initMeshJobs;
+  extern JobPool<InitFromHumonJob<Model>> initModelJobs;
+  extern JobPool<InitFromHumonJob<RenderPass>> initRenderPassJobs;
+  extern JobPool<InitFromHumonJob<Material>> initMaterialJobs;
+  extern JobPool<InitFromHumonJob<Shader>> initShaderJobs;
 }
 
 #endif // #ifndef INITFROMHUMONJOB_H

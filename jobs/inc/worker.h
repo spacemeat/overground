@@ -22,8 +22,9 @@ namespace overground
     void start();
     bool nudge();
     void stop();
+    void die();   // called by owner when it should delete itself.
 
-    void join();
+    void joinDyingThread();
   
   private:
     Job * getNextJob();

@@ -52,7 +52,7 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
       {
         auto key = meshesDict.keyAt(i);
         auto & mesh = Meshes.getOrCreate(key);
-        auto job = InitMeshJobs.next();
+        auto job = initMeshJobs.next();
         job->reset(mesh, meshesDict.at(key));
 
         if (jobManager != nullptr)
@@ -69,7 +69,7 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
       {
         auto key = modelsDict.keyAt(i);
         auto & model = Models.getOrCreate(key);
-        auto job = InitModelJobs.next();
+        auto job = initModelJobs.next();
         job->reset(model, modelsDict.at(key));
 
         if (jobManager != nullptr)
@@ -82,4 +82,4 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
 }
 
 
-JobPool<LoadHumonFileJob> overground::LoadHumonFileJobs;
+JobPool<LoadHumonFileJob> overground::loadHumonFileJobs;
