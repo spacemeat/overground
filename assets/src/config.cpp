@@ -13,7 +13,7 @@ void Config::loadFromHumon(HuNode const & src)
     auto & generalSrc = src / "general";
     if (generalSrc % "numWorkerThreads")
     {
-      general.numWorkerThreads = long(generalSrc / "numWorkerThreads");
+      general.numWorkerThreads = generalSrc / "numWorkerThreads";
     }
   }
 
@@ -27,12 +27,12 @@ void Config::loadFromHumon(HuNode const & src)
 
     if (graphicsSrc % "width")
     {
-      graphics.width = long(graphicsSrc / "width");
+      graphics.width = graphicsSrc / "width";
     }
 
     if (graphicsSrc % "height")
     {
-      graphics.height = long(graphicsSrc / "height");
+      graphics.height = graphicsSrc / "height";
     }
     
     if (graphicsSrc % "extensions")

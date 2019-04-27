@@ -27,7 +27,7 @@ void Mesh::loadFromHumon(HuNode const & src)
   {
     auto & positions = src / "positions";
     numVertices = positions.size();
-    positionSize = long(positions / 0);
+    positionSize = positions / 0;
     hasPositions = true;
   }
 
@@ -35,7 +35,7 @@ void Mesh::loadFromHumon(HuNode const & src)
   {
     auto & normals = src / "normals";
     assert(numVertices == normals.size());
-    normalSize = long(normals / 0);
+    normalSize = normals / 0;
     hasNormals = true;
   }
   
@@ -47,7 +47,7 @@ void Mesh::loadFromHumon(HuNode const & src)
     {
       auto & tex = list / i;
       assert(numVertices == tex.size());
-      texSizes[i] = long(tex / 0);
+      texSizes[i] = tex / 0;
       hasTex += 1;
     }
   }
@@ -68,7 +68,7 @@ void Mesh::loadFromHumon(HuNode const & src)
 
       auto & submeshHu = submeshesHu / i;
       if (submeshHu % "indexBits")
-        { submesh.indexBits = long(submeshHu / "indexBits"); }
+        { submesh.indexBits = submeshHu / "indexBits"; }
 
       if (submeshHu % "topology")
       {
