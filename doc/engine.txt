@@ -14,7 +14,7 @@ latch scene
   make renderpasses
   make pipelines
   fill pipelines
-while scene data is loaded
+while scene data is latched
   render frame n
     for each renderpass
       for each pipeline

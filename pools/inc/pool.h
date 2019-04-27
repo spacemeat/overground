@@ -44,6 +44,7 @@ namespace overground
 
     if (obj == nullptr)
     {
+      obj = new JobType();
       data.emplace_back(obj);
 //      data.resize(data.size() + 1);
 //      obj = data[data.size() - 1];

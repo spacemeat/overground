@@ -1,0 +1,15 @@
+{
+  config: {
+    general: {
+      numWorkerThreads: 4
+    }
+    graphics: {
+      windowMode: window
+      width: 800
+      height: 600
+      extensions: []
+      debugger: true
+      numGraphicsThreads: 4
+    }
+  }
+}

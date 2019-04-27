@@ -24,7 +24,7 @@ namespace overground
     RuntimeType & getData() { return * data; }
 
   protected:
-    virtual humon::HuNode & getHumonObject();
+    virtual humon::HuNode * getHumonObject() { return humon; }
     virtual void run_impl(JobManager * jobManager) override;
 
   private:

@@ -4,6 +4,7 @@
 #include "job.h"
 #include "humon.h"
 #include "pool.h"
+#include "assetPack.h"
 
 namespace overground
 {
@@ -13,9 +14,11 @@ namespace overground
     LoadHumonFileJob();
 
     void setPath(std::string const & path);
+    void setAssetPack(AssetPack * assets);
 
     std::string const & getPath() { return path; }
     humon::nodePtr_t & getRootNode() { return rootNode; }
+    AssetPack * getAssetPack() { return assets; }
   
   protected:
     virtual void run_impl(JobManager * jobManager) override;
@@ -23,6 +26,7 @@ namespace overground
   private:
     std::string path;
     humon::nodePtr_t rootNode;
+    AssetPack * assets;
   };
 
   extern JobPool<LoadHumonFileJob> loadHumonFileJobs;

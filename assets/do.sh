@@ -1,7 +1,7 @@
 #!/bin/bash
 
-INC_DIRS="-Iinc -I../pools/inc -I../jobs/inc -I../../humon/inc -I../../../balls/vulkan/1.1.77.0/x86_64/include"
-OBJ_FILES="../bin/libassets-d.a ../obj/assets-loadHumonFileJob.o ../obj/assets-initFromHumonJob.o ../obj/assets-config.o ../obj/assets-mesh.o ../obj/assets-model.o"
+INC_DIRS="-I../inc -Iinc -I../pools/inc -I../jobs/inc -I../../humon/inc -I../../../balls/vulkan/1.1.77.0/x86_64/include"
+OBJ_FILES="../obj/assets-loadHumonFileJob.o ../obj/assets-initFromHumonJob.o ../obj/assets-config.o ../obj/assets-mesh.o ../obj/assets-model.o"
 
 buildcpp() {
   dotcpp=$1

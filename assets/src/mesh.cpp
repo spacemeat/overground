@@ -16,8 +16,6 @@ Mesh::Mesh()
 
 void Mesh::loadFromHumon(HuNode const & src)
 {
-  auto & configSrc = src.asDict();
-
   //HuList & positions;
   //HuList & normals;
   //vector<HuList &> tex;
@@ -25,31 +23,31 @@ void Mesh::loadFromHumon(HuNode const & src)
   bool hasNormals = false;
   size_t hasTex = 0;
   
-  if (configSrc.hasKey("positions"))
+  if (src % "positions")
   {
-    auto & positions = configSrc.at<HuList>("positions");
+    auto & positions = src / "positions";
     numVertices = positions.size();
-    positionSize = positions.at<HuList>(0).size();
+    positionSize = long(positions / 0);
     hasPositions = true;
   }
 
-  if (configSrc.hasKey("normals"))
+  if (src % "normals")
   {
-    auto & normals = configSrc.at<HuList>("normals");
+    auto & normals = src / "normals";
     assert(numVertices == normals.size());
-    normalSize = normals.at<HuList>(0).size();
+    normalSize = long(normals / 0);
     hasNormals = true;
   }
   
-  if (configSrc.hasKey("tex"))
+  if (src % "tex")
   {
-    auto & list = configSrc.at<HuList>("tex");
+    auto & list = src / "tex";
     auto numTexCoords = list.size();
     for (size_t i = 0; i < numTexCoords; ++i)
     {
-      auto & tex = list.at<HuList>(i);
+      auto & tex = list / i;
       assert(numVertices == tex.size());
-      texSizes[i] = tex.at<HuList>(0).size();
+      texSizes[i] = long(tex / 0);
       hasTex += 1;
     }
   }
@@ -58,9 +56,9 @@ void Mesh::loadFromHumon(HuNode const & src)
     accumulate(texSizes.begin(), texSizes.end(), 0)) * 4;
   verticesMemSize = bytesPerVertex * numVertices;
 
-  if (configSrc.hasKey("submeshes"))
+  if (src % "submeshes")
   {
-    auto & submeshesHu = configSrc.at<HuDict>("submeshes");
+    auto & submeshesHu = src / "submeshes";
     auto numSubmeshes = submeshes.size();
     submeshes.resize(numSubmeshes);
 
@@ -68,13 +66,13 @@ void Mesh::loadFromHumon(HuNode const & src)
     {
       Submesh & submesh = submeshes[i];
 
-      auto & submeshHu = submeshesHu.at(i).asDict();
-      if (submeshHu.hasKey("indexBits"))
-        { submesh.indexBits = submeshHu.at<HuValue>("indexBits").getLong(); }
+      auto & submeshHu = submeshesHu / i;
+      if (submeshHu % "indexBits")
+        { submesh.indexBits = long(submeshHu / "indexBits"); }
 
-      if (submeshHu.hasKey("topology"))
+      if (submeshHu % "topology")
       {
-        auto topologyV = submeshHu.at<HuValue>("topology").getString();
+        string topologyV = submeshHu / "topology";
         if (topologyV == "pointList")
           { submesh.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST; }
         else if (topologyV == "lineList")
@@ -99,14 +97,14 @@ void Mesh::loadFromHumon(HuNode const & src)
           { submesh.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST; }
       }
 
-      if (submeshHu.hasKey("indices"))
+      if (submeshHu % "indices")
       {
-        auto & lodsHu = submeshHu.at<HuList>("indices");
+        auto & lodsHu = submeshHu / "indices";
         submesh.numIndices.resize(lodsHu.size());
 
         for (size_t j = 0; j < lodsHu.size(); ++j)
         {
-          auto & indicesHu = lodsHu.at<HuList>(i);
+          auto & indicesHu = lodsHu / i;
           submesh.numIndices[j] = indicesHu.size();
         }
 
@@ -126,58 +124,58 @@ void Mesh::loadFromHumon(HuNode const & src)
   {
     if (hasPositions)
     {
-      auto & positions = configSrc.at<HuList>("positions");
-      auto & vecP = positions.at<HuList>(i);
+      auto & positions = src / "positions";
+      auto & vecP = positions / i;
       for (size_t j = 0; j < positionSize; ++j)
       {
-        * (float *) pBuf = vecP.at<HuValue>(j).getFloat();
+        * (float *) pBuf = vecP / j;
         pBuf += sizeof(float);
       }
     }
 
     if (hasNormals)
     {
-      auto & normals = configSrc.at<HuList>("normals");
-      auto & vecN = normals.at<HuList>(i);
+      auto & normals = src / "normals";
+      auto & vecN = normals / i;
       for (size_t j = 0; j < normalSize; ++j)
       {
-        * (float *) pBuf = vecN.at<HuValue>(j).getFloat();
+        * (float *) pBuf = vecN / j;
         pBuf += sizeof(float);
       }
     }
 
     for (size_t j = 0; j < texSizes.size(); ++j)
     {
-      auto & texes = configSrc.at<HuList>("tex");
-      auto & uv = texes.at<HuList>(j).at<HuList>(i);
+      auto & texes = src / "tex";
+      auto & uv = texes / j / i;
       for (size_t k = 0; k < texSizes[j]; ++k)
       {
-        * (float *) pBuf = uv.at<HuValue>(k).getFloat();
+        * (float *) pBuf = uv / k;
         pBuf += sizeof(float);
       }
     }
   }
 
-  if (configSrc.hasKey("submeshes"))
+  if (src % "submeshes")
   {
-    auto & submeshesHu = configSrc.at<HuDict>("submeshes");
+    auto & submeshesHu = src / "submeshes";
     for (size_t i = 0; i < submeshes.size(); ++i)
     {
       Submesh & submesh = submeshes[i];
-      auto & lodsHu = submeshesHu.at<HuDict>(i).at<HuList>("indices");
+      auto & lodsHu = submeshesHu / i / "indices";
       for (size_t j = 0; j < submesh.numIndices.size(); ++j)
       {
-        auto & indicesHu = lodsHu.at<HuList>(j);
+        auto & indicesHu = lodsHu / j;
         for (size_t k = 0; k < submesh.numIndices[j]; ++k)
         {
           if (submesh.indexBits == 16)
           {
-            * (uint16_t *) pBuf = static_cast<uint16_t>(indicesHu.at<HuValue>(k).getLong());
+            * (uint16_t *) pBuf = static_cast<uint16_t>(long(indicesHu / k));
             pBuf += sizeof(uint16_t);
           }
           else
           {
-            * (uint32_t *) pBuf = static_cast<uint32_t>(indicesHu.at<HuValue>(k).getLong());
+            * (uint32_t *) pBuf = static_cast<uint32_t>(long(indicesHu / k));
             pBuf += sizeof(uint32_t);
           }
         }
@@ -192,7 +190,4 @@ void Mesh::loadFromHumon(HuNode const & src)
 
   // TODO: Mark mesh dirty for recreation.
 }
-
-
-ObjectMap<Mesh> overground::Meshes;
 

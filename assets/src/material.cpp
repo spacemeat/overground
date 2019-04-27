@@ -8,4 +8,4 @@ using namespace humon;
 using namespace overground;
 
 
-ObjectMap<Material> overground::Meshes;
+ObjectMap<Material> overground::Materials;

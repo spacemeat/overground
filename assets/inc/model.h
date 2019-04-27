@@ -29,9 +29,6 @@ namespace overground
     std::string meshName;
     std::string materialName;
   };
-
-
-  extern ObjectMap<Model> Models;
 }
 
 #endif // #ifndef MODEL_H

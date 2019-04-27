@@ -10,7 +10,7 @@ namespace overground
   class Material
   {
   public:
-    Material();
+    Material() {}
 
     void setName(std::string const & name)
       { this->name = name; }
@@ -19,7 +19,7 @@ namespace overground
     std::string name;
   };
 
-  extern ObjectMap<Mesh> Meshes;
+  extern ObjectMap<Material> Materials;
 }
 
 #endif // #ifndef MATERIAL_H

@@ -1,66 +1,101 @@
 #include "config.h"
+#include "utils.h"
 
 using namespace std;
 using namespace humon;
 using namespace overground;
 
 
-Config::Config()
-{
-}
-
-
 void Config::loadFromHumon(HuNode const & src)
 {
-  auto & configSrc = src.asDict();
-
-  if (configSrc.hasKey("general"))
+  if (src % "general")
   {
-    auto & generalSrc = configSrc.at<HuDict>("general");
-    if (generalSrc.hasKey("numWorkerThreads"))
+    auto & generalSrc = src / "general";
+    if (generalSrc % "numWorkerThreads")
     {
-      general.numWorkerThreads = generalSrc.at<HuValue>("numWorkerThreads").getLong();
+      general.numWorkerThreads = long(generalSrc / "numWorkerThreads");
     }
   }
 
-  if (configSrc.hasKey("graphics"))
+  if (src % "graphics")
   {
-    auto & graphicsSrc = configSrc.at<HuDict>("graphics");
-    if (graphicsSrc.hasKey("windowedMode"))
+    auto & graphicsSrc = src / "graphics";
+    if (graphicsSrc % "windowedMode")
     {
-      graphics.windowedMode = graphicsSrc.at<HuValue>("windowedMode").getBool();
+      graphics.windowedMode = graphicsSrc / "windowedMode";
     }
 
-    if (graphicsSrc.hasKey("width"))
+    if (graphicsSrc % "width")
     {
-      graphics.width = graphicsSrc.at<HuValue>("width").getLong();
+      graphics.width = long(graphicsSrc / "width");
     }
 
-    if (graphicsSrc.hasKey("height"))
+    if (graphicsSrc % "height")
     {
-      graphics.height = graphicsSrc.at<HuValue>("height").getLong();
+      graphics.height = long(graphicsSrc / "height");
     }
     
-    if (graphicsSrc.hasKey("extensions"))
+    if (graphicsSrc % "extensions")
     {
-      auto & listSrc = graphicsSrc.at<HuList>("extensions");
+      auto & listSrc = graphicsSrc / "extensions";
       for (size_t i = 0; i < listSrc.size(); ++i)
       {
-        graphics.extensions.push_back(listSrc.at<HuValue>(0).getString());
+        graphics.extensions.push_back(listSrc / i);
       }
     }
 
-    if (graphicsSrc.hasKey("debugging"))
+    if (graphicsSrc % "debugging")
     {
-      graphics.debugging = graphicsSrc.at<HuValue>("debugging").getBool();
-    }
-    
-    if (graphicsSrc.hasKey("numGraphicsThreads"))
-    {
-      graphics.numGraphicsThreads = graphicsSrc.at<HuValue>("numGraphicsThreads").getLong();
+      graphics.debugging = graphicsSrc / "debugging";
     }
   }
 }
 
+template <class T>
+Config::Deltas set(T & lhs, T & rhs, Config::Deltas kind)
+{
+  if (lhs != rhs)
+  {
+    lhs = rhs;
+    return kind;
+  }
+  return Config::Deltas::None;
+}
 
-Config overground::appConfig;
+Config::Deltas Config::integrate(Config & rhs)
+{
+  Config::Deltas deltas = Config::Deltas::None;
+
+  deltas |= set(general.numWorkerThreads, rhs.general.numWorkerThreads, Config::Deltas::JobManagement);
+  deltas |= set(graphics.windowedMode, rhs.graphics.windowedMode, Config::Deltas::Window);
+  deltas |= set(graphics.width, rhs.graphics.width, Config::Deltas::Window);
+  deltas |= set(graphics.height, rhs.graphics.height, Config::Deltas::Window);
+  deltas |= set(graphics.extensions, rhs.graphics.extensions, Config::Deltas::Device);
+  deltas |= set(graphics.debugging, rhs.graphics.debugging, Config::Deltas::Device);
+
+  return deltas;
+}
+
+
+void Config::print(std::ostream & sout) const
+{
+  sout << "Config:" << endl
+       << "  general:" << endl
+       << "    numWorkerThreads: " << general.numWorkerThreads << endl
+       << "  graphics:" << endl
+       << "    windowedMode: " << (graphics.windowedMode ? "true" : "false") << endl
+       << "    width: " << graphics.width << endl
+       << "    height " << graphics.height << endl
+       << "    extensions: ";
+  for (auto & ext : graphics.extensions)
+    { sout << " " << ext; }
+  sout << endl 
+       << "    debugging: " << (graphics.debugging ? "true" : "false") << endl;
+}
+
+
+std::ostream & overground::operator << (std::ostream & stream, Config const & rhs)
+{
+  rhs.print(stream);
+  return stream;
+}

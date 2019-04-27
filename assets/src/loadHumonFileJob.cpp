@@ -21,6 +21,12 @@ void LoadHumonFileJob::setPath(std::string const & path)
 }
 
 
+void LoadHumonFileJob::setAssetPack(AssetPack * assets)
+{
+  this->assets = assets;
+}
+
+
 void LoadHumonFileJob::run_impl(JobManager * jobManager)
 {
   string strContent;
@@ -40,20 +46,21 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
     auto & rootDict = rootNode->asDict();
     if (rootDict.hasKey("config"))
     {
-      // There's just one config object.
-      appConfig.loadFromHumon(rootDict.at<humon::HuNode>("config"));
+      auto & config = assets->configs.emplace_back();
+      config.loadFromHumon(rootDict / "config");
     }
 
     // meshes models renderPasses materials shaders
     if (rootDict.hasKey("meshes"))
     {
-      auto & meshesDict = rootDict.at<humon::HuDict>("meshes");
+      auto & meshesDict = rootDict / "meshes";
       for (size_t i = 0; i < meshesDict.size(); ++i)
       {
         auto key = meshesDict.keyAt(i);
-        auto & mesh = Meshes.getOrCreate(key);
+        auto & mesh = assets->meshes.emplace_back();
+        mesh.setName(key);
         auto job = initMeshJobs.next();
-        job->reset(mesh, meshesDict.at(key));
+        job->reset(mesh, meshesDict / key);
 
         if (jobManager != nullptr)
           { jobManager->enqueueJob(job); }
@@ -64,13 +71,13 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
 
     if (rootDict.hasKey("models"))
     {
-      auto & modelsDict = rootDict.at<humon::HuDict>("models");
+      auto & modelsDict = rootDict / "models";
       for (size_t i = 0; i < modelsDict.size(); ++i)
       {
         auto key = modelsDict.keyAt(i);
-        auto & model = Models.getOrCreate(key);
+        auto & model = assets->models.emplace_back();
         auto job = initModelJobs.next();
-        job->reset(model, modelsDict.at(key));
+        job->reset(model, modelsDict / key);
 
         if (jobManager != nullptr)
           { jobManager->enqueueJob(job); }

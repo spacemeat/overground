@@ -15,19 +15,16 @@ void Model::loadFromHumon(HuNode const & src)
 {
   auto & configSrc = src.asDict();
 
-  if (configSrc.hasKey("meshName"))
+  if (src % "meshName")
   {
-    auto & val = configSrc.at<HuValue>("meshName");
-    meshName = val.getString();
+    auto & val = src / "meshName";
+    meshName = string(val);
   }
 
-  if (configSrc.hasKey("materialName"))
+  if (src % "materialName")
   {
-    auto & val = configSrc.at<HuValue>("materialName");
-    materialName = val.getString();
+    auto & val = configSrc / "materialName";
+    materialName = string(val);
   }
 }
-
-
-ObjectMap<Model> overground::Models;
 

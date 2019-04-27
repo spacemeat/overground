@@ -46,8 +46,6 @@ namespace overground
     unsigned int verticesMemSize = 0;
     unsigned int indicesMemSize = 0;
   };
-
-  extern ObjectMap<Mesh> Meshes;
 }
 
 #endif // #ifndef MESH_H
