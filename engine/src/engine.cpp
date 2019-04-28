@@ -54,12 +54,13 @@ void Engine::loadConfig()
       Config::Deltas::Device)
     { cout << " Device"; }
   cout << endl;
+
+  g.reset(config, diffs);
 }
 
 
 void Engine::createGraphics()
 {
-  
 }
 
 
@@ -77,23 +78,24 @@ void Engine::latchSceneDelta()
 
 void Engine::enterEventLoop()
 {
-  /*
   auto window = g.getMainWindow();
   if (window == nullptr)
     { return; }
 
   while( ! glfwWindowShouldClose(window))
   {
-      glfwPollEvents();
-      iterateGameLoop();
+    glfwPollEvents();
+    iterateGameLoop();
   }
 
-  g.waitForGraphicsOps();
-  */
+  // g.waitForGraphicsOps();
 }
 
 
 void Engine::iterateGameLoop()
 {
+  g.presentFrame();
+  g.drawFrame();
 
+  // animate, do other CPU-intensive stuff here
 }

@@ -17,8 +17,9 @@ latch scene
 while scene data is latched
   render frame n
     for each renderpass
-      for each pipeline
-        draw instances
+      for each subpass
+        for each pipeline
+          draw instances
   do animations for frame n + 1
     for each animated object
       animate()

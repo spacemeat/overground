@@ -3,7 +3,7 @@
 
 #include <string>
 #include "config.h"
-//#include "graphics.h"
+#include "graphics.h"
 
 namespace overground
 {
@@ -26,7 +26,7 @@ namespace overground
     std::string workingDir = "res";
     std::string configFile = "config.hu";
 
-  //  Graphics g;
+    Graphics g;
 
     Config config;
   };

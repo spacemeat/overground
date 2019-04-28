@@ -4,7 +4,7 @@
       numWorkerThreads: 4
     }
     graphics: {
-      windowMode: window
+      fullScreen: false
       width: 800
       height: 600
       extensions: []

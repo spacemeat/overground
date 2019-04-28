@@ -1,7 +1,7 @@
 #!/bin/bash
 
-INC_DIRS="-Iinc -I../inc -I../graphics/inc -I../assets/inc -I../pools/inc -I../jobs/inc -I../../humon/inc -I../../../balls/vulkan/1.1.77.0/x86_64/include"
-OBJ_FILES="../obj/engine-engine.o"
+INC_DIRS="-Iinc -I../inc -I../assets/inc -I../pools/inc -I../jobs/inc -I../../humon/inc -I../../../balls/vulkan/1.1.77.0/x86_64/include"
+OBJ_FILES="../obj/graphics-graphics.o"
 LIB_DIRS="-L../../../balls/vulkan/1.1.77.0/x86_64/lib -L../../humon/bin -L../bin"
 
 buildcpp() {
@@ -30,19 +30,19 @@ buildcpp() {
 
 buildlib() {
   echo "Building lib"
-  buildcpp src/engine.cpp ../obj/engine-engine.o || return $?
+  buildcpp src/graphics.cpp ../obj/graphics-graphics.o || return $?
 
-  if [ -f ../bin/libengine-d.a ]; then
-    rm ../bin/libengine-d.a
+  if [ -f ../bin/libgraphics-d.a ]; then
+    rm ../bin/libgraphics-d.a
   fi
-  ar cr -o ../bin/libengine-d.a $OBJ_FILES || return $?
+  ar cr -o ../bin/libgraphics-d.a $OBJ_FILES || return $?
   return 0
 }
 
 buildtest() {
   echo "Building test"
-  buildcpp src/test.cpp ../obj/engine-test.o || return $?
-  g++ --std=c++17 -Wall -g -Og -o ../bin/test-engine $LIB_DIRS -pthread ../obj/engine-test.o $OBJ_FILES -lgraphics-d -lengine-d -lassets-d -ljobs-d -lhumon-d -lvulkan `pkg-config --libs glfw3 --static` || return $?
+  buildcpp src/test.cpp ../obj/graphics-test.o || return $?
+  g++ --std=c++17 -Wall -g -Og -o ../bin/test-graphics $LIB_DIRS -pthread ../obj/graphics-test.o $OBJ_FILES -lgraphics-d -lassets-d -ljobs-d -lhumon-d -lvulkan `pkg-config --libs glfw3 --static`|| return $?
   return 0
 }
 

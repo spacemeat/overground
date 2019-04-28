@@ -18,15 +18,6 @@ namespace overground
       Device        = 1 << 2
     };
 
-    /*
-    Config();
-    ~Config();
-    Config(Config const & rhs);
-    Config(Config && rhs);
-    Config & operator =(Config const & rhs);
-    Config & operator =(Config && rhs);
-    */
-
     void setName(std::string const & name)
       { this->name = name; }
 
@@ -36,18 +27,19 @@ namespace overground
 
     void print(std::ostream & sout) const;
   
-  private:
+//  private:
     std::string name;
     struct General
     {
+      std::string programName;
       int numWorkerThreads;
     } general;
 
     struct Graphics
     {
-      bool windowedMode;
-      int width;
-      int height;
+      bool fullScreen;
+      unsigned int width;
+      unsigned int height;
       std::vector<std::string> extensions;
       bool debugging;
 //      int numGraphicsThreads;

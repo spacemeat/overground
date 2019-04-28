@@ -11,6 +11,11 @@ void Config::loadFromHumon(HuNode const & src)
   if (src % "general")
   {
     auto & generalSrc = src / "general";
+    if (generalSrc % "programName")
+    {
+      general.programName = string(generalSrc / "programName");
+    }
+
     if (generalSrc % "numWorkerThreads")
     {
       general.numWorkerThreads = generalSrc / "numWorkerThreads";
@@ -20,9 +25,9 @@ void Config::loadFromHumon(HuNode const & src)
   if (src % "graphics")
   {
     auto & graphicsSrc = src / "graphics";
-    if (graphicsSrc % "windowedMode")
+    if (graphicsSrc % "fullScreen")
     {
-      graphics.windowedMode = graphicsSrc / "windowedMode";
+      graphics.fullScreen = graphicsSrc / "fullScreen";
     }
 
     if (graphicsSrc % "width")
@@ -66,8 +71,9 @@ Config::Deltas Config::integrate(Config & rhs)
 {
   Config::Deltas deltas = Config::Deltas::None;
 
+  deltas |= set(general.programName, rhs.general.programName, Config::Deltas::Window);
   deltas |= set(general.numWorkerThreads, rhs.general.numWorkerThreads, Config::Deltas::JobManagement);
-  deltas |= set(graphics.windowedMode, rhs.graphics.windowedMode, Config::Deltas::Window);
+  deltas |= set(graphics.fullScreen, rhs.graphics.fullScreen, Config::Deltas::Window);
   deltas |= set(graphics.width, rhs.graphics.width, Config::Deltas::Window);
   deltas |= set(graphics.height, rhs.graphics.height, Config::Deltas::Window);
   deltas |= set(graphics.extensions, rhs.graphics.extensions, Config::Deltas::Device);
@@ -83,7 +89,7 @@ void Config::print(std::ostream & sout) const
        << "  general:" << endl
        << "    numWorkerThreads: " << general.numWorkerThreads << endl
        << "  graphics:" << endl
-       << "    windowedMode: " << (graphics.windowedMode ? "true" : "false") << endl
+       << "    fullScreen: " << (graphics.fullScreen ? "true" : "false") << endl
        << "    width: " << graphics.width << endl
        << "    height " << graphics.height << endl
        << "    extensions: ";
