@@ -6,10 +6,13 @@
 
 namespace overground
 {
+  class FileReference;
+
   class Model
   {
   public:
-    Model();
+    void setFileInfo(FileReference * newFileInfo);
+    FileReference * getFileInfo() { return fileInfo; }
 
     void loadFromHumon(humon::HuNode const & src);
 
@@ -25,6 +28,8 @@ namespace overground
     std::string const & getMaterialName() const { return materialName; }
 
   private:
+    FileReference * fileInfo;
+
     std::string name;
     std::string meshName;
     std::string materialName;

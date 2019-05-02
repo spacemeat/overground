@@ -1,3 +1,5 @@
+cd utils
+source do.sh buildtest
 cd jobs
 source do.sh buildtest
 cd ../assets

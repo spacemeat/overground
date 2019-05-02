@@ -18,10 +18,10 @@ Graphics::~Graphics()
 }
 
 
-void Graphics::reset(Config const & config, Config::Deltas deltas)
+void Graphics::reset(Config const & config)
 {
   if (mainWindow == nullptr || 
-    (deltas & Config::Deltas::Window) == Config::Deltas::Window)
+    (config.lastDiffs & Config::Deltas::Window) == Config::Deltas::Window)
   {
     if (mainWindow == nullptr)
       { createWindow(config); }
@@ -87,7 +87,11 @@ void Graphics::updateWindow(Config const & config)
         config.graphics.height != diHeight)
     {
       glfwSetWindowSize(mainWindow, config.graphics.width, config.graphics.height);
-      // store the requested size, so we don't keep reporting diffs when they don't change
+      // The resulting size may be different from the 
+      // requested size for any number of reasons. So we
+      // store the requested size instead of the actual
+      // size, so we don't keep reporting diffs when they 
+      // don't change. Know what I mean?
       diWidth = config.graphics.width;
       diHeight = config.graphics.height;
     }

@@ -11,6 +11,8 @@
 
 namespace overground
 {
+  class FileReference;
+
   struct Submesh
   {
     unsigned int indexBits = 16;
@@ -24,7 +26,8 @@ namespace overground
   class Mesh
   {
   public:
-    Mesh();
+    void setFileInfo(FileReference * newFileInfo);
+    FileReference * getFileInfo() { return fileInfo; }
 
     void loadFromHumon(humon::HuNode const & src);
 
@@ -32,6 +35,8 @@ namespace overground
       { this->name = name; }
 
   private:
+    FileReference * fileInfo;
+
     std::string name;
     std::vector<int8_t> binaryData;
 

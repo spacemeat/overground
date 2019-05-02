@@ -6,6 +6,7 @@
                 "~/src/balls/vulkan/1.1.77.0/x86_64/include",
                 "${workspaceFolder}/../humon/inc",
                 "${workspaceFolder}/inc",
+                "${workspaceFolder}/utils/inc",
                 "${workspaceFolder}/assets/inc",
                 "${workspaceFolder}/jobs/inc",
                 "${workspaceFolder}/pools/inc",

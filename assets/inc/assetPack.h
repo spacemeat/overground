@@ -2,6 +2,7 @@
 #define ASSET_PACK_H
 
 #include <vector>
+#include <atomic>
 #include "config.h"
 #include "material.h"
 #include "mesh.h"
@@ -14,6 +15,23 @@ namespace overground
   class AssetPack
   {
   public:
+    AssetPack();
+    AssetPack(AssetPack && rhs);
+
+    AssetPack & operator =(AssetPack && rhs);
+
+    bool hasUpdates() { return updated; }
+
+    void markUpdated() {
+      updated = true;
+    }
+
+    void clearUpdateMark() {
+      updated = false;
+    }
+
+    std::atomic<bool> updated = false;
+
     std::vector<Config> configs;
     std::vector<Material> materials;
     std::vector<Mesh> meshes;

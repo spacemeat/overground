@@ -1,13 +1,16 @@
 #include "model.h"
 #include "config.h"
+#include "fileRegistry.h"
 
 using namespace std;
 using namespace humon;
 using namespace overground;
 
 
-Model::Model()
-{
+void Model::setFileInfo(FileReference * newFileInfo)
+{ 
+  fileInfo = newFileInfo;
+  fileInfo->addRef();
 }
 
 

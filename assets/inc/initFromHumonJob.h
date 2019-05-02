@@ -6,6 +6,7 @@
 #include "humon.h"
 #include "pool.h"
 
+#include "config.h"
 #include "mesh.h"
 #include "model.h"
 #include "material.h"
@@ -53,9 +54,11 @@ namespace overground
   {
     // RuntimeType can impl loadFromHumon
     data->loadFromHumon(*humon);
+    data->getFileInfo()->getAssets()->markUpdated();
   }
 
 
+  extern JobPool<InitFromHumonJob<Config>> initConfigJobs;
   extern JobPool<InitFromHumonJob<Mesh>> initMeshJobs;
   extern JobPool<InitFromHumonJob<Model>> initModelJobs;
   extern JobPool<InitFromHumonJob<RenderPass>> initRenderPassJobs;

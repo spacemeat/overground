@@ -6,6 +6,7 @@ using namespace std;
 using namespace overground;
 
 
+// only useful if *this hasn't started the job yet; TODO: assert(state == JobState::idle)?
 void Job::waitFor(Job * dependency)
 {
   dependency->dependsOn(this);

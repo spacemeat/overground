@@ -3,14 +3,17 @@
 #include <numeric>
 #include "pool.h"
 #include "humon.h"
+#include "fileRegistry.h"
 
 using namespace std;
 using namespace humon;
 using namespace overground;
 
 
-Mesh::Mesh()
+void Mesh::setFileInfo(FileReference * newFileInfo)
 {
+  fileInfo = newFileInfo;
+  fileInfo->addRef();
 }
 
 

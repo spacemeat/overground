@@ -7,6 +7,8 @@
 
 namespace overground
 {
+  class FileReference;
+
   class Config
   {
   public:
@@ -18,16 +20,23 @@ namespace overground
       Device        = 1 << 2
     };
 
+    void setFileInfo(FileReference * newFileInfo);
+    FileReference * getFileInfo() { return fileInfo; }
+
     void setName(std::string const & name)
       { this->name = name; }
 
     void loadFromHumon(humon::HuNode const & src);
 
-    Deltas integrate(Config & rhs);
+    void integrate(Config const & rhs);
 
     void print(std::ostream & sout) const;
-  
-//  private:
+
+    // public members. TODO: better
+
+    FileReference * fileInfo;
+    Deltas lastDiffs = Deltas::None;
+
     std::string name;
     struct General
     {

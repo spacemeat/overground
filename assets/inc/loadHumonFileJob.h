@@ -8,25 +8,21 @@
 
 namespace overground
 {
+  class FileReference;
+  
   class LoadHumonFileJob : public Job
   {
   public:
     LoadHumonFileJob();
 
-    void setPath(std::string const & path);
-    void setAssetPack(AssetPack * assets);
-
-    std::string const & getPath() { return path; }
-    humon::nodePtr_t & getRootNode() { return rootNode; }
-    AssetPack * getAssetPack() { return assets; }
+    void reset(FileReference * fileInfo);
   
   protected:
     virtual void run_impl(JobManager * jobManager) override;
 
   private:
-    std::string path;
+    FileReference * fileInfo;
     humon::nodePtr_t rootNode;
-    AssetPack * assets;
   };
 
   extern JobPool<LoadHumonFileJob> loadHumonFileJobs;

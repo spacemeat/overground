@@ -18,7 +18,7 @@ namespace overground
 
     GLFWwindow * getMainWindow() { return mainWindow; }
 
-    void reset(Config const & config, Config::Deltas deltas);
+    void reset(Config const & config);
 //    void waitForGraphicsOps();
     void presentFrame();
     void drawFrame();
@@ -32,8 +32,8 @@ namespace overground
     
   private:
     GLFWwindow * mainWindow = nullptr;
-    uint32_t diWidth = 0;
-    uint32_t diHeight = 0;
+    uint32_t diWidth = 0;   // device-indep. units
+    uint32_t diHeight = 0;  // device-indep. units
     bool isFullScreen = false;
 
     bool isPhysicalDeviceLost = false;

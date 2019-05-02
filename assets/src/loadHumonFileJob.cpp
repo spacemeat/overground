@@ -5,6 +5,7 @@
 #include "config.h"
 #include "model.h"
 #include "mesh.h"
+#include "fileRegistry.h"
 
 using namespace std;
 using namespace overground;
@@ -15,15 +16,9 @@ LoadHumonFileJob::LoadHumonFileJob()
 }
 
 
-void LoadHumonFileJob::setPath(std::string const & path)
+void LoadHumonFileJob::reset(FileReference * fileInfo)
 {
-  this->path = path;
-}
-
-
-void LoadHumonFileJob::setAssetPack(AssetPack * assets)
-{
-  this->assets = assets;
+  this->fileInfo = fileInfo;
 }
 
 
@@ -31,7 +26,7 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
 {
   string strContent;
   {
-    auto ifs = ifstream(path);
+    auto ifs = ifstream(fileInfo->getPath());
     if (ifs.is_open())
     {
       strContent = string( (istreambuf_iterator<char>(ifs)),
@@ -46,8 +41,15 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
     auto & rootDict = rootNode->asDict();
     if (rootDict.hasKey("config"))
     {
-      auto & config = assets->configs.emplace_back();
-      config.loadFromHumon(rootDict / "config");
+      auto & config = fileInfo->getAssets()->configs.emplace_back();
+      config.setFileInfo(fileInfo);
+      auto job = initConfigJobs.next();
+      job->reset(config, rootDict / "config");
+
+      if (jobManager != nullptr)
+        { jobManager->enqueueJob(job); }
+      else
+        { job->run(); }
     }
 
     // meshes models renderPasses materials shaders
@@ -57,7 +59,8 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
       for (size_t i = 0; i < meshesDict.size(); ++i)
       {
         auto key = meshesDict.keyAt(i);
-        auto & mesh = assets->meshes.emplace_back();
+        auto & mesh = fileInfo->getAssets()->meshes.emplace_back();
+        mesh.setFileInfo(fileInfo);
         mesh.setName(key);
         auto job = initMeshJobs.next();
         job->reset(mesh, meshesDict / key);
@@ -75,7 +78,9 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
       for (size_t i = 0; i < modelsDict.size(); ++i)
       {
         auto key = modelsDict.keyAt(i);
-        auto & model = assets->models.emplace_back();
+        auto & model = fileInfo->getAssets()->models.emplace_back();
+        model.setFileInfo(fileInfo);
+        model.setName(key);
         auto job = initModelJobs.next();
         job->reset(model, modelsDict / key);
 

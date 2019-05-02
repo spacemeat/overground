@@ -1,9 +1,17 @@
 #include "config.h"
 #include "utils.h"
+#include "fileRegistry.h"
 
 using namespace std;
 using namespace humon;
 using namespace overground;
+
+
+void Config::setFileInfo(FileReference * newFileInfo)
+{
+  fileInfo = newFileInfo;
+  fileInfo->addRef();
+}
 
 
 void Config::loadFromHumon(HuNode const & src)
@@ -57,7 +65,7 @@ void Config::loadFromHumon(HuNode const & src)
 }
 
 template <class T>
-Config::Deltas set(T & lhs, T & rhs, Config::Deltas kind)
+Config::Deltas set(T & lhs, T const & rhs, Config::Deltas kind)
 {
   if (lhs != rhs)
   {
@@ -67,7 +75,7 @@ Config::Deltas set(T & lhs, T & rhs, Config::Deltas kind)
   return Config::Deltas::None;
 }
 
-Config::Deltas Config::integrate(Config & rhs)
+void Config::integrate(Config const & rhs)
 {
   Config::Deltas deltas = Config::Deltas::None;
 
@@ -79,7 +87,7 @@ Config::Deltas Config::integrate(Config & rhs)
   deltas |= set(graphics.extensions, rhs.graphics.extensions, Config::Deltas::Device);
   deltas |= set(graphics.debugging, rhs.graphics.debugging, Config::Deltas::Device);
 
-  return deltas;
+  lastDiffs = rhs.lastDiffs | deltas;
 }
 
 

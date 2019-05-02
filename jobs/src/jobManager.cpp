@@ -126,8 +126,10 @@ void JobManager::enqueueJob(Job * job)
 {
   job->setPending();
   
-  auto lock = lock_guard<mutex>(mxJobs);
-  jobs.push_back(job);
+  {
+    auto lock = lock_guard<mutex>(mxJobs);
+    jobs.push_back(job);
+  }
 
   // Check if any threads are asleep, and nudge one if so
   for (auto worker : workers)
@@ -182,7 +184,7 @@ void JobManager::workerDying(Worker * worker)
 Job * JobManager::dequeueJob()
 {
   auto lock = lock_guard<mutex>(mxJobs);
-  if (jobs.size() > 0)
+  if (jobs.size() != 0)
   {
     auto job = jobs.front();
     jobs.pop_front();
