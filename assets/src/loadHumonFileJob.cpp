@@ -24,16 +24,20 @@ void LoadHumonFileJob::reset(FileReference * fileInfo)
 
 void LoadHumonFileJob::run_impl(JobManager * jobManager)
 {
+  sout {} << "LoadHumonFileJob::run_impl()" << endl;
+
   string strContent;
   {
     auto ifs = ifstream(fileInfo->getPath());
     if (ifs.is_open())
     {
-      strContent = string( (istreambuf_iterator<char>(ifs)),
-                          (istreambuf_iterator<char>()));
-                // TODO: Try ifs.begin(), ifs.end()
+      strContent = string(
+        (istreambuf_iterator<char>(ifs)),
+        (istreambuf_iterator<char>()));
     }
   }
+
+  fileInfo->getAssets()->clearContents();
 
   rootNode = humon::fromString(strContent);
   if (rootNode->isDict())
@@ -52,7 +56,6 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
         { job->run(); }
     }
 
-    // meshes models renderPasses materials shaders
     if (rootDict.hasKey("meshes"))
     {
       auto & meshesDict = rootDict / "meshes";
@@ -90,6 +93,8 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
           { job->run(); }
       }
     }
+
+    // renderPasses materials shaders
   }
 }
 

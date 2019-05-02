@@ -28,11 +28,18 @@ Engine::~Engine()
 void Engine::init(int argc, char ** argv)
 {
   sout {} << "Engine::init()" << endl;
-
+  
+  startTime = chrono::high_resolution_clock::now();
+  systemTime = startTime;
+  currentTime_us = engineTimePoint {};
   files.addFile("./res", "config.hu", FileType::Humon);
 
+  // ScheduledEvents::CheckForFileUpdates
   eventPeriods.push_back(chrono::milliseconds{1000});
-  lastEventTimes.push_back(timePoint());
+  lastEventTimes.push_back(currentTime_us);
+  // ScheduledEvents::CheckForAssetUpdates
+  eventPeriods.push_back(chrono::milliseconds{1000});
+  lastEventTimes.push_back(currentTime_us);
 
   // load up the config file
   checkForFileUpdates(true);
@@ -45,42 +52,6 @@ void Engine::init(int argc, char ** argv)
 
 
 // ------------ process steps
-
-void Engine::loadConfig()
-{
-  /*
-  AssetPack ap;
-  auto lhfj = loadHumonFileJobs.next();
-  lhfj->reset(...);
-  lhfj->setPath(workingDir + pathSeparator + configFile);
-  lhfj->setAssetPack(& ap);
-  lhfj->run();
-
-  Config::Deltas diffs = Config::Deltas::None;
-  auto & newConfig = ap.configs.back();
-
-  {
-    lock_guard<mutex> lock(mx_config);
-    config.integrate(newConfig);  
-    diffs |= config.lastDiffs;
-    g.reset(config);
-  }
-
-  cout << "Config loaded:" << endl << newConfig << endl
-      << "Differences required: ";
-  if ((diffs & Config::Deltas::JobManagement) == 
-      Config::Deltas::JobManagement)
-    { cout << " JobManagement"; }
-  if ((diffs & Config::Deltas::Window) == 
-      Config::Deltas::Window)
-    { cout << " Window"; }
-  if ((diffs & Config::Deltas::Device) == 
-      Config::Deltas::Device)
-    { cout << " Device"; }
-  cout << endl;
-  */
-}
-
 
 void Engine::createGraphics()
 {
@@ -119,7 +90,7 @@ void Engine::enterEventLoop()
 
 void Engine::iterateGameLoop()
 {
-  sout {} << "Engine::iterateGameLoop()" << endl;
+  //sout {} << "Engine::iterateGameLoop()" << endl;
 
   updateTimer();
   g.presentFrame();
@@ -132,9 +103,18 @@ void Engine::iterateGameLoop()
 
 void Engine::updateTimer()
 {
-  previousTime = currentTime;
-  currentTime = chrono::high_resolution_clock::now();
-  frameTime_ms = currentTime - previousTime;
+  previousSystemTime = systemTime;
+  systemTime = chrono::high_resolution_clock::now();
+
+  frameTime_us = systemTime - previousSystemTime;
+  currentTime_us += frameTime_us;
+
+  /*
+  sout {} << "previousSystemTime: " << previousSystemTime.time_since_epoch().count() << endl
+          << "systemTime:         " << systemTime.time_since_epoch().count() << endl
+          << "frameTime_us:       " << frameTime_us.count() << endl
+          << "currentTime:        " << currentTime_us.time_since_epoch().count() << endl;
+  */
 }
 
 
@@ -143,13 +123,20 @@ void Engine::performScheduledEvents()
   // perform scheduled actions if any
   for (size_t i = 0; i < eventPeriods.size(); ++i)
   {
-    timeDuration since = currentTime - lastEventTimes[i];
+    engineTimeDuration since = currentTime_us - lastEventTimes[i];
     if (since >= eventPeriods[i])
     {
       lastEventTimes[i] += eventPeriods[i];
 
-      if (i == (size_t) ScheduledEvents::CheckForFileUpdates)
-        { checkForFileUpdates(false); }
+      switch ((ScheduledEvents) i)
+      {
+        case ScheduledEvents::CheckForFileUpdates:
+          checkForFileUpdates(false);
+          break;
+        case ScheduledEvents::CheckForAssetUpdates:
+          checkForAssetUpdates(false);
+          break;
+      }
     }
   }
 }
@@ -198,6 +185,25 @@ void Engine::checkForAssetUpdates(bool synchronous)
       {
         updateConfig(config);
       }
+      /*
+      for (auto & material : assets->materials)
+      { //...
+      }
+      for (auto & mesh : assets->meshes)
+      { //...
+      }
+      for (auto & model : assets->models)
+      { //...
+      }
+      for (auto & renderPass : assets->renderPasses)
+      { //...
+      }
+      for (auto & shader : assets->shaders)
+      { //...
+      }
+      */
+
+      assets->clearUpdateMark();
     }
   }
 }
@@ -219,18 +225,18 @@ void Engine::updateConfig(Config const & newConfig)
 
   jobManager.setNumWorkers(newConfig.general.numWorkerThreads);
 
-  cout << "Config loaded:" << endl << newConfig << endl
+  sout {} << "Config loaded:" << endl << newConfig << endl
       << "Differences required: ";
   if ((diffs & Config::Deltas::JobManagement) == 
       Config::Deltas::JobManagement)
-    { cout << " JobManagement"; }
+    { sout {} << " JobManagement"; }
   if ((diffs & Config::Deltas::Window) == 
       Config::Deltas::Window)
-    { cout << " Window"; }
+    { sout {} << " Window"; }
   if ((diffs & Config::Deltas::Device) == 
       Config::Deltas::Device)
-    { cout << " Device"; }
-  cout << endl;
+    { sout {} << " Device"; }
+  sout {} << endl;
 }
 
 

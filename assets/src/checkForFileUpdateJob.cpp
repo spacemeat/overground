@@ -23,16 +23,9 @@ void CheckForFileUpdateJob::reset(FileReference * fileInfo)
 
 void CheckForFileUpdateJob::run_impl(JobManager * jobManager)
 {
-  //  if file mtime > this->objectModTime
-  //    make AssetPack
-  //    make loadHumonFileJob
-  //    schedule the job
-  struct stat stats;
-  auto path = fileInfo->getPath();
-  if (stat(path.c_str(), & stats) != 0)
-    { throw runtime_error("Could not stat."); }
-  
-  if (stats.st_mtime < fileInfo->getModTime())
+  sout {} << "CheckForFileUpdateJob::run_impl()" << endl;
+
+  if (fileInfo->doesNeedUpdate())
   {
     auto job = loadHumonFileJobs.next();
     job->reset(fileInfo);

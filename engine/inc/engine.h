@@ -14,15 +14,22 @@ namespace overground
 {  
   enum class ScheduledEvents : size_t
   {
-    CheckForFileUpdates = 0
+    CheckForFileUpdates = 0,
+    CheckForAssetUpdates = 1,
   };
 
   class Engine
   {
   public:
-    using timeType = float;
-    using timeDuration = std::chrono::duration<timeType, std::milli>;
-    using timePoint = std::chrono::time_point<std::chrono::high_resolution_clock, timeDuration>;
+    using systemTimeDuration = std::chrono::high_resolution_clock::duration;
+    using systemTimePoint = std::chrono::high_resolution_clock::time_point;
+    
+//    std::chrono::time_point<std::chrono::high_resolution_clock, systemTimeDuration>;
+
+    using engineTimerType = double;
+    using engineTimeDuration = std::chrono::duration<engineTimerType, std::micro>;
+    using engineTimePoint = std::chrono::time_point<std::chrono::high_resolution_clock, engineTimeDuration>;
+
 
     Engine();
     ~Engine();
@@ -65,12 +72,15 @@ namespace overground
 
     JobManager jobManager;
 
-    timePoint previousTime;
-    timePoint currentTime;
-    timeDuration frameTime_ms;
+    systemTimePoint systemTime;
+    systemTimePoint previousSystemTime;
+    systemTimePoint startTime;
+    
+    engineTimeDuration frameTime_us;
+    engineTimePoint currentTime_us;
 
-    std::vector<timeDuration> eventPeriods;
-    std::vector<timePoint> lastEventTimes;
+    std::vector<engineTimeDuration> eventPeriods;
+    std::vector<engineTimePoint> lastEventTimes;
   };
 }
 

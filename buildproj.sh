@@ -45,8 +45,6 @@ fg() {
 
 
 runCommand() {
-#  local -n cmd=$1
-#  local cmds=${cmd[@]}
   fg "dk-gray" "$1"
   eval $1
   return $?

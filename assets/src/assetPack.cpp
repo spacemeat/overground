@@ -26,3 +26,14 @@ AssetPack & AssetPack::operator =(AssetPack && rhs)
   swap(*this, rhs);
   return *this;
 }
+
+
+void AssetPack::clearContents()
+{
+  configs.clear();
+  materials.clear();
+  meshes.clear();
+  models.clear();
+  renderPasses.clear();
+  shaders.clear();
+}

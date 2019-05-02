@@ -18,7 +18,7 @@ namespace overground
   class FileReference
   {
   public:
-    FileReference(std::string const & dir, std::string const & name, FileType type, time_t mTime);
+    FileReference(std::string const & dir, std::string const & name, FileType type);
     FileReference(FileReference && rhs);
 
     void addRef();
@@ -32,7 +32,12 @@ namespace overground
     int getRefCount() const { return refs; }
     AssetPack * getAssets() { return & assets; }
 
+    void forceUpdate();
+    bool doesNeedUpdate();
+
   private:
+    time_t getFileModeTime() const;
+
     std::string dir;
     std::string name;
     FileType type;

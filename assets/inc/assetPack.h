@@ -30,6 +30,8 @@ namespace overground
       updated = false;
     }
 
+    void clearContents();
+
     std::atomic<bool> updated = false;
 
     std::vector<Config> configs;

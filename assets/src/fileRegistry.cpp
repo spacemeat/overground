@@ -5,8 +5,9 @@ using namespace std;
 using namespace overground;
 
 
-FileReference::FileReference(string const & dir, string const & name, FileType type, time_t mTime)
-: dir(dir), name(name), type(type), modTime(mTime)
+FileReference::FileReference(string const & dir, string const & name, FileType type)
+: dir(dir), name(name), type(type), 
+  modTime(0)
 {
 }
 
@@ -40,14 +41,38 @@ string FileReference::getPath() const
 }
 
 
-FileReference * FileRegistry::addFile(string const & dir, string const & name, FileType type)
+void FileReference::forceUpdate()
+{
+  modTime = 0;
+}
+
+
+bool FileReference::doesNeedUpdate()
+{
+  auto newMtime = getFileModeTime();
+  if (newMtime != modTime)
+  {
+    modTime = newMtime;
+    return true;
+  }
+  return false;
+}
+
+
+time_t FileReference::getFileModeTime() const
 {
   struct stat stats;
   string path = dir + "/" + name; // TODO: path separator
   if (stat(path.c_str(), & stats) != 0)
     // TODO: Better codepath on fail
     { throw runtime_error("Could not stat."); }
-  
-  auto & fref = files.emplace_back(dir, name, type, stats.st_mtime);
+
+  return stats.st_mtime;
+}
+
+
+FileReference * FileRegistry::addFile(string const & dir, string const & name, FileType type)
+{  
+  auto & fref = files.emplace_back(dir, name, type);
   return & fref;
 }

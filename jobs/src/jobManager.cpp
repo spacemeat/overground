@@ -1,6 +1,7 @@
 #include "jobManager.h"
 #include "job.h"
 #include "worker.h"
+#include "utils.h"
 #include <thread>
 #include <cassert>
 #include <algorithm>
