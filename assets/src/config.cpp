@@ -24,6 +24,16 @@ void Config::loadFromHumon(HuNode const & src)
       general.programName = string(generalSrc / "programName");
     }
 
+    if (generalSrc % "version")
+    {
+      auto & ver = generalSrc / "version";
+      general.version = { 
+        ver / 0,
+        ver / 1,
+        ver / 2
+      };
+    }
+
     if (generalSrc % "numWorkerThreads")
     {
       general.numWorkerThreads = generalSrc / "numWorkerThreads";
@@ -48,6 +58,11 @@ void Config::loadFromHumon(HuNode const & src)
       graphics.height = graphicsSrc / "height";
     }
     
+    if (graphicsSrc % "validationEnabled")
+    {
+      graphics.validationEnabled = graphicsSrc / "validationEnabled";
+    }
+
     if (graphicsSrc % "extensions")
     {
       auto & listSrc = graphicsSrc / "extensions";
@@ -55,11 +70,6 @@ void Config::loadFromHumon(HuNode const & src)
       {
         graphics.extensions.push_back(listSrc / i);
       }
-    }
-
-    if (graphicsSrc % "debugging")
-    {
-      graphics.debugging = graphicsSrc / "debugging";
     }
   }
 }
@@ -84,8 +94,8 @@ void Config::integrate(Config const & rhs)
   deltas |= set(graphics.fullScreen, rhs.graphics.fullScreen, Config::Deltas::Window);
   deltas |= set(graphics.width, rhs.graphics.width, Config::Deltas::Window);
   deltas |= set(graphics.height, rhs.graphics.height, Config::Deltas::Window);
-  deltas |= set(graphics.extensions, rhs.graphics.extensions, Config::Deltas::Device);
-  deltas |= set(graphics.debugging, rhs.graphics.debugging, Config::Deltas::Device);
+  deltas |= set(graphics.validationEnabled, rhs.graphics.validationEnabled, Config::Deltas::VulkanInstance);
+  deltas |= set(graphics.extensions, rhs.graphics.extensions, Config::Deltas::VulkanInstance);
 
   lastDiffs = rhs.lastDiffs | deltas;
 }
@@ -100,11 +110,10 @@ void Config::print(std::ostream & sout) const
        << "    fullScreen: " << (graphics.fullScreen ? "true" : "false") << endl
        << "    width: " << graphics.width << endl
        << "    height " << graphics.height << endl
+       << "    validationEnabled" << (graphics.validationEnabled ? "true": "false") << endl
        << "    extensions: ";
   for (auto & ext : graphics.extensions)
     { sout << " " << ext; }
-  sout << endl 
-       << "    debugging: " << (graphics.debugging ? "true" : "false") << endl;
 }
 
 

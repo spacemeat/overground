@@ -20,7 +20,6 @@ JobManager::~JobManager()
 {
 }
 
-
 void JobManager::setNumWorkers(unsigned int numWorkers, Worker * callingWorker)
 {
   assert(numWorkers <= numCores * 8);
@@ -29,11 +28,12 @@ void JobManager::setNumWorkers(unsigned int numWorkers, Worker * callingWorker)
 
   if (numWorkersBefore < numWorkers)
   {
+    int nextWorkerId = 0;
+
     lock_guard lock(mx_workers);
     while (workers.size() < numWorkers)
-      { workers.emplace_back(new Worker(this)); }
-  }  
-
+      { workers.emplace_back(new Worker(this, nextWorkerId ++)); }
+  }
   else
   {
     for (int i = 0; i < (int) numWorkersBefore - (int) numWorkers; ++i)
@@ -95,8 +95,9 @@ void JobManager::stopWorkers()
 }
 
 
-void JobManager::join()
+void JobManager::stopAndJoin()
 {
+  stopWorkers();
   setNumWorkers(0);
 
   {
@@ -157,28 +158,16 @@ int JobManager::getNumJobsEnqueued()
 }
 
 
-void JobManager::workerDying(Worker * worker)
+void JobManager::workerDying(int workerId)
 {
-  for (auto it = workers.rbegin(); it != workers.rend(); ++it)
   {
-    if (* it == worker)
-    {
-      {
-        lock_guard lock(mx_workers);
-        workers.erase((it + 1).base());
-      }
-      // The Worker object has now been destroyed.
-      // The caller was a member fn of Worker, and this
-      // is the very last thing it's doing. THIS MUST
-      // ALWAYS BE THE CASE or I will find you and I will
-      // do things even Liam Neeson wouldn't do.
-
-      // Notify a new cv for anyone trying to join on this thread.
-      cv_join.notify_one();
-
-      break;
-    }
+    lock_guard lock(mx_workers);
+    auto itW = find_if(workers.begin(), workers.end(),
+      [&](Worker * w){ return w->getId() == workerId; });
+    workers.erase(itW);
   }
+
+  cv_join.notify_one();
 }
 
 

@@ -13,9 +13,11 @@ namespace overground
   class Worker
   {
   public:
-    Worker(JobManager * jobManager);
+    Worker(JobManager * jobManager, int workerId);
     Worker(Worker const & rhs);
     ~Worker();
+
+    int getId() { return id; }
 
     bool isAvailable() const { return available; }
 
@@ -32,6 +34,7 @@ namespace overground
     void threadFn();
 
     JobManager * jobManager = nullptr;
+    int id;
     bool available = true;
     bool running = false;
     bool dying = false;

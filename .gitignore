@@ -38,3 +38,6 @@ mmap_address.bin
 
 # Project-specific
 bin/*
+
+# cruft
+core

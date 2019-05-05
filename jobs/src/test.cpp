@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
   }
 
   scheduler.join();
-  jm.join();
+  jm.stopAndJoin();
 
   return 0;
 }

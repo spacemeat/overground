@@ -24,7 +24,7 @@ namespace overground
 
     void startWorkers();
     void stopWorkers();
-    void join();
+    void stopAndJoin();
 
     bool isRunning() { return running; }
     void enqueueJob(Job * job);
@@ -35,7 +35,7 @@ namespace overground
 
     // workers call these fns
     void jobDone() { ++ numJobsDone; }
-    void workerDying(Worker * worker);
+    void workerDying(int workerId);
     Job * dequeueJob();
 
   private:

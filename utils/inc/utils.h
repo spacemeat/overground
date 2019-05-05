@@ -8,6 +8,10 @@
 
 namespace overground
 {
+  using version_t = std::array<int, 3>;
+  constexpr auto engineName = "overground";
+  constexpr version_t engineVersion = { 0, 0, 0 };
+
   template <class EnumType,
     typename = std::enable_if_t<std::is_enum<EnumType>::value>> 
   inline EnumType operator ~(EnumType rhs)
@@ -63,27 +67,61 @@ namespace overground
     lhs = lhs ^ rhs;
     return lhs;
   }
+  
 
   class sout : public std::ostringstream
   {
   public:
-    sout() = default;
+    sout(bool doIt = true) : doIt(doIt) { }
     ~sout()
     {
-      try
+      if (doIt)
       {
-        std::lock_guard<std::mutex> lock(mx);
-        std::cout << this->str();
-      }
-      catch(const std::exception& e)
-      {
-        std::cerr << "Exception in ~sout(): " << e.what() << '\n';
+        try
+        {
+          std::lock_guard<std::mutex> lock(mx);
+          std::cout << this->str();
+          std::cout.flush();
+        }
+        catch(const std::exception& e)
+        {
+          std::cerr << "Exception in ~sout(): " << e.what() << '\n';
+        }
       }
     }
 
   private:
+    bool doIt;
     static std::mutex mx;
   };
+
+
+  class ss : public std::ostringstream
+  {
+  public:
+    struct endtoken { enum Value { }; };
+    static endtoken end;
+
+    ss() = default;
+    ~ss() = default;
+
+    operator char const *()
+    {
+      return str().c_str();
+    }
+  };
+
+  std::string operator << (std::ostream & lhs, ss::endtoken rhs);
+
+
+#define CHK(call) \
+  {  \
+    auto res = call;  \
+    if (res != vk::Result::eSuccess)  \
+    { throw std::runtime_error(ss {}  \
+      << #call << " failed: "  \
+      << ss::end); } \
+  }
 }
 
 #endif // #ifndef UTILS_H

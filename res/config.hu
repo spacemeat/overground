@@ -1,13 +1,17 @@
 {
   config: {
     general: {
-      numWorkerThreads: 4      //
+      programName: "OG Demo"
+      version: [0 0 0]
+      numWorkerThreads: 2
     }
     graphics: {
       fullScreen: false
       width: 600
-      height: 600
-      extensions: []
+      height: 800
+      extensions: [VK_EXT_debug_repot]
+      validationLayers: [VK_LAYER_LUNARG_standard_validation]
+      deviceExtensions: [VK_KHR_swapchain]
       debugger: true
       numGraphicsThreads: 4    
     }

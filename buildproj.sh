@@ -187,7 +187,7 @@ buildtest() {
   finalLibs="${allLibs[@]}"
 
   buildcpp src/test.cpp "../obj/${subProject}-test.o" allIncludes packageModules || return $?
-  runCommand "g++ $gccArgs -o $testFile $finalLibDirs -pthread ../obj/${subProject}-test.o $finalLibs $packageDefs" || return $?
+  runCommand "g++ $gccArgs -o $testFile $finalLibDirs -pthread ../obj/${subProject}-test.o -Wl,--start-group $finalLibs $packageDefs -Wl,--end-group" || return $?
   return 0
 }
 

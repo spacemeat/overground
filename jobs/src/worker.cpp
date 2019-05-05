@@ -1,3 +1,4 @@
+#include "utils.h"
 #include "worker.h"
 #include "job.h"
 #include "jobManager.h"
@@ -6,9 +7,13 @@ using namespace std;
 using namespace std::chrono_literals;
 using namespace overground;
 
+constexpr bool debugOut = true;
+constexpr bool spamOut = false;
 
-Worker::Worker(JobManager * jobManager)
+
+Worker::Worker(JobManager * jobManager, int workerId)
 : jobManager(jobManager),
+  id(workerId),
   thread([this]{ this->threadFn(); }),
   jobReadyWaitDuration(1ms)
 {
@@ -61,6 +66,7 @@ void Worker::stop()
 
 void Worker::die()
 {
+  sout { debugOut } << "....Worker " << id << " sentenced to death." << endl;
   dying = true;
   running = false;
   // don't even wait for the timeout; just die now pls
@@ -80,14 +86,22 @@ Job * Worker::getNextJob()
   Job * jayobee = nullptr;
   while (running && jayobee == nullptr)
   {
+    sout { spamOut } << "....Worker " << id << " trying to dequeue." << endl;
     jayobee = jobManager->dequeueJob();
     if (jayobee != nullptr)
-      { break; }
+    {
+      sout { debugOut } << "++++Worker " << id << " got a job." << endl;
+      break;
+    }
 
-    {  
+    sout { spamOut } << "....Worker " << id << " got no job, waiting for nudge or tineout." << endl;
+
+    {
       auto lock = unique_lock<mutex>(mx_jobReady);
       available = true;
       cv_jobReady.wait_for(lock, jobReadyWaitDuration);
+
+      sout { spamOut } << "....Worker " << id << " got nudged or timed out waiting." << endl;
     }
   }
 
@@ -98,29 +112,46 @@ Job * Worker::getNextJob()
 
 void Worker::threadFn()
 {
+  sout { debugOut } << "....Worker " << id << " thread start." << endl;
+  
   while (dying == false)
   {
     while (running == false && dying == false)
     {
+      sout { debugOut } << "....Worker " << id << " lock start mx." << endl;
       auto lock = unique_lock<mutex>(mx_start);
+
+      sout { debugOut } << "....Worker " << id << " wait for start notify." << endl;
       cv_start.wait(lock, [&]{ return running || dying; });
     }
 
     if (dying == false)
     {
+      sout { debugOut } << "....Worker " << id << " getting next job." << endl;
+
       Job * jayobee = getNextJob();
       if (jayobee != nullptr)
       {
+        sout { debugOut } << "++++Worker " << id << " running job." << endl;
         jayobee->run(jobManager);
+
+        sout { debugOut } << "++++Worker " << id << " did job." << endl;
         jobManager->jobDone();
       }
+      else
+      {
+        sout { debugOut } << "....Worker " << id << " bored, now." << endl;
+      }
+      
       // NOTE: Here we forget jayobee. Its lifetime has to
       // be managed elsewise.
     }
   }
 
+  sout { debugOut } << "....Worker " << id << " about to die." << endl;
+
   // Calling this results in the destructor being called.
   // DO NOTHING with *this after this call.
-  jobManager->workerDying(this);
+  jobManager->workerDying(id);
 }
 

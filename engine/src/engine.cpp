@@ -21,7 +21,14 @@ Engine::Engine()
 
 Engine::~Engine()
 {
-  
+  try
+  {
+    jobManager.stopAndJoin();
+  }
+  catch(const std::exception& e)
+  {
+    sout {} << "~Engine() threw: " << e.what() << endl;
+  }
 }
 
 
@@ -39,7 +46,7 @@ void Engine::init(int argc, char ** argv)
   lastEventTimes.push_back(currentTime_us);
   // ScheduledEvents::CheckForAssetUpdates
   eventPeriods.push_back(chrono::milliseconds{1000});
-  lastEventTimes.push_back(currentTime_us);
+  lastEventTimes.push_back(currentTime_us + chrono::milliseconds{500});
 
   // load up the config file
   checkForFileUpdates(true);
@@ -220,7 +227,7 @@ void Engine::updateConfig(Config const & newConfig)
     lock_guard<mutex> lock(mx_config);
     config.integrate(newConfig);  
     diffs |= config.lastDiffs;
-    g.reset(config);
+    g.reset(&config);
   }
 
   jobManager.setNumWorkers(newConfig.general.numWorkerThreads);
@@ -233,9 +240,15 @@ void Engine::updateConfig(Config const & newConfig)
   if ((diffs & Config::Deltas::Window) == 
       Config::Deltas::Window)
     { sout {} << " Window"; }
-  if ((diffs & Config::Deltas::Device) == 
-      Config::Deltas::Device)
-    { sout {} << " Device"; }
+  if ((diffs & Config::Deltas::VulkanInstance) == 
+      Config::Deltas::VulkanInstance)
+    { sout {} << " VulkanInstance"; }
+  if ((diffs & Config::Deltas::PhysicalDevice) == 
+      Config::Deltas::PhysicalDevice)
+    { sout {} << " PhysicalDevice"; }
+  if ((diffs & Config::Deltas::LogicalDevice) == 
+      Config::Deltas::LogicalDevice)
+    { sout {} << " LogicalDevice"; }
   sout {} << endl;
 }
 
