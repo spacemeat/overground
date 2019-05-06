@@ -32,6 +32,12 @@ void Graphics::reset(Config const * config)
     if ((bool) vulkanInstance == false ||
     (config->lastDiffs & Config::Deltas::VulkanInstance) != 0)
       { resetVulkanInstance(); }
+
+    if ((bool) physDev == false ||
+    (config->lastDiffs & Config::Deltas::PhysicalDevice) != 0)
+      { resetPhysicalDevice(); }
+
+    
   }
 }
 
@@ -100,29 +106,4 @@ bool Graphics::manageInvalidDevice()
   isSwapchainStale = false;
 
   return true;
-}
-
-
-
-void Graphics::createPhysicalDevice()
-{
-
-}
-
-
-void Graphics::destroyPhysicalDevice()
-{
-
-}
-
-
-void Graphics::createLogicalDevice()
-{
-
-}
-
-
-void Graphics::destroyLogicalDevice()
-{
-
 }

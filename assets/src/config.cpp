@@ -73,6 +73,15 @@ void Config::loadFromHumon(HuNode const & src)
       }
     }
 
+    if (graphicsSrc % "vulkanValidationReports")
+    {
+      auto & listSrc = graphicsSrc / "vulkanValidationReports";
+      for (size_t i = 0; i < listSrc.size(); ++i)
+      {
+        graphics.vulkanValidationReports.push_back(listSrc / i);
+      }
+    }
+
     if (graphicsSrc % "vulkanExtensions")
     {
       auto & listSrc = graphicsSrc / "vulkanExtensions";
@@ -124,6 +133,8 @@ void Config::integrate(Config const & rhs)
   
   deltas |= set(graphics.vulkanValidationLayers, rhs.graphics.vulkanValidationLayers, Config::Deltas::VulkanInstance);
 
+  deltas |= set(graphics.vulkanValidationReports, rhs.graphics.vulkanValidationReports, Config::Deltas::VulkanInstance);
+
   deltas |= set(graphics.vulkanExtensions, rhs.graphics.vulkanExtensions, Config::Deltas::VulkanInstance);
 
   deltas |= set(graphics.deviceExtensions, rhs.graphics.deviceExtensions, Config::Deltas::VulkanInstance);
@@ -144,6 +155,10 @@ void Config::print(std::ostream & sout) const
        << "    vulkanValidationEnabled: " << (graphics.vulkanValidationEnabled ? "true": "false") << endl
        << "    vulkanValidationLayers: ";
   for (auto & ext : graphics.vulkanValidationLayers)
+    { sout << " " << ext; }
+  sout << endl
+       << "    vulkanValidationReports: ";
+  for (auto & ext : graphics.vulkanValidationReports)
     { sout << " " << ext; }
   sout << endl
        << "    vulkanExtensions: ";

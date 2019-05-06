@@ -13,8 +13,10 @@
       debugger: true
       numGraphicsThreads: 4
       vulkanValidationEnabled: true
-      vulkanExtensions: []
       vulkanValidationLayers: [VK_LAYER_LUNARG_standard_validation]
+      vulkanValidationReports: [info warning perfWarning error debug]
+      vulkanExtensions: []
+      deviceExtensions: []
     }
   }
 }

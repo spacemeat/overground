@@ -23,6 +23,9 @@ namespace overground
     void drawFrame();
 
   private:
+    bool manageInvalidDevice();
+    
+    // window.cpp
     void createWindow();
     void updateWindow();
     void destroyWindow();
@@ -30,12 +33,13 @@ namespace overground
     // instance.cpp
     void resetVulkanInstance();
     void destroyVulkanInstance();
+    void resetVulkanDebugReporter();
+    void destroyVulkanDebugReporter();
     bool checkVulkanExtensionSupport();
     bool checkVulkanValidationLayerSupport();
 
-    bool manageInvalidDevice();
-    
-    void createPhysicalDevice();
+    // physDev.cpp
+    void resetPhysicalDevice();
     void destroyPhysicalDevice();
 
     void createLogicalDevice();
@@ -53,13 +57,13 @@ namespace overground
     bool isSwapchainStale = false;
 
     vk::Instance vulkanInstance;
-    VkDebugReportCallbackEXT debugCallback;
     std::vector<char const *> validationLayers;
     std::vector<char const *> extensions;
     std::vector<char const *> deviceExtensions;
-//    VkDebugReportCallbackEXT debugCallback;
+    VkDebugReportCallbackEXT debugCallback = nullptr;
 
-//    vk::PhysicalDevice vpd;
+
+    vk::PhysicalDevice physDev;
 //    vk::Device vd;
   };
 }

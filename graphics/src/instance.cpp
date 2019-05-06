@@ -71,15 +71,117 @@ void Graphics::resetVulkanInstance()
       CHK(vk::createInstance(& instInfo, nullptr,
         & vulkanInstance));
       sout {} << " -> Instance made." << endl;
+
+      // TODO: If using multiple devices, call
+//      VkInstance inst = vulkanInstance;
+      //vkExtInitInstance(inst);
+      // else, if using one device, call
+//      vkExtInitDevice(device); when we make the device. But does that mean we have to defer the debug reporter creation until then?
+      // endif
+
+      resetVulkanDebugReporter();
     }
   }
 }
 
 
+VKAPI_ATTR VkBool32 VKAPI_CALL validationReportCallackFn(
+    VkDebugReportFlagsEXT flags,
+    VkDebugReportObjectTypeEXT objType,
+    uint64_t obj,
+    size_t location,
+    int32_t code,
+    const char* layerPrefix,
+    const char* msg,
+    void* userData) {
+
+    cerr << "validation layer: " << msg << std::endl;
+
+    return VK_FALSE;
+}
+
+
 void Graphics::destroyVulkanInstance()
 {
+  destroyVulkanDebugReporter();
+
   if ((bool) vulkanInstance == true)
     { vulkanInstance.destroy(nullptr); }
+}
+
+/*
+PFN_vkCreateDebugReportCallbackEXT fpCreateDebugReportCallbackEXT = &vkCreateDebugReportCallbackEXT_loader;
+
+VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugReportCallbackEXT(	VkInstance instance,
+	const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
+	const VkAllocationCallbacks* pAllocator,
+VkDebugReportCallbackEXT* pCallback)
+{
+  return fpCreateDebugReportCallbackEXT( instance, pCreateInfo, pAllocator, pCallback );
+
+}*/
+
+
+void Graphics::resetVulkanDebugReporter()
+{
+  if (debugCallback != nullptr)
+  {
+    destroyVulkanDebugReporter();
+  }
+
+  if (config->graphics.vulkanValidationEnabled)
+  {
+    vk::DebugReportFlagsEXT flags = 
+      (vk::DebugReportFlagBitsEXT) 0;
+    for (auto report : config->graphics.vulkanValidationReports)
+    {
+      if (report == "info")
+        { flags |= vk::DebugReportFlagBitsEXT::eInformation; }
+      if (report == "warning")
+        { flags |= vk::DebugReportFlagBitsEXT::eWarning; }
+      if (report == "perfWarning")
+        { flags |= vk::DebugReportFlagBitsEXT::ePerformanceWarning; }
+      if (report == "error")
+        { flags |= vk::DebugReportFlagBitsEXT::eError; }
+      if (report == "debug")
+        { flags |= vk::DebugReportFlagBitsEXT::eDebug; }
+    }
+
+    vk::DebugReportCallbackCreateInfoEXT cbi;
+    cbi.flags = flags;
+    cbi.pfnCallback = validationReportCallackFn;
+
+    auto callbackMaker =
+      (PFN_vkCreateDebugReportCallbackEXT)
+      vkGetInstanceProcAddr(vulkanInstance, 
+        "vkCreateDebugReportCallbackEXT");
+
+    if (callbackMaker)
+    {
+      callbackMaker(vulkanInstance, 
+        reinterpret_cast<const 
+          VkDebugReportCallbackCreateInfoEXT *>
+        (& cbi), nullptr, & debugCallback);
+    }
+  }
+}
+
+
+void Graphics::destroyVulkanDebugReporter()
+{
+  if (debugCallback == nullptr)
+  { return; }
+
+  auto callbackKiller = 
+    (PFN_vkDestroyDebugReportCallbackEXT)
+    vkGetInstanceProcAddr(vulkanInstance, 
+      "vkDestroyDebugReportCallbackEXT");
+
+  if (callbackKiller)
+  {
+    callbackKiller(vulkanInstance, 
+      debugCallback, nullptr);
+  }
 }
 
 

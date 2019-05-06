@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
+
 namespace overground
 {
   inline uint32_t makeVulkanVersion(version_t const & rhs)

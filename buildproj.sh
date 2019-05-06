@@ -12,7 +12,7 @@ fg() {
       sel="0;31" ;;
     "dk-green" )
       sel="0;32" ;;
-    "orange" )
+    "dk-yellow" )
       sel="0;33" ;;
     "dk-blue" )
       sel="0;34" ;;
@@ -28,7 +28,7 @@ fg() {
       sel="1;31" ;;
     "lt-green" )
       sel="1;32" ;;
-    "yellow" )
+    "lt-yellow" )
       sel="1;33" ;;
     "lt-blue" )
       sel="1;34" ;;
@@ -56,7 +56,7 @@ buildcpp() {
   local doto=$2
   local -n incDirs=$3
   local -n pack=$4
-  fg "yellow" "Building $dotcpp:"
+  fg "dk-yellow" "Compiling source $dotcpp:"
 
   if [ ! -e $dotcpp ]; then
     echo "Error: File does not exist: \n$dotcpp"
@@ -99,7 +99,7 @@ buildlib() {
   local dotoFiles=()
   local libFile="../bin/lib${subProject}-d.a"
 
-  fg "lt-blue" "Building $libFile"
+  fg "lt-blue" "Building library $libFile"
 
   local allIncludes=()
   for inc in ${addInc[@]}; do
@@ -117,7 +117,8 @@ buildlib() {
     buildcpp $dotcpp $doto allIncludes packageModules || return $?
     dotoFiles+=($doto)
   done
-  
+
+  fg "dk-yellow" "Archiving objects"  
   if [ -f $libFile ]; then
     rm $libFile
   fi
@@ -144,7 +145,7 @@ buildtest() {
   local libFile="../bin/lib${subProject}-d.a"
   local testFile="../bin/test-${subProject}"
 
-  fg "lt-magenta" "Building $testFile"
+  fg "lt-blue" "Building executable $testFile"
 
   local allIncludes=()
   for inc in ${addInc[@]}; do
@@ -187,7 +188,10 @@ buildtest() {
   finalLibs="${allLibs[@]}"
 
   buildcpp src/test.cpp "../obj/${subProject}-test.o" allIncludes packageModules || return $?
-  runCommand "g++ $gccArgs -o $testFile $finalLibDirs -pthread ../obj/${subProject}-test.o -Wl,--start-group $finalLibs $packageDefs -Wl,--end-group" || return $?
+
+  fg "dk-yellow" "Linking objects"
+
+  runCommand "g++ $gccArgs -o $testFile $finalLibDirs -pthread -Wl,--start-group ../obj/${subProject}-test.o $finalLibs $packageDefs -Wl,--end-group" || return $?
   return 0
 }
 

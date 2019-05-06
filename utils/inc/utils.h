@@ -32,7 +32,7 @@ namespace overground
   inline EnumType operator ~(NumType rhs)
   {
     return ~ static_cast<EnumType>(rhs);
-  }
+  } 
 
   // &
   template <class EnumType,

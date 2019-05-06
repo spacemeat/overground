@@ -56,6 +56,7 @@ namespace overground
       unsigned int height;
       bool vulkanValidationEnabled;
       std::vector<std::string> vulkanValidationLayers;
+      std::vector<std::string> vulkanValidationReports;
       std::vector<std::string> vulkanExtensions;
       std::vector<std::string> deviceExtensions;
 //      int numGraphicsThreads;
