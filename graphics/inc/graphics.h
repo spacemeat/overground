@@ -25,14 +25,14 @@ namespace overground
     void updateWindow();
     void destroyWindow();
 
+    // instance.cpp
+    void resetVulkanInstance();
+    void destroyVulkanInstance();
+    bool checkVulkanExtensionSupport();
+    bool checkVulkanValidationLayerSupport();
+
     bool manageInvalidDevice();
     
-    // instance.cpp
-    void createVulkanInstance();
-    void destroyVulkanInstance();
-    bool checkExtensionSupport();
-    bool checkValidationLayerSupport();
-
     void createPhysicalDevice();
     void destroyPhysicalDevice();
 

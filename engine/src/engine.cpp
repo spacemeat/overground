@@ -60,11 +60,6 @@ void Engine::init(int argc, char ** argv)
 
 // ------------ process steps
 
-void Engine::createGraphics()
-{
-}
-
-
 void Engine::loadScene()
 {
   
@@ -81,7 +76,7 @@ void Engine::enterEventLoop()
 {
   sout {} << "Engine::enterEventLoop()" << endl;
 
-  auto window = g.getMainWindow();
+  auto window = graphics.getMainWindow();
   if (window == nullptr)
     { return; }
 
@@ -100,8 +95,8 @@ void Engine::iterateGameLoop()
   //sout {} << "Engine::iterateGameLoop()" << endl;
 
   updateTimer();
-  g.presentFrame();
-  g.drawFrame();  
+  graphics.presentFrame();
+  graphics.drawFrame();  
 
   performScheduledEvents();
   // animate, do other CPU-intensive stuff here
@@ -227,7 +222,7 @@ void Engine::updateConfig(Config const & newConfig)
     lock_guard<mutex> lock(mx_config);
     config.integrate(newConfig);  
     diffs |= config.lastDiffs;
-    g.reset(&config);
+    graphics.reset(& config);
   }
 
   jobManager.setNumWorkers(newConfig.general.numWorkerThreads);

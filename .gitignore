@@ -31,7 +31,6 @@
 *.out
 *.app
 
-
 # VS Code
 *.ipch
 mmap_address.bin

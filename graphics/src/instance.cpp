@@ -4,7 +4,7 @@ using namespace std;
 using namespace overground;
 
 
-void Graphics::createVulkanInstance()
+void Graphics::resetVulkanInstance()
 {
   if ((bool) vulkanInstance == true)
   {
@@ -19,30 +19,47 @@ void Graphics::createVulkanInstance()
   appInfo.apiVersion = VK_API_VERSION_1_0;
 
   uint32_t glfwExtensionCount = 0;
-  const char ** glfwExtensions;
-  glfwExtensions = glfwGetRequiredInstanceExtensions(& glfwExtensionCount);
 
-  extensions.insert(extensions.end(),
-  glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-  if (config->graphics.validationEnabled)
+  if (config->graphics.isConfigured)
   {
-    extensions.push_back("VK_EXT_debug_repot");
-    validationLayers.push_back("VK_LAYER_LUNARG_standard_validation");
+    const char ** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(& glfwExtensionCount);
+
+    extensions.insert(extensions.end(),
+    glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+    if (config->graphics.vulkanValidationEnabled)
+    {
+      extensions.push_back("VK_EXT_debug_report");
+    }
   }
 
-  if (checkExtensionSupport() &&
-      checkValidationLayerSupport())
+  sout {} << "Making Vulkan instance:" << endl;
+  for (auto & ext : extensions)
+    { sout {} << " -> Requesting extension " << ext << endl; }
+  
+  if (config->graphics.vulkanValidationEnabled)
   {
-    auto instInfo = vk::InstanceCreateInfo();
-    instInfo.pApplicationInfo = & appInfo;
-    instInfo.enabledExtensionCount = extensions.size();
-    instInfo.ppEnabledExtensionNames = extensions.data();
-    instInfo.enabledLayerCount = validationLayers.size();
-    instInfo.ppEnabledLayerNames = validationLayers.data();
+    for (auto & val : validationLayers)
+      { sout {} << " -> Requesting layer " << val << endl; }
+  }
 
-    CHK(vk::createInstance(& instInfo, nullptr,
-      & vulkanInstance));
+  if (checkVulkanExtensionSupport())
+  {
+    if (config->graphics.vulkanValidationEnabled == false || 
+        checkVulkanValidationLayerSupport())
+    {
+      auto instInfo = vk::InstanceCreateInfo();
+      instInfo.pApplicationInfo = & appInfo;
+      instInfo.enabledExtensionCount = extensions.size();
+      instInfo.ppEnabledExtensionNames = extensions.data();
+      instInfo.enabledLayerCount = validationLayers.size();
+      instInfo.ppEnabledLayerNames = validationLayers.data();
+
+      CHK(vk::createInstance(& instInfo, nullptr,
+        & vulkanInstance));
+      sout {} << " -> Instance made." << endl;
+    }
   }
 }
 
@@ -54,7 +71,7 @@ void Graphics::destroyVulkanInstance()
 }
 
 
-bool Graphics::checkExtensionSupport()
+bool Graphics::checkVulkanExtensionSupport()
 {
   auto && availableExtensionProps = vk::enumerateInstanceExtensionProperties();
 
@@ -83,7 +100,7 @@ bool Graphics::checkExtensionSupport()
 }
 
 
-bool Graphics::checkValidationLayerSupport()
+bool Graphics::checkVulkanValidationLayerSupport()
 {
   auto && availableLayerProps = vk::enumerateInstanceLayerProperties();
 

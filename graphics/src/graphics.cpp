@@ -14,7 +14,6 @@ Graphics::Graphics()
 Graphics::~Graphics()
 {
   // TODO: big stuff
-  destroyVulkanInstance();
   destroyWindow();
 }
 
@@ -23,7 +22,7 @@ void Graphics::reset(Config const * config)
 {
   this->config = config;
   if (mainWindow == nullptr || 
-    (config->lastDiffs & Config::Deltas::Window) == Config::Deltas::Window)
+    (config->lastDiffs & Config::Deltas::Window) != (Config::Deltas) 0)
   {
     if (mainWindow == nullptr)
       { createWindow(); }
@@ -31,10 +30,8 @@ void Graphics::reset(Config const * config)
       { updateWindow(); }
     
     if ((bool) vulkanInstance == false ||
-    (config->lastDiffs & Config::Deltas::VulkanInstance) == Config::Deltas::VulkanInstance)
-    {
-      createVulkanInstance();
-    }
+    (config->lastDiffs & Config::Deltas::VulkanInstance) != 0)
+      { resetVulkanInstance(); }
   }
 }
 

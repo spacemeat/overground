@@ -30,7 +30,6 @@ namespace overground
     using engineTimeDuration = std::chrono::duration<engineTimerType, std::micro>;
     using engineTimePoint = std::chrono::time_point<std::chrono::high_resolution_clock, engineTimeDuration>;
 
-
     Engine();
     ~Engine();
 
@@ -39,8 +38,7 @@ namespace overground
     // private
 
     // process steps
-    void loadConfig();
-    void createGraphics();
+    void resetVulkanInstance();
     void loadScene();
     void latchSceneDelta();
     void enterEventLoop();
@@ -68,7 +66,7 @@ namespace overground
     Config config;
     std::mutex mx_config;
 
-    Graphics g;
+    Graphics graphics;
 
     JobManager jobManager;
 

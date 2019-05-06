@@ -8,12 +8,13 @@
     graphics: {
       fullScreen: false
       width: 600
-      height: 800
-      extensions: [VK_EXT_debug_repot]
-      validationLayers: [VK_LAYER_LUNARG_standard_validation]
+      height: 600
       deviceExtensions: [VK_KHR_swapchain]
       debugger: true
-      numGraphicsThreads: 4    
+      numGraphicsThreads: 4
+      vulkanValidationEnabled: true
+      vulkanExtensions: []
+      vulkanValidationLayers: [VK_LAYER_LUNARG_standard_validation]
     }
   }
 }

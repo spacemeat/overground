@@ -12,62 +12,181 @@ namespace overground
   constexpr auto engineName = "overground";
   constexpr version_t engineVersion = { 0, 0, 0 };
 
+  // Enum class bitwise ops
+  // ~
   template <class EnumType,
-    typename = std::enable_if_t<std::is_enum<EnumType>::value>> 
+    typename = std::enable_if_t
+    < std::is_enum<EnumType>::value> > 
   inline EnumType operator ~(EnumType rhs)
   {
     using UT = std::underlying_type_t<EnumType>;
     return static_cast<EnumType>(~ static_cast<UT>(rhs));
   }
 
+  template <class EnumType, class NumType,
+    typename = std::enable_if_t
+    <
+      std::is_enum<EnumType>::value &&
+      std::is_integral<NumType>::value
+    >>
+  inline EnumType operator ~(NumType rhs)
+  {
+    return ~ static_cast<EnumType>(rhs);
+  }
+
+  // &
   template <class EnumType,
-    typename = std::enable_if_t<std::is_enum<EnumType>::value>> 
+    typename = std::enable_if_t
+    < std::is_enum<EnumType>::value> > 
   inline EnumType operator & (EnumType lhs, EnumType rhs)
   {
     using UT = std::underlying_type_t<EnumType>;
     return static_cast<EnumType>(static_cast<UT>(lhs) & static_cast<UT>(rhs));
   }
 
+  template <class EnumType, class NumType,
+    typename = std::enable_if_t
+    <
+      std::is_enum<EnumType>::value &&
+      std::is_integral<NumType>::value
+    >>
+  inline EnumType operator & (EnumType lhs, NumType rhs)
+  {
+    return lhs & static_cast<EnumType>(rhs);
+  }
+
+  // |
   template <class EnumType,
-    typename = std::enable_if_t<std::is_enum<EnumType>::value>> 
+    typename = std::enable_if_t
+    < std::is_enum<EnumType>::value> > 
   inline EnumType operator | (EnumType lhs, EnumType rhs)
   {
     using UT = std::underlying_type_t<EnumType>;
     return static_cast<EnumType>(static_cast<UT>(lhs) | static_cast<UT>(rhs));
   }
 
+  template <class EnumType, class NumType,
+    typename = std::enable_if_t
+    <
+      std::is_enum<EnumType>::value &&
+      std::is_integral<NumType>::value
+    >>
+  inline EnumType operator | (EnumType lhs, NumType rhs)
+  {
+    return lhs | static_cast<EnumType>(rhs);
+  }
+
+  // ^
   template <class EnumType,
-    typename = std::enable_if_t<std::is_enum<EnumType>::value>> 
+    typename = std::enable_if_t
+    < std::is_enum<EnumType>::value> > 
   inline EnumType operator ^ (EnumType lhs, EnumType rhs)
   {
     using UT = std::underlying_type_t<EnumType>;
     return static_cast<EnumType>(static_cast<UT>(lhs) ^ static_cast<UT>(rhs));
   }
 
+  template <class EnumType, class NumType,
+    typename = std::enable_if_t
+    <
+      std::is_enum<EnumType>::value &&
+      std::is_integral<NumType>::value
+    >>
+  inline EnumType operator ^ (EnumType lhs, NumType rhs)
+  {
+    return lhs ^ static_cast<EnumType>(rhs);
+  }
+
+  // ==
+  template <class EnumType, class NumType,
+    typename = std::enable_if_t
+    <
+      std::is_enum<EnumType>::value &&
+      std::is_integral<NumType>::value
+    >>
+  inline bool operator == (EnumType lhs, NumType rhs)
+  {
+    return lhs == static_cast<EnumType>(rhs);
+  }
+
+  // !=
+  template <class EnumType, class NumType,
+    typename = std::enable_if_t
+    <
+      std::is_enum<EnumType>::value &&
+      std::is_integral<NumType>::value
+    >>
+  inline bool operator != (EnumType lhs, NumType rhs)
+  {
+    return lhs != static_cast<EnumType>(rhs);
+  }
+
+  // &=
   template <class EnumType,
-    typename = std::enable_if_t<std::is_enum<EnumType>::value>> 
+    typename = std::enable_if_t
+    < std::is_enum<EnumType>::value> > 
   inline EnumType & operator &= (EnumType & lhs, EnumType rhs)
   {
     lhs = lhs & rhs;
     return lhs;
   }
 
+  template <class EnumType, class NumType,
+    typename = std::enable_if_t
+    <
+      std::is_enum<EnumType>::value &&
+      std::is_integral<NumType>::value
+    >>
+  inline EnumType & operator &= (EnumType & lhs, NumType rhs)
+  {
+    lhs = lhs & rhs;
+    return lhs;
+  }
+
+  // |=
   template <class EnumType,
-    typename = std::enable_if_t<std::is_enum<EnumType>::value>> 
+    typename = std::enable_if_t
+    < std::is_enum<EnumType>::value> > 
   inline EnumType & operator |= (EnumType & lhs, EnumType rhs)
   {
     lhs = lhs | rhs;
     return lhs;
   }
 
+  template <class EnumType, class NumType,
+    typename = std::enable_if_t
+    <
+      std::is_enum<EnumType>::value &&
+      std::is_integral<NumType>::value
+    >>
+  inline EnumType & operator |= (EnumType & lhs, NumType rhs)
+  {
+    lhs = lhs | rhs;
+    return lhs;
+  }
+
+  // ^=
   template <class EnumType,
-    typename = std::enable_if_t<std::is_enum<EnumType>::value>> 
+    typename = std::enable_if_t
+    < std::is_enum<EnumType>::value> > 
   inline EnumType & operator ^= (EnumType & lhs, EnumType rhs)
   {
     lhs = lhs ^ rhs;
     return lhs;
   }
-  
+
+  template <class EnumType, class NumType,
+    typename = std::enable_if_t
+    <
+      std::is_enum<EnumType>::value &&
+      std::is_integral<NumType>::value
+    >>
+  inline EnumType & operator ^= (EnumType & lhs, NumType rhs)
+  {
+    lhs = lhs ^ rhs;
+    return lhs;
+  }
+
 
   class sout : public std::ostringstream
   {

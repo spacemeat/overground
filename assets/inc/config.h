@@ -50,13 +50,14 @@ namespace overground
 
     struct Graphics
     {
+      bool isConfigured = false;
       bool fullScreen;
       unsigned int width;
       unsigned int height;
-      bool validationEnabled;
-      std::vector<std::string> extensions;
+      bool vulkanValidationEnabled;
+      std::vector<std::string> vulkanValidationLayers;
+      std::vector<std::string> vulkanExtensions;
       std::vector<std::string> deviceExtensions;
-      std::vector<std::string> validationLayers;
 //      int numGraphicsThreads;
     } graphics;
 
