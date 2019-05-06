@@ -36,6 +36,13 @@ void Graphics::reset(Config const * config)
 }
 
 
+void Graphics::shutDown()
+{
+  //...
+  destroyVulkanInstance();
+}
+
+
 void Graphics::presentFrame()
 {
   // present frame n-1

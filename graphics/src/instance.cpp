@@ -40,21 +40,33 @@ void Graphics::resetVulkanInstance()
   
   if (config->graphics.vulkanValidationEnabled)
   {
-    for (auto & val : validationLayers)
-      { sout {} << " -> Requesting layer " << val << endl; }
+    for (auto & val : config->graphics.vulkanValidationLayers)
+    {
+      sout {} << " -> Requesting layer " << val << endl;
+      validationLayers.push_back(val.c_str());
+    }
   }
 
   if (checkVulkanExtensionSupport())
   {
-    if (config->graphics.vulkanValidationEnabled == false || 
+    bool validating = config->graphics.vulkanValidationEnabled;
+    if (validating == false || 
         checkVulkanValidationLayerSupport())
     {
       auto instInfo = vk::InstanceCreateInfo();
       instInfo.pApplicationInfo = & appInfo;
       instInfo.enabledExtensionCount = extensions.size();
       instInfo.ppEnabledExtensionNames = extensions.data();
-      instInfo.enabledLayerCount = validationLayers.size();
-      instInfo.ppEnabledLayerNames = validationLayers.data();
+      if (validating)
+      {
+        instInfo.enabledLayerCount = validationLayers.size();
+        instInfo.ppEnabledLayerNames = validationLayers.data();
+      }
+      else
+      {
+        instInfo.enabledLayerCount = 0;
+        instInfo.ppEnabledLayerNames = nullptr;
+      }
 
       CHK(vk::createInstance(& instInfo, nullptr,
         & vulkanInstance));

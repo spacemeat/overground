@@ -58,6 +58,12 @@ void Engine::init(int argc, char ** argv)
 }
 
 
+void Engine::shutDown()
+{
+  graphics.shutDown();
+}
+
+
 // ------------ process steps
 
 void Engine::loadScene()
@@ -227,24 +233,25 @@ void Engine::updateConfig(Config const & newConfig)
 
   jobManager.setNumWorkers(newConfig.general.numWorkerThreads);
 
-  sout {} << "Config loaded:" << endl << newConfig << endl
+  sout so {};
+  so  << "Config loaded:" << endl << newConfig << endl
       << "Differences required: ";
   if ((diffs & Config::Deltas::JobManagement) == 
       Config::Deltas::JobManagement)
-    { sout {} << " JobManagement"; }
+    { so << " JobManagement"; }
   if ((diffs & Config::Deltas::Window) == 
       Config::Deltas::Window)
-    { sout {} << " Window"; }
+    { so << " Window"; }
   if ((diffs & Config::Deltas::VulkanInstance) == 
       Config::Deltas::VulkanInstance)
-    { sout {} << " VulkanInstance"; }
+    { so << " VulkanInstance"; }
   if ((diffs & Config::Deltas::PhysicalDevice) == 
       Config::Deltas::PhysicalDevice)
-    { sout {} << " PhysicalDevice"; }
+    { so << " PhysicalDevice"; }
   if ((diffs & Config::Deltas::LogicalDevice) == 
       Config::Deltas::LogicalDevice)
-    { sout {} << " LogicalDevice"; }
-  sout {} << endl;
+    { so << " LogicalDevice"; }
+  so << endl;
 }
 
 

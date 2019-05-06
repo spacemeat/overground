@@ -34,6 +34,7 @@ namespace overground
     ~Engine();
 
     void init(int argc, char ** argv);
+    void shutDown();
 
     // private
 

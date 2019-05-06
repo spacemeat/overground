@@ -17,6 +17,8 @@ namespace overground
 
     void reset(Config const * config);
 //    void waitForGraphicsOps();
+    void shutDown();
+
     void presentFrame();
     void drawFrame();
 

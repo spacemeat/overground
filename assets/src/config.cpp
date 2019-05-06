@@ -59,23 +59,23 @@ void Config::loadFromHumon(HuNode const & src)
       graphics.height = graphicsSrc / "height";
     }
     
-    if (graphicsSrc % "validationEnabled")
+    if (graphicsSrc % "vulkanValidationEnabled")
     {
-      graphics.vulkanValidationEnabled = graphicsSrc / "validationEnabled";
+      graphics.vulkanValidationEnabled = graphicsSrc / "vulkanValidationEnabled";
     }
 
-    if (graphicsSrc % "validationLayers")
+    if (graphicsSrc % "vulkanValidationLayers")
     {
-      auto & listSrc = graphicsSrc / "validationLayers";
+      auto & listSrc = graphicsSrc / "vulkanValidationLayers";
       for (size_t i = 0; i < listSrc.size(); ++i)
       {
         graphics.vulkanValidationLayers.push_back(listSrc / i);
       }
     }
 
-    if (graphicsSrc % "extensions")
+    if (graphicsSrc % "vulkanExtensions")
     {
-      auto & listSrc = graphicsSrc / "extensions";
+      auto & listSrc = graphicsSrc / "vulkanExtensions";
       for (size_t i = 0; i < listSrc.size(); ++i)
       {
         graphics.vulkanExtensions.push_back(listSrc / i);
@@ -114,6 +114,12 @@ void Config::integrate(Config const & rhs)
 
   deltas |= set(graphics.isConfigured, rhs.graphics.isConfigured, Config::Deltas::VulkanInstance);
 
+  deltas |= set(graphics.fullScreen, rhs.graphics.fullScreen, Config::Deltas::Window);
+  
+  deltas |= set(graphics.width, rhs.graphics.width, Config::Deltas::Window);
+  
+  deltas |= set(graphics.height, rhs.graphics.height, Config::Deltas::Window);
+
   deltas |= set(graphics.vulkanValidationEnabled, rhs.graphics.vulkanValidationEnabled, Config::Deltas::VulkanInstance);
   
   deltas |= set(graphics.vulkanValidationLayers, rhs.graphics.vulkanValidationLayers, Config::Deltas::VulkanInstance);
@@ -122,12 +128,6 @@ void Config::integrate(Config const & rhs)
 
   deltas |= set(graphics.deviceExtensions, rhs.graphics.deviceExtensions, Config::Deltas::VulkanInstance);
   
-  deltas |= set(graphics.fullScreen, rhs.graphics.fullScreen, Config::Deltas::Window);
-  
-  deltas |= set(graphics.width, rhs.graphics.width, Config::Deltas::Window);
-  
-  deltas |= set(graphics.height, rhs.graphics.height, Config::Deltas::Window);
-
   lastDiffs = rhs.lastDiffs | deltas;
 }
 
@@ -141,13 +141,19 @@ void Config::print(std::ostream & sout) const
        << "    fullScreen: " << (graphics.fullScreen ? "true" : "false") << endl
        << "    width: " << graphics.width << endl
        << "    height " << graphics.height << endl
-       << "    validationEnabled" << (graphics.vulkanValidationEnabled ? "true": "false") << endl
+       << "    vulkanValidationEnabled: " << (graphics.vulkanValidationEnabled ? "true": "false") << endl
        << "    vulkanValidationLayers: ";
   for (auto & ext : graphics.vulkanValidationLayers)
     { sout << " " << ext; }
-  sout << "    extensions: ";
+  sout << endl
+       << "    vulkanExtensions: ";
   for (auto & ext : graphics.vulkanExtensions)
     { sout << " " << ext; }
+  sout << endl
+       << "    deviceExtensions: ";
+  for (auto & ext : graphics.deviceExtensions)
+    { sout << " " << ext; }
+  sout << endl;
 }
 
 
