@@ -37,6 +37,7 @@ mmap_address.bin
 
 # Project-specific
 bin/*
+graveyard/*
 
 # cruft
 core
