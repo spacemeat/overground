@@ -8,9 +8,6 @@ using namespace overground;
 
 void Graphics::resetPhysicalDevice()
 {
-  if (physicalDevice)
-    { destroyPhysicalDevice(); }
-
   graphicsQueueFamilyIndex = -1;
   computeQueueFamilyIndex = -1;
   transferQueueFamilyIndex = -1;
