@@ -33,7 +33,7 @@ void Graphics::reset(Config const * config)
     (config->lastDiffs & Config::Deltas::VulkanInstance) != 0)
       { resetVulkanInstance(); }
 
-    if ((bool) physDev == false ||
+    if ((bool) physicalDevice == false ||
     (config->lastDiffs & Config::Deltas::PhysicalDevice) != 0)
       { resetPhysicalDevice(); }
 

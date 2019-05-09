@@ -51,6 +51,7 @@ namespace overground
     struct Graphics
     {
       bool isConfigured = false;
+      bool headless;
       bool fullScreen;
       unsigned int width;
       unsigned int height;
@@ -59,7 +60,13 @@ namespace overground
       std::vector<std::string> vulkanValidationReports;
       std::vector<std::string> vulkanExtensions;
       std::vector<std::string> deviceExtensions;
-//      int numGraphicsThreads;
+      unsigned int minGraphicsQueues;
+      unsigned int desiredGraphicsQueues;
+      unsigned int minComputeQueues;
+      unsigned int desiredComputeQueues;
+      unsigned int minTransferQueues;
+      unsigned int desiredTransferQueues;
+
     } graphics;
 
   };

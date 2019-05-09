@@ -80,6 +80,7 @@ void Graphics::resetVulkanInstance()
       // endif
 
       resetVulkanDebugReporter();
+      resetSurface();
     }
   }
 }
@@ -240,4 +241,21 @@ bool Graphics::checkVulkanValidationLayerSupport()
   }
 
   return allGood;
+}
+
+
+void Graphics::resetSurface()
+{
+  VkSurfaceKHR surfaceC;
+
+  if (glfwCreateWindowSurface(vulkanInstance, mainWindow, nullptr, & surfaceC) != VK_SUCCESS)
+  { throw std::runtime_error("failed to create window surface."); }
+
+  surface = vk::SurfaceKHR(surfaceC);
+}
+
+
+void Graphics::destroySurface()
+{
+  vulkanInstance.destroySurfaceKHR(surface, nullptr);
 }

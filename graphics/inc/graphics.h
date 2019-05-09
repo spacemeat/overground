@@ -9,6 +9,8 @@ namespace overground
 {
   class Graphics
   {
+    struct fitness_t { int g = 0; int c = 0; int t = 0; int p = 0; };
+
   public:
     Graphics();
     ~Graphics();
@@ -37,10 +39,12 @@ namespace overground
     void destroyVulkanDebugReporter();
     bool checkVulkanExtensionSupport();
     bool checkVulkanValidationLayerSupport();
+    void resetSurface();
+    void destroySurface();
 
     // physDev.cpp
     void resetPhysicalDevice();
-    void destroyPhysicalDevice();
+    void reportPhysicalDevice(vk::PhysicalDevice const & physDev, std::vector<fitness_t> const & queueFamFitnesses, fitness_t const & deviceFitness, int featureScore, int deviceScore, std::ostream & out);
 
     void createLogicalDevice();
     void destroyLogicalDevice();
@@ -61,9 +65,18 @@ namespace overground
     std::vector<char const *> extensions;
     std::vector<char const *> deviceExtensions;
     VkDebugReportCallbackEXT debugCallback = nullptr;
+    vk::SurfaceKHR surface;
 
+    vk::PhysicalDevice physicalDevice;
+    int graphicsQueueFamilyIndex = -1;
+    int computeQueueFamilyIndex = -1;
+    int transferQueueFamilyIndex = -1;
+    int presentationQueueFamilyIndex = -1;
 
-    vk::PhysicalDevice physDev;
+    vk::SurfaceCapabilitiesKHR swapChainSurfaceCaps;
+    std::vector<vk::SurfaceFormatKHR> swapChainSurfaceFormats;
+    std::vector<vk::PresentModeKHR> swapChainPresentModes;
+
 //    vk::Device vd;
   };
 }

@@ -228,30 +228,33 @@ void Engine::updateConfig(Config const & newConfig)
     lock_guard<mutex> lock(mx_config);
     config.integrate(newConfig);  
     diffs |= config.lastDiffs;
+
+    {
+      sout so {};
+      so  << "Config loaded:" << endl << newConfig << endl
+          << "Differences required: ";
+      if ((diffs & Config::Deltas::JobManagement) == 
+          Config::Deltas::JobManagement)
+        { so << " JobManagement"; }
+      if ((diffs & Config::Deltas::Window) == 
+          Config::Deltas::Window)
+        { so << " Window"; }
+      if ((diffs & Config::Deltas::VulkanInstance) == 
+          Config::Deltas::VulkanInstance)
+        { so << " VulkanInstance"; }
+      if ((diffs & Config::Deltas::PhysicalDevice) == 
+          Config::Deltas::PhysicalDevice)
+        { so << " PhysicalDevice"; }
+      if ((diffs & Config::Deltas::LogicalDevice) == 
+          Config::Deltas::LogicalDevice)
+        { so << " LogicalDevice"; }
+      so << endl;
+    }
+
     graphics.reset(& config);
   }
 
   jobManager.setNumWorkers(newConfig.general.numWorkerThreads);
-
-  sout so {};
-  so  << "Config loaded:" << endl << newConfig << endl
-      << "Differences required: ";
-  if ((diffs & Config::Deltas::JobManagement) == 
-      Config::Deltas::JobManagement)
-    { so << " JobManagement"; }
-  if ((diffs & Config::Deltas::Window) == 
-      Config::Deltas::Window)
-    { so << " Window"; }
-  if ((diffs & Config::Deltas::VulkanInstance) == 
-      Config::Deltas::VulkanInstance)
-    { so << " VulkanInstance"; }
-  if ((diffs & Config::Deltas::PhysicalDevice) == 
-      Config::Deltas::PhysicalDevice)
-    { so << " PhysicalDevice"; }
-  if ((diffs & Config::Deltas::LogicalDevice) == 
-      Config::Deltas::LogicalDevice)
-    { so << " LogicalDevice"; }
-  so << endl;
 }
 
 

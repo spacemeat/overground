@@ -6,17 +6,23 @@
       numWorkerThreads: 2
     }
     graphics: {
+      headless: false
       fullScreen: false
       width: 600
       height: 600
       deviceExtensions: [VK_KHR_swapchain]
       debugger: true
-      numGraphicsThreads: 4
       vulkanValidationEnabled: true
       vulkanValidationLayers: [VK_LAYER_LUNARG_standard_validation]
       vulkanValidationReports: [info warning perfWarning error debug]
       vulkanExtensions: []
       deviceExtensions: []
+      minGraphicsQueues: 1
+      desiredGraphicsQueues: 2
+      minComputeQueues: 1
+      desiredComputeQueues: 2
+      minTransferQueues: 1
+      desiredTransferQueues: 2
     }
   }
 }
