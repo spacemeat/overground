@@ -23,6 +23,8 @@
       desiredComputeQueues: 2
       minTransferQueues: 1
       desiredTransferQueues: 2
+      minDeviceFeatures: [ samplerAnisotropy ]
+      desiredDeviceFeatures: [ geometryShader ]
     }
   }
 }

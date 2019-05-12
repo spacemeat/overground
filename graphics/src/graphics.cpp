@@ -13,7 +13,6 @@ Graphics::Graphics()
 
 Graphics::~Graphics()
 {
-  // TODO: big stuff
   destroyWindow();
 }
 
@@ -37,7 +36,9 @@ void Graphics::reset(Config const * config)
     (config->lastDiffs & Config::Deltas::PhysicalDevice) != 0)
       { resetPhysicalDevice(); }
 
-    
+    if ((bool) vulkanDevice == false ||
+    (config->lastDiffs & Config::Deltas::LogicalDevice) != 0)
+      { resetLogicalDevice(); }
   }
 }
 
@@ -45,6 +46,7 @@ void Graphics::reset(Config const * config)
 void Graphics::shutDown()
 {
   //...
+  destroyLogicalDevice();
   destroyVulkanInstance();
 }
 

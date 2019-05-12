@@ -66,7 +66,9 @@ namespace overground
       unsigned int desiredComputeQueues;
       unsigned int minTransferQueues;
       unsigned int desiredTransferQueues;
-
+      std::vector<std::string> minDeviceFeatures;
+      std::vector<std::string>
+      desiredDeviceFeatures;
     } graphics;
 
   };

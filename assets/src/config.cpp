@@ -102,6 +102,20 @@ void Config::loadFromHumon(HuNode const & src)
     if (graphicsSrc % "desiredTransferQueues")
       { graphics.desiredTransferQueues = graphicsSrc / 
         "desiredTransferQueues"; }
+  
+    if (graphicsSrc % "minDeviceFeatures")
+    {
+      auto & listSrc = graphicsSrc / "minDeviceFeatures";
+      for (size_t i = 0; i < listSrc.size(); ++i)
+        { graphics.minDeviceFeatures.push_back(listSrc / i); }
+    }
+
+    if (graphicsSrc % "desiredDeviceFeatures")
+    {
+      auto & listSrc = graphicsSrc / "desiredDeviceFeatures";
+      for (size_t i = 0; i < listSrc.size(); ++i)
+        { graphics.desiredDeviceFeatures.push_back(listSrc / i); }
+    }
   }
 }
 
@@ -156,6 +170,10 @@ void Config::integrate(Config const & rhs)
   
   deltas |= set(graphics.desiredTransferQueues, rhs.graphics.desiredTransferQueues, Config::Deltas::PhysicalDevice);
 
+  deltas |= set(graphics.minDeviceFeatures, rhs.graphics.minDeviceFeatures, Config::Deltas::PhysicalDevice);
+
+  deltas |= set(graphics.desiredDeviceFeatures, rhs.graphics.desiredDeviceFeatures, Config::Deltas::LogicalDevice);
+  
   lastDiffs = rhs.lastDiffs | deltas;
 }
 
@@ -193,7 +211,16 @@ void Config::print(std::ostream & sout) const
        << "    desiredComputeQueues " << graphics.desiredComputeQueues << endl
        << "    minTransferQueues " << graphics.minTransferQueues << endl
        << "    desiredTransferQueues " << graphics.desiredTransferQueues << endl
-       << endl;
+       << "    minDeviceFeatures: ";
+  for (auto & ext : graphics.minDeviceFeatures)
+    { sout << " " << ext; }
+
+  sout << endl
+       << "    desiredDeviceFeatures: ";
+  for (auto & ext : graphics.desiredDeviceFeatures)
+    { sout << " " << ext; }
+
+  sout << endl;
 }
 
 

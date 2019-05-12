@@ -3,13 +3,32 @@
 
 #include "graphicsUtils.h"
 #include <string>
+#include <set>
 #include "config.h"
 
 namespace overground
 {
   class Graphics
   {
-    struct fitness_t { int g = 0; int c = 0; int t = 0; int p = 0; };
+    struct fitness_t
+    { 
+      int g = 0; int c = 0;
+      int t = 0; int p = 0;
+    };
+
+    struct deviceFitness_t
+    {
+      std::vector<fitness_t> queueFamilyFitness;
+      std::vector<fitness_t> queueCountsAllowed;
+      fitness_t deviceQueueFitness;
+      fitness_t bestQueueIndices = { -1, -1, -1, -1};
+      fitness_t queueCounts;
+      int featureScore = 1;
+      int finalDeviceScore = 0;
+      std::vector<std::string> unsupportedMinFeatures;
+      std::vector<std::string>
+      unsupportedDesiredFeatures;
+    };
 
   public:
     Graphics();
@@ -44,10 +63,13 @@ namespace overground
 
     // physDev.cpp
     void resetPhysicalDevice();
-    void reportPhysicalDevice(vk::PhysicalDevice const & physDev, std::vector<fitness_t> const & queueFamFitnesses, fitness_t const & deviceFitness, int featureScore, int deviceScore, std::ostream & out);
+    void reportPhysicalDevice(vk::PhysicalDevice device, deviceFitness_t const & fitness, std::ostream & out);
+    bool computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFitness_t & pdf);
 
-    void createLogicalDevice();
+    // device.cpp
+    void resetLogicalDevice();
     void destroyLogicalDevice();
+    void prepareQueues();
     
   private:
     Config const * config;
@@ -67,6 +89,8 @@ namespace overground
     VkDebugReportCallbackEXT debugCallback = nullptr;
     vk::SurfaceKHR surface;
 
+    std::vector<deviceFitness_t> physicalDeviceFitness;
+    int physicalDeviceIndex = -1;
     vk::PhysicalDevice physicalDevice;
     int graphicsQueueFamilyIndex = -1;
     int computeQueueFamilyIndex = -1;
@@ -76,6 +100,18 @@ namespace overground
     vk::SurfaceCapabilitiesKHR swapChainSurfaceCaps;
     std::vector<vk::SurfaceFormatKHR> swapChainSurfaceFormats;
     std::vector<vk::PresentModeKHR> swapChainPresentModes;
+
+    vk::PhysicalDeviceFeatures usedFeatures;
+    std::set<uint32_t> uniqueFamilyIndices;
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+
+    vk::Device vulkanDevice;
+
+    std::vector<std::vector<vk::Queue>> queues;
+    std::vector<vk::Queue *> gQueues;
+    std::vector<vk::Queue *> cQueues;
+    std::vector<vk::Queue *> tQueues;
+    vk::Queue * pQueue;
 
 //    vk::Device vd;
   };

@@ -76,6 +76,7 @@ buildcpp() {
       done
       packageDefs="`pkg-config --cflags ${packageDefs[@]}`"
     fi
+    rm $doto
     runCommand "g++ $gccArgs -c -o $doto $dotcpp $incD $packageDefs"
     return $?
   else

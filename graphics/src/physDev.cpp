@@ -59,27 +59,20 @@ void Graphics::resetPhysicalDevice()
     select device with best .final    
   */
 
-  vector<vector<fitness_t>> qff;  // queue family fitness
-  vector<fitness_t> df;           // device fitness
-  vector<fitness_t> bests;        // doesn't store scores, but indices
-  vector<int> featureScores;
-  vector<int> finalDeviceScores;
-
   sout ss {};
   for (size_t devIdx = 0; devIdx < devices.size(); ++ devIdx)
   {
     auto & device = devices[devIdx];
-    qff.emplace_back();
-    df.emplace_back();
-    bests.emplace_back(fitness_t {-1, -1, -1, -1});
-    featureScores.emplace_back(1);
+    auto & pdf = physicalDeviceFitness.emplace_back();
+
     size_t tqCount = 0;
 
     auto && qfps = device.getQueueFamilyProperties();
     for (size_t qfIdx = 0; qfIdx < qfps.size(); ++ qfIdx)
     {
       auto & qfp = qfps[qfIdx];
-      auto & fit = qff.back().emplace_back();
+      auto & fit = pdf.queueFamilyFitness.emplace_back();
+      auto & qca = pdf.queueCountsAllowed.emplace_back();
 
       // get presentation ability
       bool canPresent = device.getSurfaceSupportKHR(qfIdx, surface);
@@ -89,6 +82,7 @@ void Graphics::resetPhysicalDevice()
       {
         if (qfp.queueCount >= config->graphics.minGraphicsQueues)
         {
+          qca.g = min(qfp.queueCount, config->graphics.desiredGraphicsQueues);
           fit.g = 100;
           if (qfp.queueCount < config->graphics.desiredGraphicsQueues)
           {
@@ -105,6 +99,7 @@ void Graphics::resetPhysicalDevice()
       {
         if (qfp.queueCount >= config->graphics.minComputeQueues)
         {
+          qca.c = min(qfp.queueCount, config->graphics.desiredComputeQueues);
           fit.c = 100;
           if (qfp.queueCount < config->graphics.desiredComputeQueues)
           {
@@ -123,6 +118,7 @@ void Graphics::resetPhysicalDevice()
         fit.t = 90;
         if (qfp.queueCount < config->graphics.desiredTransferQueues)
         {
+          qca.t = min(qfp.queueCount, config->graphics.desiredTransferQueues);  // these are available, but used only after those from dedicated transfer queues.
           fit.t -= min(config->graphics.desiredTransferQueues - qfp.queueCount, 50u);
         }
 
@@ -144,24 +140,30 @@ void Graphics::resetPhysicalDevice()
       {
         fit.t = 100;
         tqCount += qfp.queueCount;
+        qca.t = min(qfp.queueCount, config->graphics.desiredTransferQueues);
 
         if (canPresent)
           { fit.p = max(fit.p, 70); }
       }
     }
 
-    auto bestG = max_element(qff[devIdx].begin(), qff[devIdx].end(), 
+    auto & qff = pdf.queueFamilyFitness;
+    auto & qca = pdf.queueCountsAllowed;
+    auto & dqf = pdf.deviceQueueFitness;
+    auto & bqi = pdf.bestQueueIndices;
+
+    auto bestG = max_element(qff.begin(), qff.end(), 
       [](auto lhs, auto rhs) { return lhs.g < rhs.g; });
-    auto bestC = max_element(qff[devIdx].begin(), qff[devIdx].end(),
+    auto bestC = max_element(qff.begin(), qff.end(),
       [](auto lhs, auto rhs) { return lhs.c < rhs.c; });
-    auto bestT = max_element(qff[devIdx].begin(), qff[devIdx].end(),
+    auto bestT = max_element(qff.begin(), qff.end(),
       [](auto lhs, auto rhs) { return lhs.t < rhs.t; });
-    auto bestP = max_element(qff[devIdx].begin(), qff[devIdx].end(),
+    auto bestP = max_element(qff.begin(), qff.end(),
       [](auto lhs, auto rhs) { return lhs.p < rhs.p; });
-    df[devIdx].g = bestG->g;
-    df[devIdx].c = bestC->c;
-    df[devIdx].t = bestT->t;
-    df[devIdx].p = bestP->p;
+    dqf.g = bestG->g;
+    dqf.c = bestC->c;
+    dqf.t = bestT->t;
+    dqf.p = bestP->p;
 
     bool usingGraphics = config->graphics.desiredGraphicsQueues > 0;
     bool usingCompute = config->graphics.desiredComputeQueues > 0;
@@ -169,21 +171,26 @@ void Graphics::resetPhysicalDevice()
     bool usingPresentation = config->graphics.headless == false;
 
     if (usingGraphics)
-      { bests[devIdx].g = distance(qff[devIdx].begin(), bestG); }
+      { bqi.g = distance(qff.begin(), bestG); }
     if (usingCompute)
-      { bests[devIdx].c = distance(qff[devIdx].begin(), bestC); }
+      { bqi.c = distance(qff.begin(), bestC); }
     if (usingTransfer)
-      { bests[devIdx].t = distance(qff[devIdx].begin(), bestT); }
+      { bqi.t = distance(qff.begin(), bestT); }
     if (usingPresentation)
-      { bests[devIdx].p = distance(qff[devIdx].begin(), bestP); }
+      { bqi.p = distance(qff.begin(), bestP); }
 
-    df[devIdx].g = max(df[devIdx].g, usingGraphics ? 0 : 1);
-    df[devIdx].c = max(df[devIdx].c, usingCompute ? 0 : 1);
-    df[devIdx].t = max(df[devIdx].t, usingTransfer ? 0 : 1);
-    df[devIdx].p = max(df[devIdx].p, usingPresentation ? 0 : 1);
+    dqf.g = max(dqf.g, usingGraphics ? 0 : 1);
+    dqf.c = max(dqf.c, usingCompute ? 0 : 1);
+    dqf.t = max(dqf.t, usingTransfer ? 0 : 1);
+    dqf.p = max(dqf.p, usingPresentation ? 0 : 1);
+
+    pdf.queueCounts.g = qca[bqi.g].g;
+    pdf.queueCounts.c = qca[bqi.c].c;
+    pdf.queueCounts.t = qca[bqi.t].t;
+    pdf.queueCounts.p = 1;
 
     if (tqCount < config->graphics.minTransferQueues)
-      { df[devIdx].t = 0; }
+      { dqf.t = 0; }
 
     // TODO: next scores: device extension support, swap chain stuff, required features
     auto deviceExtensions = set<string>(config->graphics.deviceExtensions.begin(), config->graphics.deviceExtensions.end());
@@ -196,7 +203,7 @@ void Graphics::resetPhysicalDevice()
       auto it = find_if(deps.begin(), deps.end(),
         [&](auto ext) { return ext.extensionName == devExt; });
       if (it == deps.end())
-        { featureScores[devIdx] = 0; }
+        { pdf.featureScore = 0; }
     }
 
     swapChainSurfaceCaps = device.getSurfaceCapabilitiesKHR(surface);
@@ -204,38 +211,44 @@ void Graphics::resetPhysicalDevice()
     swapChainPresentModes = device.getSurfacePresentModesKHR(surface);
 
     if (swapChainSurfaceFormats.empty())
-      { featureScores[devIdx] = 0; }
+      { pdf.featureScore = 0; }
 
     if (swapChainPresentModes.empty())
-      { featureScores[devIdx] = 0; }
+      { pdf.featureScore = 0; }
 
     // TODO: supported features can be checked here.
     // auto supportedFeatures = device.getFeatures();
+    if (computePhysicalDeviceFeatures(device, pdf) == false)
+      { pdf.featureScore = 0; }
     
-    finalDeviceScores.push_back(df[devIdx].g * df[devIdx].c * df[devIdx].t * df[devIdx].p * featureScores[devIdx]);
+    pdf.finalDeviceScore = dqf.g * dqf.c * dqf.t * dqf.p * pdf.featureScore;
 
-    reportPhysicalDevice(device, qff[devIdx], df[devIdx], featureScores[devIdx], finalDeviceScores[devIdx], ss);
+    reportPhysicalDevice(device, pdf, ss);
   }
 
   auto selectedPhysDev = max_element(
-    finalDeviceScores.begin(), finalDeviceScores.end());
+    physicalDeviceFitness.begin(), physicalDeviceFitness.end(),
+    [](auto & lhs, auto & rhs)
+      { return lhs.finalDeviceScore < rhs.finalDeviceScore; });
 
-  auto deviceIdx = distance(finalDeviceScores.begin(), selectedPhysDev);
-  physicalDevice = devices[deviceIdx];
-  graphicsQueueFamilyIndex = bests[deviceIdx].g;
-  computeQueueFamilyIndex = bests[deviceIdx].c;
-  transferQueueFamilyIndex = bests[deviceIdx].t;
-  presentationQueueFamilyIndex = bests[deviceIdx].p;
+  physicalDeviceIndex = distance(physicalDeviceFitness.begin(), selectedPhysDev);
+  if ((size_t) physicalDeviceIndex == physicalDeviceFitness.size())
+    { throw runtime_error("Unabled to find a suiteable physical devicd."); }
+  
+  if (selectedPhysDev->finalDeviceScore == 0)
+    { throw runtime_error("Unabled to find a suiteable physical devicd."); }
+
+  physicalDevice = devices[physicalDeviceIndex];
+  auto & fitness = physicalDeviceFitness[physicalDeviceIndex];
+  graphicsQueueFamilyIndex = fitness.bestQueueIndices.g;
+  computeQueueFamilyIndex = fitness.bestQueueIndices.c;
+  transferQueueFamilyIndex = fitness.bestQueueIndices.t;
+  presentationQueueFamilyIndex = fitness.bestQueueIndices.p;
 }
 
 
-void Graphics::reportPhysicalDevice(
-  vk::PhysicalDevice const & device,
-  vector<fitness_t> const & qff, 
-  fitness_t const & df, 
-  int featureScore,
-  int deviceScore, 
-  ostream & out)
+void Graphics::reportPhysicalDevice(vk::PhysicalDevice device, 
+  deviceFitness_t const & fitness, std::ostream & out)
 {
   auto const & props = device.getProperties();
   out << "physical device:" << endl
@@ -266,15 +279,94 @@ void Graphics::reportPhysicalDevice(
     out << " (" << qfp.queueCount << " queue(s))" << endl;
     if (device.getSurfaceSupportKHR(qfIdx, surface) &&
       config->graphics.headless == false)
-      { out << "      (can present)" << endl; }
+      { out << "      can present" << endl; }
 
-    out << "      fitness scores: g = " << qff[qfIdx].g 
-        << "; c = " << qff[qfIdx].c << "; t = " << qff[qfIdx].t 
-        << "; p = " << qff[qfIdx].p << "" << endl
-        << "      feature score: " << featureScore << endl;
+    auto & fit = fitness.queueFamilyFitness[qfIdx];
+    out << "      fitness scores: g = " << fit.g 
+        << "; c = " << fit.c << "; t = " << fit.t 
+        << "; p = " << fit.p << "" << endl
+        << "      feature score: " << fitness.featureScore << endl;
   }
 
-  out << "  device scores: g = " << df.g << "; c = " << df.c 
+  out << "  unmet feature requirements: ";
+  if (fitness.unsupportedMinFeatures.size() > 0)
+  {
+    bool delim = false;
+    for (auto feature : fitness.unsupportedMinFeatures)
+      { out << (delim ? ", " : "") << feature; delim = true; }    
+  }
+  else
+    { out << " (none)"; }
+
+  out << endl 
+      << "  unmet feature desirements: ";
+  if (fitness.unsupportedDesiredFeatures.size() > 0)
+  {
+    bool delim = false;
+    for (auto feature : fitness.unsupportedDesiredFeatures)
+      { out << (delim ? ", " : "") << feature; delim = true; }
+  }
+  else
+    { out << " (none)"; }
+
+  auto & df = fitness.deviceQueueFitness;
+  out << endl
+      << "  device fitness scores: g = " << df.g << "; c = " << df.c 
       << "; t = " << df.t << "; p = " << df.p << endl
-      << "  device total score: " << deviceScore << endl;
+      << "  device feature score: " << fitness.featureScore << endl
+      << "  device total score: " << fitness.finalDeviceScore << endl;
+}
+
+
+/*
+    get features from physicalDevice
+    for each minFeature in minFeatures,
+      if features[minFeature] == true,
+        useFeature[minFeature] = true
+      else
+        addToUnsupported(minFeature)
+    
+    for each desiredFeature in desiredFeatures,
+      if features[desiredFeature] == true,
+        useFeature[desiredFeature] = true
+      else
+        addToDisappointed(desiredFeature)
+    
+    if (unsupported.size() > 0) fail();
+*/
+bool Graphics::computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFitness_t & pdf)
+{
+  sout ss {};
+  auto supportedFeatures = device.getFeatures();
+  for (auto & feature : config->graphics.minDeviceFeatures)
+  {
+    ss << "Checking required feature " << feature << ": ";
+#define FEATURE(feat)                                     \
+    if (feature == #feat)                                 \
+    {                                                       \
+      if (supportedFeatures. feat)                           \
+        { usedFeatures. feat = true; ss << "yes" << endl; } \
+      else                                                  \
+        { pdf.unsupportedMinFeatures.push_back(feature); ss << "no" << endl; }  \
+    }
+#include "features.hmb"
+#undef FEATURE
+  }
+
+  for (auto & feature : config->graphics.desiredDeviceFeatures)
+  {
+    ss << "Checking desired feature " << feature << ": ";
+#define FEATURE(feat)                                     \
+    if (feature == #feat)                               \
+    {                                                     \
+      if (supportedFeatures. feat)                           \
+        { usedFeatures. feat = true; ss << "yes" << endl; }  \
+      else                                                  \
+        { pdf.unsupportedDesiredFeatures.push_back(feature); ss << "no" << endl; } \
+    }
+#include "features.hmb"
+#undef FEATURE
+  }
+
+  return pdf.unsupportedMinFeatures.size() == 0;
 }
