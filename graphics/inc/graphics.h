@@ -36,7 +36,7 @@ namespace overground
 
     GLFWwindow * getMainWindow() { return mainWindow; }
 
-    void reset(Config const * config);
+    void reset(Config * config);
 //    void waitForGraphicsOps();
     void shutDown();
 
@@ -70,22 +70,30 @@ namespace overground
     void resetLogicalDevice();
     void destroyLogicalDevice();
     void prepareQueues();
+
+    // swapChain.cpp
+    void resetSwapchain();
+    void destroySwapchain();
+    void chooseSurfaceFormat();
+    void choosePresentMode();
+    void getExtent();
+    void createSwapChainImageViews();
+    void destroySwapChainImageViews();
     
   private:
-    Config const * config;
+    Config * config;
     GLFWwindow * mainWindow = nullptr;
     uint32_t diWidth = 0;   // device-indep. units
     uint32_t diHeight = 0;  // device-indep. units
     bool isFullScreen = false;
 
-    bool isPhysicalDeviceLost = false;
     bool isLogicalDeviceLost = false;
     bool isSwapchainStale = false;
 
     vk::Instance vulkanInstance;
-    std::vector<char const *> validationLayers;
-    std::vector<char const *> extensions;
-    std::vector<char const *> deviceExtensions;
+    std::vector<std::string> validationLayers;
+    std::vector<std::string> extensions;
+    std::set<std::string> deviceExtensions;
     VkDebugReportCallbackEXT debugCallback = nullptr;
     vk::SurfaceKHR surface;
 
@@ -97,9 +105,9 @@ namespace overground
     int transferQueueFamilyIndex = -1;
     int presentationQueueFamilyIndex = -1;
 
-    vk::SurfaceCapabilitiesKHR swapChainSurfaceCaps;
-    std::vector<vk::SurfaceFormatKHR> swapChainSurfaceFormats;
-    std::vector<vk::PresentModeKHR> swapChainPresentModes;
+    vk::SurfaceCapabilitiesKHR swapchainSurfaceCaps;
+    std::vector<vk::SurfaceFormatKHR> swapchainSurfaceFormats;
+    std::vector<vk::PresentModeKHR> swapchainPresentModes;
 
     vk::PhysicalDeviceFeatures usedFeatures;
     std::set<uint32_t> uniqueFamilyIndices;
@@ -110,10 +118,17 @@ namespace overground
     std::vector<std::vector<vk::Queue>> queues;
     std::vector<vk::Queue *> gQueues;
     std::vector<vk::Queue *> cQueues;
-    std::vector<vk::Queue *> tQueues;
+    vk::Queue * tQueue;
     vk::Queue * pQueue;
 
-//    vk::Device vd;
+    vk::SurfaceFormatKHR swapchainSurfaceFormat;
+    vk::PresentModeKHR swapchainPresentMode;
+    int swapchainImageCount;
+    vk::Extent2D swapchainExtent;
+
+    vk::SwapchainKHR swapchain;
+    std::vector<vk::Image> swapchainImages;
+    std::vector<vk::ImageView> swapchainImageViews;
   };
 }
 

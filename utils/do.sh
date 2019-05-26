@@ -5,7 +5,7 @@ source ../buildproj.sh
 main() {
   local subProject="utils"
   local deps=()
-  local inc=("../../humon/inc")
+  local inc=("../../ansiTermCpp/inc" "../../humon/inc")
   local src=("utils")
   local libDirs=("../../humon/bin")
   local libs=("utils-d")

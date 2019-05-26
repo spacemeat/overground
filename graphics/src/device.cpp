@@ -36,24 +36,38 @@ void Graphics::resetLogicalDevice()
     if (static_cast<int>(qfi) == presentationQueueFamilyIndex)
     { queueCount = max(queueCount, static_cast<int>(pdf.queueCounts.p)); }
 
+    vector<float> priorities;
+    priorities.resize(queueCount);
+    for (auto i = 0; i < queueCount; ++i)
+      { priorities.push_back(0.0f); }
+    
     queueCreateInfos.emplace_back(
       vk::DeviceQueueCreateFlags(),
-      qfi, queueCount, nullptr      // TODO: handle queue priorities
+      qfi, queueCount, priorities.data()
     );
   }
+
+  vector<char const *> deviceExtensionsInC { deviceExtensions.size() };
+  transform(deviceExtensions.begin(), deviceExtensions.end(), 
+    deviceExtensionsInC.begin(), [](auto & ex){ return ex.c_str(); });
+
+  vector<char const *> layersInC { validationLayers.size() };
+  transform(validationLayers.begin(), validationLayers.end(), 
+    layersInC.begin(), [](auto & ex){ return ex.c_str(); });
 
   auto dci = vk::DeviceCreateInfo();
   dci.queueCreateInfoCount = queueCreateInfos.size();
   dci.pQueueCreateInfos = queueCreateInfos.data();
   if (config->graphics.vulkanValidationEnabled)
   {
-    dci.enabledLayerCount = validationLayers.size();
-    dci.ppEnabledLayerNames = validationLayers.data();
+
+    dci.enabledLayerCount = layersInC.size();
+    dci.ppEnabledLayerNames = layersInC.data();
   }
   else
     { dci.enabledLayerCount = 0; }
-  dci.enabledExtensionCount = deviceExtensions.size();
-  dci.ppEnabledExtensionNames = deviceExtensions.data();
+  dci.enabledExtensionCount = deviceExtensionsInC.size();
+  dci.ppEnabledExtensionNames = deviceExtensionsInC.data();
   dci.pEnabledFeatures = & usedFeatures;
 
   vulkanDevice = physicalDevice.createDevice(dci);
@@ -73,7 +87,6 @@ void Graphics::destroyLogicalDevice()
   vulkanDevice.destroy();
   gQueues.clear();
   cQueues.clear();
-  tQueues.clear();
 
   uniqueFamilyIndices.clear();
 }
@@ -97,13 +110,10 @@ void Graphics::prepareQueues()
       if ((int) qci.queueFamilyIndex == computeQueueFamilyIndex &&
           (int) cQueues.size() < pdf.queueCounts.c)
         { cQueues.push_back(& addedQueue); }
-
-      if ((int) qci.queueFamilyIndex == transferQueueFamilyIndex &&
-          (int) tQueues.size() < pdf.queueCounts.t)
-        { tQueues.push_back(& addedQueue); }
     }
 
-    // TODO: Distribute additional transfer queues through g and c on different qfis. I don't really care about it at the moment. Do we ever need more than one t queue?
+    if ((int) qci.queueFamilyIndex == transferQueueFamilyIndex)
+      { tQueue = & thisQueue.front(); }
 
     if ((int) qci.queueFamilyIndex == presentationQueueFamilyIndex)
       { pQueue = & thisQueue.front(); }

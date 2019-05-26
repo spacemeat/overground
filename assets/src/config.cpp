@@ -42,6 +42,9 @@ void Config::loadFromHumon(HuNode const & src)
     graphics.isConfigured = true;
 
     auto & graphicsSrc = src / "graphics";
+    if (graphicsSrc % "headless")
+      { graphics.headless = graphicsSrc / "headless"; }
+
     if (graphicsSrc % "fullScreen")
       { graphics.fullScreen = graphicsSrc / "fullScreen"; }
 
@@ -116,6 +119,57 @@ void Config::loadFromHumon(HuNode const & src)
       for (size_t i = 0; i < listSrc.size(); ++i)
         { graphics.desiredDeviceFeatures.push_back(listSrc / i); }
     }
+
+    if (graphics.headless == false &&
+        graphicsSrc % "swapchain")
+    {
+      auto & swapchainSrc = graphicsSrc / "swapchain";
+      if (swapchainSrc % "formatPriorities")
+      {
+        auto & src = swapchainSrc / "formatPriorities";
+        for (size_t i = 0; i < src.size(); ++i)
+        {
+          assert((src / i).size() == 2);
+          graphics.swapchain.formatPriorities.push_back(make_pair(
+            (std::string)(src / i / 0), 
+            (std::string)(src / i / 1)));
+        }
+      }
+
+      if (swapchainSrc % "numViews")
+        { graphics.swapchain.numViews = swapchainSrc / "numViews"; }
+      
+      if (swapchainSrc % "imageUsages")
+      {
+        auto & src = swapchainSrc / "imageUsages";
+        for (size_t i = 0; i < src.size(); ++i)
+          { graphics.swapchain.imageUsages.push_back(src / i); }
+      }
+
+      if (swapchainSrc % "imageSharing")
+        { graphics.swapchain.imageSharing = swapchainSrc / "imageSharing"; }
+
+      if (swapchainSrc % "pretransform")
+        { graphics.swapchain.pretransform = (std::string)(swapchainSrc / "pretransform"); }
+
+      if (swapchainSrc % "windowAlpha")
+        { graphics.swapchain.windowAlpha = (std::string)(swapchainSrc / "windowAlpha"); }
+      
+      if (swapchainSrc % "presentModePriorities")
+      {
+        auto & src = swapchainSrc / "presentModePriorities";
+        for (size_t i = 0; i < src.size(); ++i)
+        {
+          assert((src / i).size() == 2);
+          graphics.swapchain.presentModePriorities.push_back(make_pair(
+            (std::string)(src / i / 0), 
+            (int)(src / i / 1)));
+        }
+      }
+
+      if (swapchainSrc % "clipped")
+        { graphics.swapchain.clipped = swapchainSrc / "clipped"; }
+    }
   }
 }
 
@@ -173,6 +227,22 @@ void Config::integrate(Config const & rhs)
   deltas |= set(graphics.minDeviceFeatures, rhs.graphics.minDeviceFeatures, Config::Deltas::PhysicalDevice);
 
   deltas |= set(graphics.desiredDeviceFeatures, rhs.graphics.desiredDeviceFeatures, Config::Deltas::LogicalDevice);
+
+  deltas |= set(graphics.swapchain.formatPriorities, rhs.graphics.swapchain.formatPriorities, Config::Deltas::Swapchain);
+
+  deltas |= set(graphics.swapchain.numViews, rhs.graphics.swapchain.numViews, Config::Deltas::Swapchain);
+
+  deltas |= set(graphics.swapchain.imageUsages, rhs.graphics.swapchain.imageUsages, Config::Deltas::Swapchain);
+  
+  deltas |= set(graphics.swapchain.imageSharing, rhs.graphics.swapchain.imageSharing, Config::Deltas::Swapchain);
+
+  deltas |= set(graphics.swapchain.pretransform, rhs.graphics.swapchain.pretransform, Config::Deltas::Swapchain);
+  
+  deltas |= set(graphics.swapchain.windowAlpha, rhs.graphics.swapchain.windowAlpha, Config::Deltas::Swapchain);
+  
+  deltas |= set(graphics.swapchain.presentModePriorities, rhs.graphics.swapchain.presentModePriorities, Config::Deltas::Swapchain);
+  
+  deltas |= set(graphics.swapchain.clipped, rhs.graphics.swapchain.clipped, Config::Deltas::Swapchain);
   
   lastDiffs = rhs.lastDiffs | deltas;
 }
@@ -220,7 +290,26 @@ void Config::print(std::ostream & sout) const
   for (auto & ext : graphics.desiredDeviceFeatures)
     { sout << " " << ext; }
 
-  sout << endl;
+  sout << endl
+       << "    swapchain:" << endl
+       << "      formatPriorities:" << endl;
+  for (auto & ext : graphics.swapchain.formatPriorities)
+    { sout << "        [" << ext.first << " " << ext.second << "]" << endl; }
+  sout << "      numViews: " << graphics.swapchain.numViews << endl
+       << "      imageUsages:";
+  for (auto & ext : graphics.swapchain.imageUsages)
+    { sout << " " << ext; }
+  sout << endl
+       << "      imageSharing: " 
+       << (graphics.swapchain.imageSharing ? "true" : "false") << endl
+       << "      pretransform: " << graphics.swapchain.pretransform << endl
+       << "      windowAlpha: " << graphics.swapchain.windowAlpha << endl
+       << "      presentModePriorities:" << endl;
+  for (auto & ext : graphics.swapchain.presentModePriorities)
+    { sout << "        [" << ext.first << " " << ext.second << "]" << endl; }
+    
+  sout << "      clipped: " 
+       << (graphics.swapchain.clipped ? "true" : "false") << endl;
 }
 
 

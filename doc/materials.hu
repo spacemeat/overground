@@ -1,0 +1,85 @@
+{
+  materials: {
+    materialDefault: {
+      vertexDecl: [ {
+          offset: 0                   # position
+          format: R32G32B32_SFLOAT
+        } {
+          offset: 0                   # normal
+          format: R32G32B32_SFLOAT
+        } {
+          offset: 0                   # tx
+          format: R32G32_SFLOAT
+        }
+      ]
+      stages: [ {
+          stage: vertex
+          module: nameOfVShaderCodeModule
+          name: main
+        } {
+          stage: fragment
+          module: naemOfFShaderCodeModule
+          name: main
+        }
+      ]
+      rasterizationStates: {
+        depthClampEnable: false
+        rasterizerDiscardEnable: false
+        polygonMode: fill
+        cullMode: none
+        frontFace: ccw
+        depthBiasEnable: false
+        lineWidth: 1.0
+      }
+      multisampleState: {
+        rasterizationSamples: 1
+        sampleShadingEnable: false
+        sampleMask: null
+        alphaToCoverageEnable: false
+        alphaToOneEnable: false
+      }
+      blendState: {
+        logicOpEnable: false
+        attachments: [ { 
+            srcColorFactor: srcAlpha
+            dstColorFactor: 1-srcAlpha
+            colorOp: +
+            srcAlphaFactor: 1
+            dstAlphaFactor: 0
+            alphaOp: +
+            colorWriteMask: r|g|b|a
+          }
+        ]
+      }
+      tesselationState: null
+      depthStencilState: {
+        depthTestEnable: true
+        depthWriteEnable: true
+        depthCompareOp: <
+        depthBoundsTestEnable: false
+        stencilTestEnable: false
+        frontStencilOp: {
+          failOp: zero
+          passOp: zero
+          depthFailOp: zero
+          compareOp: never
+          compareMask: 0
+          writeMask: 0
+          reference: 0
+        }
+        backStencilOp: {
+            failOp: zero
+            passOp: zero
+            depthFailOp: zero
+            compareOp: never
+            compareMask: 0
+            writeMask: 0
+            reference: 0
+        }
+        minDepthBounds: 0
+        maxDepthBounds: 1
+      }
+      dynamicStates: viewport|scissor
+    }
+  }
+}

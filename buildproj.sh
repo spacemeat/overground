@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#  -Wextra
 gccArgs="--std=c++17 -Wall -g -O0"
 
 
@@ -76,7 +77,9 @@ buildcpp() {
       done
       packageDefs="`pkg-config --cflags ${packageDefs[@]}`"
     fi
-    rm $doto
+    if [ -e $doto ]; then
+      rm $doto
+    fi
     runCommand "g++ $gccArgs -c -o $doto $dotcpp $incD $packageDefs"
     return $?
   else

@@ -49,18 +49,27 @@ void Graphics::resetVulkanInstance()
 
   if (checkVulkanExtensionSupport())
   {
+    vector<char const *> extensionsInC { extensions.size() };
+    transform(extensions.begin(), extensions.end(), 
+      extensionsInC.begin(), [](auto & ex){ return ex.c_str(); });
+
+    vector<char const *> layersInC { validationLayers.size() };
+    transform(validationLayers.begin(), validationLayers.end(), 
+      layersInC.begin(), [](auto & la){ return la.c_str(); });
+
     bool validating = config->graphics.vulkanValidationEnabled;
     if (validating == false || 
         checkVulkanValidationLayerSupport())
     {
       auto instInfo = vk::InstanceCreateInfo();
+
       instInfo.pApplicationInfo = & appInfo;
-      instInfo.enabledExtensionCount = extensions.size();
-      instInfo.ppEnabledExtensionNames = extensions.data();
+      instInfo.enabledExtensionCount = extensionsInC.size();
+      instInfo.ppEnabledExtensionNames = extensionsInC.data();
       if (validating)
       {
-        instInfo.enabledLayerCount = validationLayers.size();
-        instInfo.ppEnabledLayerNames = validationLayers.data();
+        instInfo.enabledLayerCount = layersInC.size();
+        instInfo.ppEnabledLayerNames = layersInC.data();
       }
       else
       {
@@ -87,18 +96,18 @@ void Graphics::resetVulkanInstance()
 
 
 VKAPI_ATTR VkBool32 VKAPI_CALL validationReportCallackFn(
-    VkDebugReportFlagsEXT flags,
-    VkDebugReportObjectTypeEXT objType,
-    uint64_t obj,
-    size_t location,
-    int32_t code,
-    const char* layerPrefix,
-    const char* msg,
-    void* userData) {
+  VkDebugReportFlagsEXT flags,
+  VkDebugReportObjectTypeEXT objType,
+  uint64_t obj,
+  size_t location,
+  int32_t code,
+  const char* layerPrefix,
+  const char* msg,
+  void* userData)
+{
+  sout {} << ansi::lightMagenta << layerPrefix << ": " << ansi::darkMagenta << msg << ansi::off << std::endl;
 
-    cerr << "validation layer: " << msg << std::endl;
-
-    return VK_FALSE;
+  return VK_FALSE;
 }
 
 
@@ -196,7 +205,7 @@ bool Graphics::checkVulkanExtensionSupport()
     bool found = false;
     for (auto const & aeProp : availableExtensionProps)
     {
-      if (strcmp(aeProp.extensionName, ext) == 0)
+      if (strcmp(aeProp.extensionName, ext.c_str()) == 0)
       {
         sout {} << "Extension " << ext << " available." << endl;
         found = true;
@@ -225,7 +234,7 @@ bool Graphics::checkVulkanValidationLayerSupport()
     bool found = false;
     for (auto const & alProp : availableLayerProps)
     {
-      if (strcmp(alProp.layerName, layer) == 0)
+      if (strcmp(alProp.layerName, layer.c_str()) == 0)
       {
         sout {} << "Validation layer " << layer << " available." << endl;
         found = true;

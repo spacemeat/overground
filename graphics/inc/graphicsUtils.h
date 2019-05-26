@@ -13,4 +13,14 @@ namespace overground
       rhs[0], rhs[1], rhs[2]
     );
   }
+
+  vk::Format formatFromString(std::string const & strFormat);
+
+  vk::ColorSpaceKHR colorSpaceFromString(std::string const & strColorSpace);
+
+  vk::PresentModeKHR presentModeFromString(std::string const & strPresentMode);
+
+  vk::SurfaceTransformFlagBitsKHR pretransformFromString(std::string const & strPretransform);
+
+  vk::CompositeAlphaFlagBitsKHR compositeAlphaFromString(std::string const & strCompositeAlpha);
 }

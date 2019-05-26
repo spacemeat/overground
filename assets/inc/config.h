@@ -15,19 +15,28 @@ namespace overground
   public:
     enum class Deltas : int
     {
-      None            = 0,
-      JobManagement   = 1 << 0,
-      Window          = 1 << 1,
-      VulkanInstance  = 1 << 2,
-      PhysicalDevice  = 1 << 3,
-      LogicalDevice   = 1 << 4,
+      None                = 0,
+      JobManagement       = 1 << 0,
+      Window              = 1 << 1,
+      VulkanInstance      = 1 << 2,
+      PhysicalDevice      = 1 << 3,
+      LogicalDevice       = 1 << 4,
+      Swapchain           = 1 << 5,
+      Framebuffer         = 1 << 6,
+      RenderPasses        = 1 << 7,
+      Extents             = 1 << 8,
+      NumConcurrentFrames = 1 << 9,
+      GraphicsPipelines   = 1 << 10,
     };
 
     void setFileInfo(FileReference * newFileInfo);
     FileReference * getFileInfo() { return fileInfo; }
 
-    void setName(std::string const & name)
-      { this->name = name; }
+    void clearDiffs() { lastDiffs = Deltas::None; }
+
+    void applyDiff(Deltas diff) { lastDiffs |= diff; }
+
+    Deltas getDiffs() const { return lastDiffs; }
 
     void loadFromHumon(humon::HuNode const & src);
 
@@ -35,12 +44,11 @@ namespace overground
 
     void print(std::ostream & sout) const;
 
-    // public members. TODO: better
-
+  private:
     FileReference * fileInfo;
     Deltas lastDiffs = Deltas::None;
 
-    std::string name;
+  public:
     struct General
     {
       std::string programName;
@@ -69,6 +77,19 @@ namespace overground
       std::vector<std::string> minDeviceFeatures;
       std::vector<std::string>
       desiredDeviceFeatures;
+      
+      struct Swapchain
+      {
+        std::vector<std::pair<std::string, std::string>> formatPriorities;
+        unsigned int numViews;
+        std::vector<std::string> imageUsages;
+        bool imageSharing;
+        std::string pretransform;
+        std::string windowAlpha;
+        std::vector<std::pair<std::string, unsigned int>> presentModePriorities;
+        bool clipped;
+      } swapchain;
+
     } graphics;
 
   };

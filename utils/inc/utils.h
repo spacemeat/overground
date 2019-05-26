@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <mutex>
+#include "ansiTerm.h"
 
 namespace overground
 {

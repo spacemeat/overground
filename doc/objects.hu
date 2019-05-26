@@ -1,0 +1,164 @@
+# start.hu
+{
+  instance: {
+    config: {
+      ...
+    }
+    startingScene: titleScene.hu
+  }
+}
+
+
+# i dunno
+{
+  renderPipeline: [ {
+      renderPass: {
+        subpasses: [ {
+            name: background
+            # ... attachment stuff
+          }
+        ]
+      }
+    } {
+      compute: {
+        name: bloop
+        # ... whatever
+      }
+    } {
+      renderPass: {
+        subpasses: [ {
+            name: foo
+          }
+        ]
+      }
+    }
+  ]
+}
+
+{
+  materials: {
+    skyboxMaterialDefault: {
+      cloneOf: materialDefault
+      vertexDecl: [{
+        offset: 0
+        format: R32G32B32_SFLOAT
+      }]
+      stages: [{
+          stage: vertex
+          module: skyboxVShader
+          name: main
+        } {
+          stage: fragment
+          module: skyboxFShader
+          name: main
+        }
+      ]
+      rasterizationStates: {
+        cullMode: front   # skybox renders from inside
+        frontFace: ccw
+      }
+      blendState: {
+        logicOpEnable: false
+      }
+      depthStencilState: {
+        depthTestEnable: false
+        depthWriteEnable: false
+      }
+      dynamicStates: viewport|scissor
+      phase: background     # renderPass / subpass
+      textures: {
+        color: skyboxTextureDefault
+      }
+      samplers: {
+        color: skyboxSamplerDefault
+      }
+      uniform: {
+        # lights and other stuff
+      }
+      push: {
+        modelTransform: matrix4x4
+        viewTransform: matrix4x4
+        projectionTransform: matrix4x4
+      }
+    }
+  }
+}
+
+{
+  samplers: {
+    samplerDefault: {
+      minFilter: linear
+      magFilter: linear
+      mipmapFilter: linear
+      uAddressMode: repeat
+      vAddressMode: repeat
+      wAddressMode: repeat
+      mipLodBias: 0
+      anisotropyEnable: true
+      maxAnisotropy: 16
+      compareEnable: false
+      compareOp: never
+      minLod: 0
+      maxLod: infinite
+      borderColor: intOpaqueBlack
+      unnormalizedCoordinates: false      
+    }
+
+    skyboxSamplerDefault: {
+      cloneOf: samplers/samplerDefault
+      uAddressMode: clampToEdge
+      vAddressMode: clampToEdge
+      wAddressMode: clampToEdge
+      maxLod: 0
+    }
+  }
+}
+
+# ?
+{
+  textures: {
+    skyBoxDefault: {
+      usages: sampled
+    }
+  }
+}
+
+{
+  graphicsPrimitiveTypes: {
+    skyBox: {
+      material: skyboxMaterialDefault
+    }
+  }
+}
+
+
+# titleScene.hu
+{
+  skyBoxes: {
+    redSky: {
+      texture: {
+        cloneOf: textures/skyBoxDefault
+        asset: redSkyTx
+        layout: 6x1
+      }
+    }
+  }
+
+  name: openingUi
+  skyBox: %{redSky}
+  fog: %{lowRedFog}
+  objects: {
+
+    pillar: {
+      modeL: pillar.hu
+      transform: identity
+      height: 100 # custom attribute
+    }
+    tower: {
+      model: tower.hu
+      transform: {
+        ty: +%{objects.pillar.height}
+      }
+    }
+  }
+}

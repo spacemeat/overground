@@ -4,7 +4,7 @@ source ../buildproj.sh
 
 subProject="assets"
 deps=("pools" "jobs" "utils")
-inc=("../../humon/inc ../../../balls/vulkan/1.1.77.0/x86_64/include")
+inc=("../../ansiTermCpp/inc" "../../humon/inc" "../../../balls/vulkan/1.1.77.0/x86_64/include")
 src=("fileRegistry" "assetPack" "checkForFileUpdateJob" "loadHumonFileJob" "initFromHumonJob" "config" "mesh" "model")
 libDirs=("../../humon/bin")
 libs=("humon-d")

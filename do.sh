@@ -1,11 +1,11 @@
 cd utils
-source do.sh buildtest
+source do.sh buildlib
 cd ../jobs
-source do.sh buildtest
+source do.sh buildlib
 cd ../assets
-source do.sh buildtest
+source do.sh buildlib
 cd ../graphics
-source do.sh buildtest
+source do.sh buildlib
 cd ../engine
 source do.sh buildtest
 cd ..

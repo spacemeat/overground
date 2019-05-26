@@ -31,7 +31,6 @@ Engine::~Engine()
   }
 }
 
-
 void Engine::init(int argc, char ** argv)
 {
   sout {} << "Engine::init()" << endl;
@@ -78,9 +77,18 @@ void Engine::latchSceneDelta()
 }
 
 
+thread limiter;
+
 void Engine::enterEventLoop()
 {
   sout {} << "Engine::enterEventLoop()" << endl;
+
+  // TODO: temperorariry. kills the works after a bit. Trying to manage a runaway process. Might need to get more aggressive.
+  limiter = thread([this]
+  {
+    this_thread::sleep_for(3000ms);
+    glfwSetWindowShouldClose(graphics.getMainWindow(), true);
+  });
 
   auto window = graphics.getMainWindow();
   if (window == nullptr)
@@ -227,7 +235,7 @@ void Engine::updateConfig(Config const & newConfig)
   {
     lock_guard<mutex> lock(mx_config);
     config.integrate(newConfig);  
-    diffs |= config.lastDiffs;
+    diffs |= config.getDiffs();
 
     {
       sout so {};

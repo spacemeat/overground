@@ -13,6 +13,12 @@ void Graphics::resetPhysicalDevice()
   transferQueueFamilyIndex = -1;
   presentationQueueFamilyIndex = -1;
   
+  deviceExtensions = set<string>(
+    config->graphics.deviceExtensions.begin(), 
+    config->graphics.deviceExtensions.end());
+  if (config->graphics.headless == false)
+    { deviceExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME); }
+  
   auto && devices = vulkanInstance.enumeratePhysicalDevices();
   if (devices.size() == 0)
     { throw runtime_error("No physical devices found."); }
@@ -65,12 +71,13 @@ void Graphics::resetPhysicalDevice()
     auto & device = devices[devIdx];
     auto & pdf = physicalDeviceFitness.emplace_back();
 
-    size_t tqCount = 0;
-
     auto && qfps = device.getQueueFamilyProperties();
     for (size_t qfIdx = 0; qfIdx < qfps.size(); ++ qfIdx)
     {
       auto & qfp = qfps[qfIdx];
+      if (qfp.queueCount == 0)
+        { continue; }
+
       auto & fit = pdf.queueFamilyFitness.emplace_back();
       auto & qca = pdf.queueCountsAllowed.emplace_back();
 
@@ -116,13 +123,6 @@ void Graphics::resetPhysicalDevice()
           (qfp.queueFlags & vk::QueueFlagBits::eCompute))
       {
         fit.t = 90;
-        if (qfp.queueCount < config->graphics.desiredTransferQueues)
-        {
-          qca.t = min(qfp.queueCount, config->graphics.desiredTransferQueues);  // these are available, but used only after those from dedicated transfer queues.
-          fit.t -= min(config->graphics.desiredTransferQueues - qfp.queueCount, 50u);
-        }
-
-        tqCount += qfp.queueCount;
       }
 
       // both
@@ -139,8 +139,7 @@ void Graphics::resetPhysicalDevice()
         (vk::QueueFlags) 0)
       {
         fit.t = 100;
-        tqCount += qfp.queueCount;
-        qca.t = min(qfp.queueCount, config->graphics.desiredTransferQueues);
+        qca.t = 1;
 
         if (canPresent)
           { fit.p = max(fit.p, 70); }
@@ -189,14 +188,6 @@ void Graphics::resetPhysicalDevice()
     pdf.queueCounts.t = qca[bqi.t].t;
     pdf.queueCounts.p = 1;
 
-    if (tqCount < config->graphics.minTransferQueues)
-      { dqf.t = 0; }
-
-    // TODO: next scores: device extension support, swap chain stuff, required features
-    auto deviceExtensions = set<string>(config->graphics.deviceExtensions.begin(), config->graphics.deviceExtensions.end());
-    if (config->graphics.headless == false)
-      { deviceExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME); }
-    
     auto && deps = device.enumerateDeviceExtensionProperties();
     for (auto & devExt : deviceExtensions)
     {
@@ -206,18 +197,15 @@ void Graphics::resetPhysicalDevice()
         { pdf.featureScore = 0; }
     }
 
-    swapChainSurfaceCaps = device.getSurfaceCapabilitiesKHR(surface);
-    swapChainSurfaceFormats = device.getSurfaceFormatsKHR(surface);
-    swapChainPresentModes = device.getSurfacePresentModesKHR(surface);
+    auto surfaceFormats = device.getSurfaceFormatsKHR(surface);
+    auto presentModes = device.getSurfacePresentModesKHR(surface);
 
-    if (swapChainSurfaceFormats.empty())
+    if (surfaceFormats.empty())
       { pdf.featureScore = 0; }
 
-    if (swapChainPresentModes.empty())
+    if (presentModes.empty())
       { pdf.featureScore = 0; }
 
-    // TODO: supported features can be checked here.
-    // auto supportedFeatures = device.getFeatures();
     if (computePhysicalDeviceFeatures(device, pdf) == false)
       { pdf.featureScore = 0; }
     
@@ -233,10 +221,10 @@ void Graphics::resetPhysicalDevice()
 
   physicalDeviceIndex = distance(physicalDeviceFitness.begin(), selectedPhysDev);
   if ((size_t) physicalDeviceIndex == physicalDeviceFitness.size())
-    { throw runtime_error("Unabled to find a suiteable physical devicd."); }
+    { throw runtime_error("Unable to find a suiteable physical device."); }
   
   if (selectedPhysDev->finalDeviceScore == 0)
-    { throw runtime_error("Unabled to find a suiteable physical devicd."); }
+    { throw runtime_error("Unable to find a suiteable physical device."); }
 
   physicalDevice = devices[physicalDeviceIndex];
   auto & fitness = physicalDeviceFitness[physicalDeviceIndex];
@@ -244,6 +232,21 @@ void Graphics::resetPhysicalDevice()
   computeQueueFamilyIndex = fitness.bestQueueIndices.c;
   transferQueueFamilyIndex = fitness.bestQueueIndices.t;
   presentationQueueFamilyIndex = fitness.bestQueueIndices.p;
+
+  swapchainSurfaceCaps = physicalDevice.getSurfaceCapabilitiesKHR(surface);
+  swapchainSurfaceFormats = physicalDevice.getSurfaceFormatsKHR(surface);
+  swapchainPresentModes = physicalDevice.getSurfacePresentModesKHR(surface);
+
+  ss << "using device #" << physicalDeviceIndex << "." << endl
+     << ansi::lightGreen << "validation layers:" << ansi::darkGreen;
+  for (auto & e : validationLayers) { ss << " " << e; }
+  ss << endl
+     << ansi::lightGreen << "extensions:" << ansi::darkGreen;
+  for (auto & e : extensions) { ss << " " << e; }
+  ss << endl
+     << ansi::lightGreen << "device extensions:" << ansi::darkGreen;
+  for (auto & e : deviceExtensions) { ss << " " << e; }
+  ss << endl;
 }
 
 
