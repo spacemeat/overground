@@ -145,6 +145,37 @@ void JobManager::enqueueJob(Job * job)
 }
 
 
+void JobManager::enqueueJobs(stack<Job *> jobGroup)
+{
+  auto numJobs = jobGroup.size();
+
+  while(auto job = jobGroup.top())
+  {
+    jobGroup.pop();
+
+    job->setPending();
+  
+    {
+      auto lock = lock_guard<mutex>(mxJobs);
+      jobs.push_back(job);
+    }
+  }
+
+  // Check if any threads are asleep, and nudge as many as we can/need if so
+  for (auto worker : workers)
+  {
+    if (worker->isAvailable())
+    {
+      worker->nudge();
+
+      if (numJobs-- == 0)
+        { break; }
+    }
+  }
+}
+
+
+
 int JobManager::getNumJobsEnqueued()
 {
   int num = 0;

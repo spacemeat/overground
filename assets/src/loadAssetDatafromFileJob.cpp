@@ -1,4 +1,4 @@
-#include "loadHumonFileJob.h"
+#include "loadAssetDatafromFileJob.h"
 #include "initFromHumonJob.h"
 #include <fstream>
 #include "humon.h"
@@ -11,20 +11,22 @@ using namespace std;
 using namespace overground;
 
 
-LoadHumonFileJob::LoadHumonFileJob()
+LoadAssetDatafromFileJob::LoadAssetDatafromFileJob()
 {
 }
 
 
-void LoadHumonFileJob::reset(FileReference * fileInfo)
+void LoadAssetDatafromFileJob::reset(FileReference * fileInfo)
 {
   this->fileInfo = fileInfo;
 }
 
 
-void LoadHumonFileJob::run_impl(JobManager * jobManager)
+void LoadAssetDatafromFileJob::run_impl(JobManager * jobManager)
 {
-  sout {} << "LoadHumonFileJob::run_impl()" << endl;
+  sout {} << "LoadAssetDatafromFileJob::run_impl()" << endl;
+
+  resMan->gatherAssetsFromFile(fileInfo);
 
   string strContent;
   {
@@ -99,4 +101,4 @@ void LoadHumonFileJob::run_impl(JobManager * jobManager)
 }
 
 
-JobPool<LoadHumonFileJob> overground::loadHumonFileJobs;
+JobPool<LoadAssetDatafromFileJob> overground::loadAssetDatafromFileJobs;

@@ -5,6 +5,8 @@
 #include <vector>
 #include <mutex>
 #include <atomic>   // -latomic
+// also, TODO: Let's make sure we're doing atomic stuff right.
+#include <stack>
 #include "job.h"
 #include "worker.h"
 
@@ -28,6 +30,7 @@ namespace overground
 
     bool isRunning() { return running; }
     void enqueueJob(Job * job);
+    void enqueueJobs(std::stack<Job *> jobs);
 
     int getNumJobsStarted() { return numJobsStarted; }
     int getNumJobsEnqueued();

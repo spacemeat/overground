@@ -10,10 +10,10 @@ namespace overground
 {
   class FileReference;
   
-  class LoadHumonFileJob : public Job
+  class LoadAssetDatafromFileJob : public Job
   {
   public:
-    LoadHumonFileJob();
+    LoadAssetDatafromFileJob();
 
     void reset(FileReference * fileInfo);
   
@@ -25,7 +25,7 @@ namespace overground
     humon::nodePtr_t rootNode;
   };
 
-  extern JobPool<LoadHumonFileJob> loadHumonFileJobs;
+  extern JobPool<LoadAssetDatafromFileJob> loadAssetDatafromFileJobs;
 }
 
 #endif // #ifndef LOADHUMONFILE_H

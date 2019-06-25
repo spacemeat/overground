@@ -36,7 +36,7 @@ namespace overground
 
     GLFWwindow * getMainWindow() { return mainWindow; }
 
-    void reset(Config * config);
+    void reset(ConfigData * config);
 //    void waitForGraphicsOps();
     void shutDown();
 
@@ -81,7 +81,7 @@ namespace overground
     void destroySwapChainImageViews();
     
   private:
-    Config * config;
+    ConfigData * config;
     GLFWwindow * mainWindow = nullptr;
     uint32_t diWidth = 0;   // device-indep. units
     uint32_t diHeight = 0;  // device-indep. units

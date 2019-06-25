@@ -3,12 +3,16 @@
 
 #include <string>
 #include <vector>
+#include <stack>
 #include <mutex>
 #include <chrono>
+#include <functional>
 #include "config.h"
+#include "asset.h"
 #include "graphics.h"
-#include "fileRegistry.h"
+#include "fileReference.h"
 #include "jobManager.h"
+#include "resourceManager.h"
 
 namespace overground
 {  
@@ -36,6 +40,8 @@ namespace overground
     void init(int argc, char ** argv);
     void shutDown();
 
+    void enqueueJob(Job * job);
+    void enqueueJobs(std::stack<Job *> & jobs);
     // private
 
     // process steps
@@ -47,24 +53,48 @@ namespace overground
 
     void updateTimer();
     void performScheduledEvents();
+    void checkForConfigUpdates();
 
     // timed events
     void checkForFileUpdates(bool synchronous);
     void checkForAssetUpdates(bool synchronous);
 
-    // hot-update assets
-    void updateConfig(Config const & newConfig);
-    void updateModel(Model const & model);
-    void updateMesh(Mesh const & mesh);
-    void updateMaterial(Material const & material);
-    void updateShader(Shader const & shader);
+    // external updates (say from file changes)
+    void updateConfig(ConfigData const & newConfig);
 
+
+    // assets
+    std::unique_ptr<Asset> makeAsset(
+      ResourceManager * resMan,
+      std::string const & assetName,
+      FileReference * assetDescFile, 
+      humon::HuNode & descFromFile,
+      bool cache, bool compress,
+      bool monitor
+    );
+
+    using makeAssetFn_t = std::function<
+      std::unique_ptr<Asset>(
+        ResourceManager * resMan,
+        std::string const & assetName,
+        FileReference * assetDescFile, 
+        humon::HuNode & descFromFile,
+        bool cache, bool compress,
+        bool monitor
+    )>;
+
+    void registerAssetProvider(
+      std::string const & assetKind,
+      makeAssetFn_t const & fn);
+
+    std::map<std::string, makeAssetFn_t> assetProviders;
+    
     std::string workingDir = "res";
     std::string configFile = "config.hu";
 
-    FileRegistry files;
+    ResourceManager resMan;
 
-    Config config;
+    ConfigData config;
     std::mutex mx_config;
 
     Graphics graphics;

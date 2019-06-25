@@ -2,99 +2,50 @@
 #define CONFIG_H
 
 #include <array>
+#include <string>
 #include "pool.h"
 #include "humon.h"
 #include "utils.h"
+#include "asset.h"
+#include "configData.h"
 
 namespace overground
 {
+  class ResourceManager;
   class FileReference;
 
-  class Config
+  extern std::unique_ptr<Asset> makeConfig(
+    ResourceManager * resMan,
+    std::string const & assetName,
+    FileReference * assetDescFile, 
+    humon::HuNode & descFromFile,
+    bool cache, bool compress,
+    bool monitor);
+
+  class Config : public Asset
   {
   public:
-    enum class Deltas : int
-    {
-      None                = 0,
-      JobManagement       = 1 << 0,
-      Window              = 1 << 1,
-      VulkanInstance      = 1 << 2,
-      PhysicalDevice      = 1 << 3,
-      LogicalDevice       = 1 << 4,
-      Swapchain           = 1 << 5,
-      Framebuffer         = 1 << 6,
-      RenderPasses        = 1 << 7,
-      Extents             = 1 << 8,
-      NumConcurrentFrames = 1 << 9,
-      GraphicsPipelines   = 1 << 10,
-    };
+    Config(ResourceManager * resMan,
+      std::string const & assetName,
+      FileReference * assetDescFile, 
+      humon::HuNode & descFromFile,
+      bool cache, bool compress,
+      bool monitor);
 
-    void setFileInfo(FileReference * newFileInfo);
-    FileReference * getFileInfo() { return fileInfo; }
+    // void setFileInfo(FileReference * newFileInfo);
+    // FileReference * getFileInfo() { return fileInfo; }
 
-    void clearDiffs() { lastDiffs = Deltas::None; }
+    virtual std::string getSrcExtension() override
+      { return "config"; }
 
-    void applyDiff(Deltas diff) { lastDiffs |= diff; }
+    virtual void compileSrcAsset(
+      path_t const & srcPath) override;
 
-    Deltas getDiffs() const { return lastDiffs; }
-
-    void loadFromHumon(humon::HuNode const & src);
-
-    void integrate(Config const & rhs);
-
-    void print(std::ostream & sout) const;
-
-  private:
-    FileReference * fileInfo;
-    Deltas lastDiffs = Deltas::None;
+    virtual void applyToEngine() override;
 
   public:
-    struct General
-    {
-      std::string programName;
-      version_t version;
-      int numWorkerThreads;
-    } general;
-
-    struct Graphics
-    {
-      bool isConfigured = false;
-      bool headless;
-      bool fullScreen;
-      unsigned int width;
-      unsigned int height;
-      bool vulkanValidationEnabled;
-      std::vector<std::string> vulkanValidationLayers;
-      std::vector<std::string> vulkanValidationReports;
-      std::vector<std::string> vulkanExtensions;
-      std::vector<std::string> deviceExtensions;
-      unsigned int minGraphicsQueues;
-      unsigned int desiredGraphicsQueues;
-      unsigned int minComputeQueues;
-      unsigned int desiredComputeQueues;
-      unsigned int minTransferQueues;
-      unsigned int desiredTransferQueues;
-      std::vector<std::string> minDeviceFeatures;
-      std::vector<std::string>
-      desiredDeviceFeatures;
-      
-      struct Swapchain
-      {
-        std::vector<std::pair<std::string, std::string>> formatPriorities;
-        unsigned int numViews;
-        std::vector<std::string> imageUsages;
-        bool imageSharing;
-        std::string pretransform;
-        std::string windowAlpha;
-        std::vector<std::pair<std::string, unsigned int>> presentModePriorities;
-        bool clipped;
-      } swapchain;
-
-    } graphics;
-
+    ConfigData data;
   };
-
-  extern std::ostream & operator << (std::ostream & stream, Config const & rhs);
 }
 
 #endif // #ifndef CONFIG_H

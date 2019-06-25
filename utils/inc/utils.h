@@ -5,13 +5,28 @@
 #include <sstream>
 #include <iostream>
 #include <mutex>
+#include <experimental/filesystem>
 #include "ansiTerm.h"
+#include "humon.h"
 
 namespace overground
 {
   using version_t = std::array<int, 3>;
   constexpr auto engineName = "overground";
   constexpr version_t engineVersion = { 0, 0, 0 };
+
+#ifdef WINDOWS
+  constexpr auto pathSeparator = "\\";
+#else
+  constexpr auto pathSeparator = "/";
+#endif
+  constexpr auto assetFileExtension = ".ass";
+
+  namespace fs = std::experimental::filesystem;
+  using fileTime_t = std::experimental::filesystem::file_time_type;
+  using path_t = std::experimental::filesystem::path;
+
+
 
   // Enum class bitwise ops
   // ~
@@ -233,6 +248,9 @@ namespace overground
 
   std::string operator << (std::ostream & lhs, ss::endtoken rhs);
 
+  path_t findFile(std::string const & filename, std::string const & baseDir);
+
+  humon::nodePtr_t loadHumonDataFromFile(path_t const & path);
 
 #define CHK(call) \
   {  \

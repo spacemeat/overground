@@ -17,34 +17,40 @@ Graphics::~Graphics()
 }
 
 
-void Graphics::reset(Config * config)
+void Graphics::reset(ConfigData * config)
 {
   this->config = config;
   if (mainWindow == nullptr || 
-    (config->getDiffs() & Config::Deltas::Window) != (Config::Deltas) 0)
+    (config->getDiffs() & 
+      (ConfigData::Deltas::Window | 
+       ConfigData::Deltas::WindowExtents)) != 0)
   {
     if (mainWindow == nullptr)
       { createWindow(); }
     else
       { updateWindow(); }
-    
-    if ((bool) vulkanInstance == false ||
-    (config->getDiffs() & Config::Deltas::VulkanInstance) != 0)
-      { resetVulkanInstance(); }
-
-    if ((bool) physicalDevice == false ||
-    (config->getDiffs() & Config::Deltas::PhysicalDevice) != 0)
-      { resetPhysicalDevice(); }
-
-    if ((bool) vulkanDevice == false ||
-    (config->getDiffs() & Config::Deltas::LogicalDevice) != 0)
-      { resetLogicalDevice(); }
-
-    if ((bool) swapchain == false ||
-    (config->getDiffs() & Config::Deltas::Swapchain) != 0)
-      { resetSwapchain(); }
-
   }
+    
+  if ((bool) vulkanInstance == false ||
+    (config->getDiffs() & 
+     ConfigData::Deltas::VulkanInstance) != 0)
+    { resetVulkanInstance(); }
+
+  if ((bool) physicalDevice == false ||
+    (config->getDiffs() & 
+     ConfigData::Deltas::PhysicalDevice) != 0)
+    { resetPhysicalDevice(); }
+
+  if ((bool) vulkanDevice == false ||
+    (config->getDiffs() & 
+     ConfigData::Deltas::LogicalDevice) != 0)
+    { resetLogicalDevice(); }
+
+  if ((bool) swapchain == false ||
+    (config->getDiffs() & 
+     (ConfigData::Deltas::WindowExtents |
+      ConfigData::Deltas::Swapchain)) != 0)
+    { resetSwapchain(); }
 }
 
 

@@ -1,7 +1,8 @@
 #include "engine.h"
-#include "checkForFileUpdateJob.h"
+#include "checkForAssetDescFileUpdateJob.h"
 #include "assetPack.h"
 #include "utils.h"
+#include "configData.h"
 
 #include <iostream>
 
@@ -9,13 +10,15 @@ using namespace std;
 using namespace overground;
 
 
-const char DefaultConfigFile[] = "config.hu";
-const char pathSeparator[] = "/";
+constexpr auto AssetBaseDir = "res/assets";
+constexpr auto AssetDataBaseDir = "res/data";
+constexpr auto DefaultConfigFile = "config.hu";
+constexpr auto pathSeparator = "/";
 
 
 Engine::Engine()
-{
-  
+: resMan(this, AssetBaseDir, AssetDataBaseDir)
+{  
 }
 
 
@@ -38,7 +41,7 @@ void Engine::init(int argc, char ** argv)
   startTime = chrono::high_resolution_clock::now();
   systemTime = startTime;
   currentTime_us = engineTimePoint {};
-  files.addFile("./res", "config.hu", FileType::Humon);
+//  resMan.gatherAssetsFromFile("config.hu");
 
   // ScheduledEvents::CheckForFileUpdates
   eventPeriods.push_back(chrono::milliseconds{1000});
@@ -60,6 +63,12 @@ void Engine::init(int argc, char ** argv)
 void Engine::shutDown()
 {
   graphics.shutDown();
+}
+
+
+void Engine::enqueueJob(Job * job)
+{
+  jobManager.enqueueJob(job);
 }
 
 
@@ -112,6 +121,7 @@ void Engine::iterateGameLoop()
   graphics.presentFrame();
   graphics.drawFrame();  
 
+  checkForConfigUpdates();
   performScheduledEvents();
   // animate, do other CPU-intensive stuff here
 }
@@ -158,103 +168,32 @@ void Engine::performScheduledEvents()
 }
 
 
-void Engine::checkForFileUpdates(bool synchronous)
+void Engine::checkForConfigUpdates()
 {
-  sout {} << "Engine::checkForFileUpdates()" << endl;
+  ConfigData::Deltas diffs = config.getDiffs();
 
-  // for each file we have loaded,
-  auto & files = this->files.getFiles();
-  for (auto & fileInfo : files)
-  {
-    switch(fileInfo.getType())
-    {
-    case FileType::Humon:
-      {
-        auto newJob = checkForFileUpdateJobs.next();
-        newJob->reset(& fileInfo);
-        if (synchronous == false)
-          { jobManager.enqueueJob(newJob); }
-        else
-          { newJob->run(); }
-      }
-      break;
-    case FileType::Image:
-      break;
-    case FileType::Shader:
-      break;
-    }
-  }
-}
-
-
-void Engine::checkForAssetUpdates(bool synchronous)
-{
-  sout {} << "Engine::checkForAssetUpdates()" << endl;
-
-  auto & files = this->files.getFiles();
-  for (auto & fileInfo : files)
-  {
-    auto assets = fileInfo.getAssets();
-    if (assets->hasUpdates())
-    {
-      for (auto & config : assets->configs)
-      {
-        updateConfig(config);
-      }
-      /*
-      for (auto & material : assets->materials)
-      { //...
-      }
-      for (auto & mesh : assets->meshes)
-      { //...
-      }
-      for (auto & model : assets->models)
-      { //...
-      }
-      for (auto & renderPass : assets->renderPasses)
-      { //...
-      }
-      for (auto & shader : assets->shaders)
-      { //...
-      }
-      */
-
-      assets->clearUpdateMark();
-    }
-  }
-}
-
-
-
-void Engine::updateConfig(Config const & newConfig)
-{
-  sout {} << "Engine::updateConfig()" << endl;
-
-  Config::Deltas diffs = Config::Deltas::None;
-
+  if (diffs != ConfigData::Deltas::None)
   {
     lock_guard<mutex> lock(mx_config);
-    config.integrate(newConfig);  
-    diffs |= config.getDiffs();
 
     {
       sout so {};
-      so  << "Config loaded:" << endl << newConfig << endl
+      so  << "Config loaded:" << endl << config << endl
           << "Differences required: ";
-      if ((diffs & Config::Deltas::JobManagement) == 
-          Config::Deltas::JobManagement)
+      if ((diffs & ConfigData::Deltas::JobManagement) == 
+          ConfigData::Deltas::JobManagement)
         { so << " JobManagement"; }
-      if ((diffs & Config::Deltas::Window) == 
-          Config::Deltas::Window)
+      if ((diffs & ConfigData::Deltas::Window) == 
+          ConfigData::Deltas::Window)
         { so << " Window"; }
-      if ((diffs & Config::Deltas::VulkanInstance) == 
-          Config::Deltas::VulkanInstance)
+      if ((diffs & ConfigData::Deltas::VulkanInstance) == 
+          ConfigData::Deltas::VulkanInstance)
         { so << " VulkanInstance"; }
-      if ((diffs & Config::Deltas::PhysicalDevice) == 
-          Config::Deltas::PhysicalDevice)
+      if ((diffs & ConfigData::Deltas::PhysicalDevice) == 
+          ConfigData::Deltas::PhysicalDevice)
         { so << " PhysicalDevice"; }
-      if ((diffs & Config::Deltas::LogicalDevice) == 
-          Config::Deltas::LogicalDevice)
+      if ((diffs & ConfigData::Deltas::LogicalDevice) == 
+          ConfigData::Deltas::LogicalDevice)
         { so << " LogicalDevice"; }
       so << endl;
     }
@@ -262,29 +201,62 @@ void Engine::updateConfig(Config const & newConfig)
     graphics.reset(& config);
   }
 
-  jobManager.setNumWorkers(newConfig.general.numWorkerThreads);
+  jobManager.setNumWorkers(config.general.numWorkerThreads);
 }
 
 
-void Engine::updateModel(Model const & model)
+void Engine::checkForFileUpdates(bool synchronous)
 {
+  sout {} << "Engine::checkForFileUpdates()" << endl;
 
+  resMan.checkForAnyFileUpdates(synchronous);
 }
 
 
-void Engine::updateMesh(Mesh const & mesh)
+void Engine::checkForAssetUpdates(bool synchronous)
 {
+  sout {} << "Engine::checkForAssetUpdates()" << endl;
 
+  resMan.checkForAssetUpdates(synchronous);
 }
 
 
-void Engine::updateMaterial(Material const & material)
+void Engine::updateConfig(ConfigData const & newConfig)
 {
+  sout {} << "Engine::updateConfig()" << endl;
 
+  {
+    lock_guard<mutex> lock(mx_config);
+    config.integrate(newConfig);
+  }
 }
 
 
-void Engine::updateShader(Shader const & shader)
+unique_ptr<Asset> Engine::makeAsset(
+  ResourceManager * resMan,
+  std::string const & assetName,
+  FileReference * assetDescFile, 
+  humon::HuNode & descFromFile,
+  bool cache, bool compress,
+  bool monitor
+)
 {
-
+  if (descFromFile % "kind")
+  {
+    if (auto it = assetProviders.find(descFromFile / "kind"); 
+      it != assetProviders.end())
+    {
+      return move(it->second)(resMan, assetName, assetDescFile, descFromFile, cache, compress, monitor);
+    }
+  }
 }
+
+
+void Engine::registerAssetProvider(
+      std::string const & assetKind,
+      makeAssetFn_t const & fn)
+{
+  assetProviders.insert_or_assign(assetKind, fn);
+}
+
+

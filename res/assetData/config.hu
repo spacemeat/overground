@@ -1,0 +1,50 @@
+{
+  general: {
+    programName: "OG-Demo"
+    version: [0 0 0]
+    numWorkerThreads: 2
+  }
+  graphics: {
+    headless: false # implies swapchain extension
+    fullScreen: false
+    width: 600
+    height: 600
+    deviceExtensions: []
+    debugger: true
+    vulkanValidationEnabled: true
+    vulkanValidationLayers: [VK_LAYER_LUNARG_standard_validation]
+    vulkanValidationReports: [info warning perfWarning error debug]
+    vulkanExtensions: []
+    deviceExtensions: []
+    minGraphicsQueues: 1
+    desiredGraphicsQueues: 2
+    minComputeQueues: 1
+    desiredComputeQueues: 2
+    minTransferQueues: 1
+    desiredTransferQueues: 2
+    minDeviceFeatures: [ samplerAnisotropy ]
+    desiredDeviceFeatures: [ geometryShader ]
+    swapchain: {
+      formatPriorities: [
+        [B8G8R8A8Unorm SrgbNonlinear] 
+        [R8G8B8A8Unorm SrgbNonlinear]
+      ]
+      numViews: 1
+      imageUsages: [
+        transferDst # for clear operations
+        colorAttachment
+      ]
+      imageSharing: false # only matters for multi-qfi devices
+      pretransform: Identity
+      windowAlpha: Opaque
+      presentModePriorities: [
+        [Mailbox 3] # mode, imageCount
+        [Immediate 2]
+        [Fifo 3]
+        [Mailbox 2]
+        [FifoRelaxed 3]
+      ]
+      clipped: true
+    }
+  }
+}
