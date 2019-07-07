@@ -4,7 +4,7 @@
 #include "graphicsUtils.h"
 #include <string>
 #include <set>
-#include "config.h"
+#include "configData.h"
 
 namespace overground
 {

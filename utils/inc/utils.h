@@ -250,6 +250,9 @@ namespace overground
 
   path_t findFile(std::string const & filename, std::string const & baseDir);
 
+  std::string loadFileAsString(path_t const & path);
+  std::vector<char> loadFileAsBinary(path_t const & path);
+
   humon::nodePtr_t loadHumonDataFromFile(path_t const & path);
 
 #define CHK(call) \

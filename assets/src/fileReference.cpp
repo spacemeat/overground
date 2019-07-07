@@ -7,7 +7,7 @@ using namespace overground;
 
 
 FileReference::FileReference(
-  fs::path const & path)
+  path_t const & path)
 : path(path)
 {
 }
@@ -21,9 +21,19 @@ FileReference::FileReference(FileReference && rhs)
 }
 
 
-void FileReference::updateFileModTime()
+void FileReference::checkFileModTime()
 {
+  auto mt = decltype(modTime)::clock::to_time_t(modTime);
+  sout {} << "modTime:     "
+    << std::asctime(std::localtime(& mt));
+
   modTime = fs::last_write_time(path);
+
+  auto pmt = decltype(modTime)::clock::to_time_t(modTime);
+  sout {} << "modTime:     "
+    << std::asctime(std::localtime(& pmt))
+    << " (same? " << (mt == pmt ? "yes" : "no")
+    << endl;
 }
 
 
@@ -33,13 +43,13 @@ void FileReference::forceUpdate()
 }
 
 
-bool FileReference::doesNeedUpdate()
+bool FileReference::isModified()
 {
-  return modTimePrev != modTime;
+  return modTime != modTimePrev;
 }
 
 
-void FileReference::setUpdated()
+void FileReference::clearModified()
 {
-  modTime = modTimePrev;
+  modTimePrev = modTime;
 }

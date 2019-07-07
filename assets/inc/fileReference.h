@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include <experimental/filesystem>
-#include "assetPack.h"
+#include "utils.h"
 
 namespace overground
 {
@@ -17,12 +17,13 @@ namespace overground
 
     path_t const & getPath() const { return path; }
     fileTime_t getModTime() const { return modTime; }
+    fileTime_t getModTimePrev() const { return modTimePrev; }
 
-    void updateFileModTime();
+    void checkFileModTime();
     void forceUpdate();
 
-    bool doesNeedUpdate();
-    void setUpdated();
+    bool isModified();
+    void clearModified();
 
   private:
     path_t path;

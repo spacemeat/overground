@@ -22,6 +22,7 @@ namespace overground
     bool cache, bool compress,
     bool monitor);
 
+
   class Config : public Asset
   {
   public:
@@ -38,10 +39,10 @@ namespace overground
     virtual std::string getSrcExtension() override
       { return "config"; }
 
-    virtual void compileSrcAsset(
-      path_t const & srcPath) override;
+  protected:
+    virtual void compileSrcAsset_impl(path_t const & path);
 
-    virtual void applyToEngine() override;
+    virtual void applyToEngine_impl();
 
   public:
     ConfigData data;

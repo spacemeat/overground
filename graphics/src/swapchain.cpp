@@ -21,13 +21,13 @@ void Graphics::resetSwapchain()
   getExtent();
 
   if (oldSurfaceFormat != swapchainSurfaceFormat)
-    { config->applyDiff(Config::Deltas::RenderPasses); }
+    { config->applyDiff(ConfigData::Deltas::RenderPasses); }
   
   if (oldImageCount != swapchainImageCount)
-    { config->applyDiff(Config::Deltas::NumConcurrentFrames); }
+    { config->applyDiff(ConfigData::Deltas::NumConcurrentFrames); }
 
   if (oldExtent != swapchainExtent)
-    { config->applyDiff(Config::Deltas::Extents); }
+    { config->applyDiff(ConfigData::Deltas::WindowExtents); }
 
   // TODO: HRK
   auto imageUsages = vk::ImageUsageFlagBits::eColorAttachment;

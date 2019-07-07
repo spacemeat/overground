@@ -7,7 +7,7 @@
 #include <mutex>
 #include <chrono>
 #include <functional>
-#include "config.h"
+#include "configData.h"
 #include "asset.h"
 #include "graphics.h"
 #include "fileReference.h"
@@ -37,6 +37,10 @@ namespace overground
     Engine();
     ~Engine();
 
+    void registerAssetProvider(
+      std::string const & assetKind,
+      makeAssetFn_t const & fn);
+
     void init(int argc, char ** argv);
     void shutDown();
 
@@ -62,10 +66,11 @@ namespace overground
     // external updates (say from file changes)
     void updateConfig(ConfigData const & newConfig);
 
-
     // assets
+    std::string getBaseAssetDir()
+      { return "res"; }
+      
     std::unique_ptr<Asset> makeAsset(
-      ResourceManager * resMan,
       std::string const & assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
@@ -73,22 +78,8 @@ namespace overground
       bool monitor
     );
 
-    using makeAssetFn_t = std::function<
-      std::unique_ptr<Asset>(
-        ResourceManager * resMan,
-        std::string const & assetName,
-        FileReference * assetDescFile, 
-        humon::HuNode & descFromFile,
-        bool cache, bool compress,
-        bool monitor
-    )>;
+    std::thread * limiter;
 
-    void registerAssetProvider(
-      std::string const & assetKind,
-      makeAssetFn_t const & fn);
-
-    std::map<std::string, makeAssetFn_t> assetProviders;
-    
     std::string workingDir = "res";
     std::string configFile = "config.hu";
 

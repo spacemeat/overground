@@ -7,7 +7,7 @@ using namespace std;
 using namespace std::chrono_literals;
 using namespace overground;
 
-constexpr bool debugOut = true;
+constexpr bool debugOut = false;
 constexpr bool spamOut = false;
 
 

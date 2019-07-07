@@ -7,8 +7,27 @@
 
 namespace overground
 {
+  class FileReference;
   class ResourceManager;  
   class Asset;
+
+
+  class CheckForAssetDescFileUpdateJobs : public Job
+  {
+  public:
+    CheckForAssetDescFileUpdateJobs();
+
+    void reset(ResourceManager * resMan, FileReference * file);
+
+  protected:
+    virtual void run_impl(JobManager * jobManager) override;
+
+  private:
+    ResourceManager * resMan;
+    FileReference * file;
+  };
+
+  extern JobPool<CheckForAssetDescFileUpdateJobs> checkForAssetDescFileUpdateJobs;
 
 
   class CompileAssetJob : public Job

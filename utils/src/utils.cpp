@@ -17,7 +17,7 @@ string overground::operator << (ostream & lhs, ss::endtoken rhs)
 }
 
 
-path_t findFile(string const & filename, string const & baseDir)
+path_t overground::findFile(string const & filename, string const & baseDir)
 {
   queue<path_t> searchDirs;
   searchDirs.push(path_t(baseDir));
@@ -27,19 +27,19 @@ path_t findFile(string const & filename, string const & baseDir)
     searchDirs.pop();
     for (auto & p : fs::directory_iterator(searchDir))
     {
-      if (p.path.filename() == filename)
+      if (p.path().filename() == filename)
         { return p; }
 
       if (fs::is_directory(p))
         { searchDirs.push(p); }
     }
-
-    throw runtime_error("Could not find file.");
   }
+
+  throw runtime_error("Could not find file.");
 }
 
 
-string loadFileAsString(path_t const & path)
+string overground::loadFileAsString(path_t const & path)
 {
   string strContent;
   auto ifs = ifstream(path);
@@ -54,7 +54,7 @@ string loadFileAsString(path_t const & path)
 }
 
 
-vector<char> loadFileAsBinary(path_t const & path)
+vector<char> overground::loadFileAsBinary(path_t const & path)
 {
   auto ifs = ifstream(path, std::ios::ate | std::ios::binary);
   if (ifs.is_open())
@@ -71,7 +71,7 @@ vector<char> loadFileAsBinary(path_t const & path)
 }
 
 
-humon::nodePtr_t loadHumonDataFromFile(path_t const & path)
+humon::nodePtr_t overground::loadHumonDataFromFile(path_t const & path)
 {
   return humon::fromString(
     loadFileAsString(path)

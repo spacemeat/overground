@@ -2,10 +2,12 @@
 #define ASSETDATA_H
 
 #include "utils.h"
-#include "resourceManager.h"
 
 namespace overground
 {
+  class ResourceManager;
+  class FileReference;
+
   class AssetData
   {
   public:

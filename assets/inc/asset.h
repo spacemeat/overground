@@ -3,12 +3,12 @@
 
 #include <fstream>
 #include "utils.h"
-#include "fileReference.h"
-#include "resourceManager.h"
+//#include "fileReference.h"
 
 namespace overground
 {
-  class AssetData;
+  class ResourceManager;
+  class FileReference;
 
   class Asset
   {
@@ -20,48 +20,68 @@ namespace overground
       humon::HuNode & descFromFile,
       bool cache, bool compress,
       bool monitor);
+    virtual ~Asset();
 
-    bool isCached() const { return isCached; }
-    bool isCompiled() const { return isCompiled; }
-    bool isMonitored() const { return isMonitored; }
+    bool isCached() const { return thisIsCached; }
+    bool isCompiled() const { return thisIsCompiled; }
+    bool isMonitored() const { return thisIsMonitored; }
 
     humon::HuNode const & getDesc() const { return *desc; }
+    void setDesc(humon::HuNode const & desc);
 
-    AssetData * getAssetData() const;
-    void updateFileModTimes();
+    bool doesNeedUpdateFromSrc()
+      { return needsUpdateFromSrc; }
+    bool doesNeedUpdateFromOpt()
+      { return needsUpdateFromOpt; }
+    bool didReloadAssetData()
+      { return didReload; }
+    
+    void setNeedsUpdateFromSrc()
+      { needsUpdateFromSrc = true; }
+    void setNeedsUpdateFromOpt()
+      { needsUpdateFromOpt = true; }
+    void setDidReloadAssetData()
+      { didReload = true; }
 
-    enum class Status
-    {
-      upToDate,
-      srcFileIsNew,
-      compiledFileIsNew,  // if compiled asset
-      hostBufferIsNew     // iif host-backed asset
-    };
-
-    Status getStatus() { return status; }
-    void setUpdated();
+    void clearNeedUpdateFromSrc()
+      { needsUpdateFromSrc = false; }
+    void clearNeedUpdateFromOpt()
+      { needsUpdateFromOpt = false; }
+    void clearDidReloadAssetData()
+      { didReload = false; }
 
     using compiledAssetLoader_t = std::ifstream;
     using compiledAssetSaver_t = std::ofstream;
 
+  protected:
     virtual std::string getSrcExtension() = 0;
     virtual std::string getCompiledExtension();
 
-    virtual void compileSrcAsset(
-      path_t const & srcPath);
-    virtual void loadCompiledAsset(
+  public:
+    void compileSrcAsset();
+    void loadCompiledAsset();
+    void saveCompiledAsset();
+    
+  protected:
+    virtual void compileSrcAsset_impl(path_t const & path);
+    virtual void loadCompiledAsset_impl(
       compiledAssetLoader_t & file);
-    virtual void saveCompiledAsset(
+    virtual void saveCompiledAsset_impl(
       compiledAssetSaver_t & file);
 
+  public:
     virtual uint64_t getCompiledSize();
     virtual void * getCompiledData();
 
     virtual int getGraphicsBufferId();
     virtual uint64_t getGraphicsBufferSize();
-    virtual void applyToBuffer(void * targetBuffer);
 
-    virtual void applyToEngine();
+    void applyToBuffer(void * targetBuffer);
+    void applyToEngine();
+
+  protected:
+    virtual void applyToBuffer_impl(void * targetBuffer);
+    virtual void applyToEngine_impl();
 
   protected:
     ResourceManager * getResMan() { return resMan; }
@@ -71,14 +91,15 @@ namespace overground
     std::string assetName;
     FileReference * assetDescFile;
     humon::nodePtr_t desc;
-    bool isCached;
-    bool isCompiled;
-    bool isMonitored;
-    time_t modTime;
-    time_t runtimeModTime;
+    path_t srcFilePath;
+    path_t optFilePath;
+    bool thisIsCached;
+    bool thisIsCompiled;
+    bool thisIsMonitored;
 
-    Status status = Status::compiledFileIsNew;
-    AssetData * assetData;
+    bool needsUpdateFromSrc = true;
+    bool needsUpdateFromOpt = true;
+    bool didReload = true;
   };
 }
 

@@ -32,19 +32,24 @@ Config::Config(ResourceManager * resMan,
 : Asset(resMan, assetName, assetDescFile,
     descFromFile, cache, compress, monitor)
 {
+  sout {} << "Config::Config()" << endl;
 }
 
 
-void Config::compileSrcAsset(path_t const & srcPath)
+void Config::compileSrcAsset_impl(path_t const & path)
 {
-  auto huNode = loadHumonDataFromFile(srcPath);
+  sout {} << "Config::compileSrcAsset_impl()" << endl;
+  auto huNode = loadHumonDataFromFile(path);
   data.loadFromHumon(* huNode);
+
+  setDidReloadAssetData();
 }
 
 
-void Config::applyToEngine()
+void Config::applyToEngine_impl()
 {
+  sout {} << "Config::applyToEngine_impl()" << endl;
+  clearDidReloadAssetData();
+
   getResMan()->getEngine()->updateConfig(data);
 }
-
-

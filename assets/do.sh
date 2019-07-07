@@ -2,21 +2,19 @@
 
 source ../buildproj.sh
 
-subProject="assets"
-deps=("pools" "jobs" "utils")
-inc=("../../ansiTermCpp/inc" "../../humon/inc" "../../../balls/vulkan/1.1.77.0/x86_64/include")
-src=("fileRegistry" "assetPack" "checkForFileUpdateJob" "loadHumonFileJob" "initFromHumonJob" "config" "mesh" "model")
-libDirs=("../../humon/bin")
-libs=("humon-d")
-packages=()
+main() {
+  local subProject="assets"
+  local deps=("pools" "jobs" "utils")
+  local inc=("../../ansiTermCpp/inc" "../../humon/inc")
+  local src=("asset" "configData" "fileReference" "resourceManager" "updateJobs")
+  local libDirs=("../../humon/bin")
+  local libs=("jobs-d" "utils-d" "humon-d" "vulkan" "stdc++fs")
+  local packages=()
 
-if [ "$1" == "buildlib" ]; then
-  buildlib $subProject deps inc packages src || return $?
-elif [ "$1" == "buildtest" ]; then
-  buildlib $subProject deps inc packages src || return $?
-  buildtest $subProject deps inc libDirs libs packages
-elif [ "$1" == "runtest" ]; then
-  runtest $subProject || return $?
-fi
+  doTheThing $1 $subProject deps inc src libDirs libs packages
 
-return 0
+  return $?
+}
+
+main $1
+return $?

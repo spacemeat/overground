@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #  -Wextra
-gccArgs="--std=c++17 -Wall -g -O0"
+gccArgs="--std=c++17 -Wall -g -O0 -fno-stack-protector"
 
 
 fg() {

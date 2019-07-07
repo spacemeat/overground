@@ -1,6 +1,7 @@
 {
   cache: true
   compress: true
+  monitor: true
 
   assets: {
     config: {
@@ -8,28 +9,6 @@
       dataFile: config.hu
       cache: true
       monitor: true
-    }
-
-    initialScene: {
-      kind: scene
-      dataFile: initialScene.hu
-      cache: true
-      monitor: true
-    }
-
-    cubeMesh: {
-      kind: mesh
-      dataFile: cube.hu
-      cache: true
-      monitor: true
-    }
-
-    stoneAlbedo: {
-      kind: texture2d
-      dataFile: stone_alb.png    
-      cache: true
-      compress: false
-      monitor: false
     }
   }
 }

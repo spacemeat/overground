@@ -6,6 +6,8 @@ cd ../assets
 source do.sh buildlib
 cd ../graphics
 source do.sh buildlib
+cd ../assetProviders
+source do.sh buildlib
 cd ../engine
 source do.sh buildtest
 cd ..

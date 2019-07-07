@@ -1,6 +1,5 @@
 #include "engine.h"
-#include "checkForAssetDescFileUpdateJob.h"
-#include "assetPack.h"
+#include "updateJobs.h"
 #include "utils.h"
 #include "configData.h"
 
@@ -11,13 +10,13 @@ using namespace overground;
 
 
 constexpr auto AssetBaseDir = "res/assets";
-constexpr auto AssetDataBaseDir = "res/data";
-constexpr auto DefaultConfigFile = "config.hu";
+constexpr auto AssetDataBaseDir = "res/assetData";
+constexpr auto DefaultStartupFile = "startup";
 constexpr auto pathSeparator = "/";
 
 
 Engine::Engine()
-: resMan(this, AssetBaseDir, AssetDataBaseDir)
+: resMan(this, & jobManager, AssetBaseDir, AssetDataBaseDir)
 {  
 }
 
@@ -34,6 +33,15 @@ Engine::~Engine()
   }
 }
 
+
+void Engine::registerAssetProvider(
+      std::string const & assetKind,
+      makeAssetFn_t const & fn)
+{
+  resMan.registerAssetProvider(assetKind, fn);
+}
+
+
 void Engine::init(int argc, char ** argv)
 {
   sout {} << "Engine::init()" << endl;
@@ -41,7 +49,9 @@ void Engine::init(int argc, char ** argv)
   startTime = chrono::high_resolution_clock::now();
   systemTime = startTime;
   currentTime_us = engineTimePoint {};
+
 //  resMan.gatherAssetsFromFile("config.hu");
+  resMan.addAssetDescFile(DefaultStartupFile);
 
   // ScheduledEvents::CheckForFileUpdates
   eventPeriods.push_back(chrono::milliseconds{1000});
@@ -54,6 +64,10 @@ void Engine::init(int argc, char ** argv)
   checkForFileUpdates(true);
   // latch the config to engine; creates the window, etc.
   checkForAssetUpdates(true);
+
+  // initial config
+  checkForConfigUpdates();
+
 
   // let's not stand on ceremony. There will be zero workers at the moment, but set it to start once we populate.
   jobManager.startWorkers();
@@ -86,28 +100,32 @@ void Engine::latchSceneDelta()
 }
 
 
-thread limiter;
-
 void Engine::enterEventLoop()
 {
   sout {} << "Engine::enterEventLoop()" << endl;
 
   // TODO: temperorariry. kills the works after a bit. Trying to manage a runaway process. Might need to get more aggressive.
-  limiter = thread([this]
+  /* 
+  limiter = new thread([this]
   {
     this_thread::sleep_for(3000ms);
     glfwSetWindowShouldClose(graphics.getMainWindow(), true);
-  });
+  });*/
 
   auto window = graphics.getMainWindow();
   if (window == nullptr)
-    { return; }
+  {
+    sout {} << "No window was created. Was graphics.reset() called?" << endl;
+    return;
+  }
 
   while( ! glfwWindowShouldClose(window))
   {
     glfwPollEvents();
     iterateGameLoop();
   }
+
+  sout {} << "End of enterEventLoop" << endl;
 
   // g.waitForGraphicsOps();
 }
@@ -199,6 +217,8 @@ void Engine::checkForConfigUpdates()
     }
 
     graphics.reset(& config);
+
+    config.clearDiffs();
   }
 
   jobManager.setNumWorkers(config.general.numWorkerThreads);
@@ -207,7 +227,7 @@ void Engine::checkForConfigUpdates()
 
 void Engine::checkForFileUpdates(bool synchronous)
 {
-  sout {} << "Engine::checkForFileUpdates()" << endl;
+  //sout {} << "Engine::checkForFileUpdates()" << endl;
 
   resMan.checkForAnyFileUpdates(synchronous);
 }
@@ -215,7 +235,7 @@ void Engine::checkForFileUpdates(bool synchronous)
 
 void Engine::checkForAssetUpdates(bool synchronous)
 {
-  sout {} << "Engine::checkForAssetUpdates()" << endl;
+  //sout {} << "Engine::checkForAssetUpdates()" << endl;
 
   resMan.checkForAssetUpdates(synchronous);
 }
@@ -233,7 +253,6 @@ void Engine::updateConfig(ConfigData const & newConfig)
 
 
 unique_ptr<Asset> Engine::makeAsset(
-  ResourceManager * resMan,
   std::string const & assetName,
   FileReference * assetDescFile, 
   humon::HuNode & descFromFile,
@@ -241,22 +260,9 @@ unique_ptr<Asset> Engine::makeAsset(
   bool monitor
 )
 {
-  if (descFromFile % "kind")
-  {
-    if (auto it = assetProviders.find(descFromFile / "kind"); 
-      it != assetProviders.end())
-    {
-      return move(it->second)(resMan, assetName, assetDescFile, descFromFile, cache, compress, monitor);
-    }
-  }
+  return resMan.makeAsset(
+    assetName, assetDescFile, descFromFile, cache, compress, monitor);
 }
 
-
-void Engine::registerAssetProvider(
-      std::string const & assetKind,
-      makeAssetFn_t const & fn)
-{
-  assetProviders.insert_or_assign(assetKind, fn);
-}
 
 
