@@ -183,6 +183,8 @@ void ConfigData::integrate(ConfigData const & rhs)
   ConfigData::Deltas deltas = ConfigData::Deltas::None;
 
   deltas |= set(general.programName, rhs.general.programName, ConfigData::Deltas::Window);
+
+  deltas |= set(general.version, rhs.general.version, ConfigData::Deltas::None);
   
   deltas |= set(general.numWorkerThreads, rhs.general.numWorkerThreads, ConfigData::Deltas::JobManagement);
 
@@ -242,74 +244,94 @@ void ConfigData::integrate(ConfigData const & rhs)
 }
 
 
-void ConfigData::print(std::ostream & sout) const
+string ConfigData::print() const
 {
-  sout << "Config:" << endl
-       << "  general:" << endl
-       << "    numWorkerThreads: " << general.numWorkerThreads << endl
-       << "  graphics:" << endl
-       << "    headless: " << (graphics.headless ? "true" : "false") << endl
-       << "    fullScreen: " << (graphics.fullScreen ? "true" : "false") << endl
-       << "    width: " << graphics.width << endl
-       << "    height " << graphics.height << endl
-       << "    vulkanValidationEnabled: " << (graphics.vulkanValidationEnabled ? "true": "false") << endl
-       << "    vulkanValidationLayers: ";
-  for (auto & ext : graphics.vulkanValidationLayers)
-    { sout << " " << ext; }
-  sout << endl
-       << "    vulkanValidationReports: ";
-  for (auto & ext : graphics.vulkanValidationReports)
-    { sout << " " << ext; }
-  sout << endl
-       << "    vulkanExtensions: ";
-  for (auto & ext : graphics.vulkanExtensions)
-    { sout << " " << ext; }
-  sout << endl
-       << "    deviceExtensions: ";
-  for (auto & ext : graphics.deviceExtensions)
-    { sout << " " << ext; }
-
-  sout << "    minGraphicsQueues " << graphics.minGraphicsQueues << endl
-       << "    desiredGraphicsQueues " << graphics.desiredGraphicsQueues << endl
-       << "    minComputeQueues " << graphics.minComputeQueues << endl
-       << "    desiredComputeQueues " << graphics.desiredComputeQueues << endl
-       << "    minTransferQueues " << graphics.minTransferQueues << endl
-       << "    desiredTransferQueues " << graphics.desiredTransferQueues << endl
-       << "    minDeviceFeatures: ";
-  for (auto & ext : graphics.minDeviceFeatures)
-    { sout << " " << ext; }
-
-  sout << endl
-       << "    desiredDeviceFeatures: ";
-  for (auto & ext : graphics.desiredDeviceFeatures)
-    { sout << " " << ext; }
-
-  sout << endl
-       << "    swapchain:" << endl
-       << "      formatPriorities:" << endl;
+  stringstream formatPriorities;
   for (auto & ext : graphics.swapchain.formatPriorities)
-    { sout << "        [" << ext.first << " " << ext.second << "]" << endl; }
-  sout << "      numViews: " << graphics.swapchain.numViews << endl
-       << "      imageUsages:";
-  for (auto & ext : graphics.swapchain.imageUsages)
-    { sout << " " << ext; }
-  sout << endl
-       << "      imageSharing: " 
-       << (graphics.swapchain.imageSharing ? "true" : "false") << endl
-       << "      pretransform: " << graphics.swapchain.pretransform << endl
-       << "      windowAlpha: " << graphics.swapchain.windowAlpha << endl
-       << "      presentModePriorities:" << endl;
+    { formatPriorities << 
+      fmt::format("        [{} {}]\n",
+      ext.first, ext.second); }
+
+  stringstream presentModePriorities;
   for (auto & ext : graphics.swapchain.presentModePriorities)
-    { sout << "        [" << ext.first << " " << ext.second << "]" << endl; }
-    
-  sout << "      clipped: " 
-       << (graphics.swapchain.clipped ? "true" : "false") << endl;
+    { presentModePriorities << 
+      fmt::format("        [{} {}]\n",
+      ext.first, ext.second); }
+
+  return fmt::format(
+    "Config:\n"
+    "  general:\n"
+    "    programName: {}\n"
+    "    version: {}\n"
+    "    numWorkerThreads: {}\n"
+    "  graphics:\n"
+    "    isConfigured: {}\n"
+    "    headless: {}\n"
+    "    fullScreen: {}\n"
+    "    width: {}\n"
+    "    height: {}\n"
+    "    vulkanValidationEnabled: {}\n"
+    "    vulkanValidationLayers: {}\n"
+    "    vulkanValidationReports: {}\n"
+    "    vulkanExtensions: {}\n"
+    "    deviceExtensions: {}\n"
+    "    minGraphicsQueues: {}\n"
+    "    desiredGraphicsQueues: {}\n"
+    "    minComputeQueues: {}\n"
+    "    desiredCopmuetqueues: {}\n"
+    "    minTransferQueues: {}\n"
+    "    desiredTransferQueues: {}\n"
+    "    minDeviceFeatures:\n"
+    "      {}\n"
+    "    desiredDeviceFeatures:\n"
+    "      {}\n"
+    "    swapchain:\n"
+    "      formatPriorities:\n"
+    "        {}\n"
+    "      numViews: {}\n"
+    "      imageUsages: {}\n"
+    "      imageSharing: {}\n"
+    "      pretransform: {}\n"
+    "      windowAlpha: {}\n"
+    "      presentModePriorities:\n"
+    "{}\n"
+    "      clipped: {}\n",
+    general.programName,
+    join(general.version, ".", "{:0d}"),
+    general.numWorkerThreads,
+    graphics.isConfigured ? "yes" : "no",
+    graphics.headless ? "yes" : "no",
+    graphics.fullScreen ? "yes" : "no",
+    graphics.width,
+    graphics.height,
+    graphics.vulkanValidationEnabled ? "yes" : "no",
+    join(graphics.vulkanValidationLayers, ", ", "{}", "(none)"),
+    join(graphics.vulkanValidationReports, ", ", "{}", "(none)"),
+    join(graphics.vulkanExtensions, ", ", "{}", "(none)"),
+    join(graphics.deviceExtensions, ", ", "{}", "(none)"),
+    graphics.minGraphicsQueues,
+    graphics.desiredGraphicsQueues,
+    graphics.minComputeQueues,
+    graphics.desiredComputeQueues,
+    graphics.minTransferQueues,
+    graphics.desiredTransferQueues,
+    join(graphics.minDeviceFeatures, "\n      ", "{}", "(none)"),
+    join(graphics.desiredDeviceFeatures, "\n      ", "{}", "(none)"),
+    formatPriorities.str(),
+    graphics.swapchain.numViews,
+    join(graphics.swapchain.imageUsages, "\n      ", "{}", "(none)"),
+    graphics.swapchain.imageSharing ? "yes" : "no",
+    graphics.swapchain.pretransform,
+    graphics.swapchain.windowAlpha,
+    presentModePriorities.str(),
+    graphics.swapchain.clipped ? "yes" : "no"
+  );
 }
 
 
 std::ostream & overground::operator << (
   std::ostream & stream, ConfigData const & rhs)
 {
-  rhs.print(stream);
+  stream << rhs.print();
   return stream;
 }

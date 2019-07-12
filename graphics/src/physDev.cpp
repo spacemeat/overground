@@ -65,7 +65,6 @@ void Graphics::resetPhysicalDevice()
     select device with best .final    
   */
 
-  sout ss {};
   for (size_t devIdx = 0; devIdx < devices.size(); ++ devIdx)
   {
     auto & device = devices[devIdx];
@@ -211,7 +210,7 @@ void Graphics::resetPhysicalDevice()
     
     pdf.finalDeviceScore = dqf.g * dqf.c * dqf.t * dqf.p * pdf.featureScore;
 
-    reportPhysicalDevice(device, pdf, ss);
+    reportPhysicalDevice(device, pdf);
   }
 
   auto selectedPhysDev = max_element(
@@ -237,87 +236,88 @@ void Graphics::resetPhysicalDevice()
   swapchainSurfaceFormats = physicalDevice.getSurfaceFormatsKHR(surface);
   swapchainPresentModes = physicalDevice.getSurfacePresentModesKHR(surface);
 
-  ss << "using device #" << physicalDeviceIndex << "." << endl
-     << ansi::lightGreen << "validation layers:" << ansi::darkGreen;
-  for (auto & e : validationLayers) { ss << " " << e; }
-  ss << endl
-     << ansi::lightGreen << "extensions:" << ansi::darkGreen;
-  for (auto & e : extensions) { ss << " " << e; }
-  ss << endl
-     << ansi::lightGreen << "device extensions:" << ansi::darkGreen;
-  for (auto & e : deviceExtensions) { ss << " " << e; }
-  ss << endl;
+  log(thId, fmt::format("using device #{}.\n"
+    "validation layers: {}\n"
+    "extensions: {}\n"
+    "device extensions: {}", physicalDeviceIndex,
+    join(validationLayers, ", "),
+    join(extensions, ", "), 
+    join(deviceExtensions, ", ")));
 }
 
 
 void Graphics::reportPhysicalDevice(vk::PhysicalDevice device, 
-  deviceFitness_t const & fitness, std::ostream & out)
+  deviceFitness_t const & fitness)
 {
   auto const & props = device.getProperties();
-  out << "physical device:" << endl
-      << "  name:           " << props.deviceName << endl
-      << "  vendorId:       " << props.vendorID << endl
-      << "  deviceId:       " << props.deviceID << endl
-      << "  type:           " << vk::to_string(props.deviceType) << endl
-      << "  cache uuid:     " << std::hex;
-  for (auto ch : props.pipelineCacheUUID)
-    { out << (int) ch; }
-  out << std::dec << endl << "  families:" << endl;
 
   auto && qfps = device.getQueueFamilyProperties();
+
+  auto fams = vector<string>(qfps.size());
+  stringstream families;
   for (size_t qfIdx = 0; qfIdx < qfps.size(); ++ qfIdx)
   {
     auto & qfp = qfps[qfIdx];
     bool delim = false;
-    out << "    ";
+    families << "    ";
     if (qfp.queueFlags & vk::QueueFlagBits::eGraphics)
-      { out << "graphics"; delim = true; }
+      { families << "graphics"; delim = true; }
     if (qfp.queueFlags & vk::QueueFlagBits::eCompute)
-      { out << (delim ? " | " : "") << "compute"; delim = true; }
+      { families << fmt::format("{}compute",
+      (delim ? " | " : "")); delim = true; }
     if (qfp.queueFlags & vk::QueueFlagBits::eTransfer)
-      { out << (delim ? " | " : "") << "transfer"; delim = true; }
+      { families <<  fmt::format("{}transfer",
+      (delim ? " | " : "")); delim = true; }
     if (qfp.queueFlags & vk::QueueFlagBits::eSparseBinding)
-      { out << (delim ? " | " : "") << "sparseBinding"; }
+      { families <<  fmt::format("{}sparseBinding",
+      (delim ? " | " : "")); }
 
-    out << " (" << qfp.queueCount << " queue(s))" << endl;
-    if (device.getSurfaceSupportKHR(qfIdx, surface) &&
-      config->graphics.headless == false)
-      { out << "      can present" << endl; }
-
+    auto canPresent = device.getSurfaceSupportKHR(qfIdx, surface) &&
+      config->graphics.headless == false;
     auto & fit = fitness.queueFamilyFitness[qfIdx];
-    out << "      fitness scores: g = " << fit.g 
-        << "; c = " << fit.c << "; t = " << fit.t 
-        << "; p = " << fit.p << "" << endl
-        << "      feature score: " << fitness.featureScore << endl;
-  }
 
-  out << "  unmet feature requirements: ";
-  if (fitness.unsupportedMinFeatures.size() > 0)
-  {
-    bool delim = false;
-    for (auto feature : fitness.unsupportedMinFeatures)
-      { out << (delim ? ", " : "") << feature; delim = true; }    
+    families << fmt::format(
+      " ({} queue(s))\n"
+      "      can present: {}\n"
+      "      fitness scores: g = {}; c = {}; t = {}; p = {}\n"
+      "      feature score: {}",
+      qfp.queueCount, canPresent ? "yes" : "no", fit.g, fit.c,
+      fit.t, fit.p, fitness.featureScore);
   }
-  else
-    { out << " (none)"; }
-
-  out << endl 
-      << "  unmet feature desirements: ";
-  if (fitness.unsupportedDesiredFeatures.size() > 0)
-  {
-    bool delim = false;
-    for (auto feature : fitness.unsupportedDesiredFeatures)
-      { out << (delim ? ", " : "") << feature; delim = true; }
-  }
-  else
-    { out << " (none)"; }
 
   auto & df = fitness.deviceQueueFitness;
-  out << endl
-      << "  device fitness scores: g = " << df.g << "; c = " << df.c 
-      << "; t = " << df.t << "; p = " << df.p << endl
-      << "  device feature score: " << fitness.featureScore << endl
-      << "  device total score: " << fitness.finalDeviceScore << endl;
+
+  auto report = fmt::format(
+    "physical device: \n"
+    "  name:           {}\n"
+    "  vendorId:       {:#x}\n"
+    "  deviceId:       {:#x}\n"
+    "  type:           {}\n"
+    "  cache uuid:     0x{}\n"
+    "  queue families:\n"
+    "{}\n"
+    "  unmet feature requirements:\n"
+    "    {}\n"
+    "  unmet feature desirements:\n"
+    "    {}\n"
+    "  device fitness score: g = {}; c = {}; t = {}; p = {}\n"
+    "  device feature score: {}\n"
+    "  device total score: {}",
+    props.deviceName, 
+    props.vendorID, 
+    props.deviceID, 
+    vk::to_string(props.deviceType),
+    join(props.pipelineCacheUUID, "", "{:x}"),
+    families.str(), 
+    join(fitness.unsupportedMinFeatures, ", ", "{}", "(none)"), 
+    join(fitness.unsupportedDesiredFeatures, ", ", "{}", "(none)"),
+    df.g, df.c, df.t, df.p, 
+    fitness.featureScore, 
+    fitness.finalDeviceScore,
+    nullptr   // WTF? Bug in fmt
+  );
+
+  log(thId, report);
 }
 
 
@@ -339,37 +339,56 @@ void Graphics::reportPhysicalDevice(vk::PhysicalDevice device,
 */
 bool Graphics::computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFitness_t & pdf)
 {
-  sout ss {};
+  stringstream ss;
   auto supportedFeatures = device.getFeatures();
+  ss << "Checking required features:\n";
   for (auto & feature : config->graphics.minDeviceFeatures)
   {
-    ss << "Checking required feature " << feature << ": ";
+    ss << "  " << feature << ": ";
 #define FEATURE(feat)                                     \
     if (feature == #feat)                                 \
     {                                                       \
       if (supportedFeatures. feat)                           \
-        { usedFeatures. feat = true; ss << "yes" << endl; } \
+      {                                                     \
+        usedFeatures. feat = true;                          \
+        ss << ansi::lightGreen << "yes" << ansi::off << endl; \
+      }                                                     \
       else                                                  \
-        { pdf.unsupportedMinFeatures.push_back(feature); ss << "no" << endl; }  \
+      {                                                     \
+        pdf.unsupportedMinFeatures.push_back(feature);    \
+        ss << ansi::lightRed << "no" << ansi::off << endl;  \
+      }                                                   \
     }
 #include "features.hmb"
 #undef FEATURE
   }
 
+  log(thId, ss.str());
+  ss = stringstream();
+
+  ss << "Checking desired features:\n";
   for (auto & feature : config->graphics.desiredDeviceFeatures)
   {
-    ss << "Checking desired feature " << feature << ": ";
+    ss << "  " << feature << ": ";
 #define FEATURE(feat)                                     \
     if (feature == #feat)                               \
     {                                                     \
       if (supportedFeatures. feat)                           \
-        { usedFeatures. feat = true; ss << "yes" << endl; }  \
+      {                                                     \
+        usedFeatures.feat = true;                           \
+        ss << ansi::lightGreen << "yes" << ansi::off << endl; \
+      }                                                     \
       else                                                  \
-        { pdf.unsupportedDesiredFeatures.push_back(feature); ss << "no" << endl; } \
+      {                                                       \
+        pdf.unsupportedDesiredFeatures.push_back(feature);  \
+        ss << ansi::lightYellow << "no" << ansi::off << endl; \
+      }                                                      \
     }
 #include "features.hmb"
 #undef FEATURE
   }
+
+  log(thId, ss.str());
 
   return pdf.unsupportedMinFeatures.size() == 0;
 }

@@ -35,25 +35,6 @@ namespace overground
     
     std::vector<Asset *> const & getClientAssets() const
       { return assets; }
-
-    void checkFileModTime()
-    {
-      FileReference::checkFileModTime();
-      if (isModified())
-      {
-        clearModified();
-        if (isCompiled == false)
-        {
-          for (auto & asset : assets)
-            { asset->setNeedsUpdateFromSrc(); }
-        }
-        if (isCompiled == true)
-        {
-          for (auto & asset : assets)
-            { asset->setNeedsUpdateFromOpt(); }
-        }
-      }
-    }
   
   private:
     std::vector<Asset *> assets;

@@ -63,7 +63,7 @@ namespace overground
 
     // physDev.cpp
     void resetPhysicalDevice();
-    void reportPhysicalDevice(vk::PhysicalDevice device, deviceFitness_t const & fitness, std::ostream & out);
+    void reportPhysicalDevice(vk::PhysicalDevice device, deviceFitness_t const & fitness);
     bool computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFitness_t & pdf);
 
     // device.cpp

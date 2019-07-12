@@ -38,7 +38,7 @@ namespace overground
     ~Engine();
 
     void registerAssetProvider(
-      std::string const & assetKind,
+      std::string_view assetKind,
       makeAssetFn_t const & fn);
 
     void init(int argc, char ** argv);
@@ -71,7 +71,7 @@ namespace overground
       { return "res"; }
       
     std::unique_ptr<Asset> makeAsset(
-      std::string const & assetName,
+      std::string_view assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
       bool cache, bool compress,

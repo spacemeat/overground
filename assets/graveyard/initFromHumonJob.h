@@ -52,7 +52,7 @@ namespace overground
   template<class RuntimeType>
   void InitFromHumonJob<RuntimeType>::run_impl(JobManager * jobManager)
   {
-    sout {} << "InitFromHumonJob::run_impl()" << std::endl;
+    log(thId, "InitFromHumonJob::run_impl()");
     // RuntimeType must impl loadFromHumon
     data->loadFromHumon(*humon);
     // RuntimeType must impl getFileInfo

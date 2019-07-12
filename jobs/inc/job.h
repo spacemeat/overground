@@ -33,19 +33,19 @@ namespace overground
     virtual void run_impl(JobManager * jobManager) = 0;
 
   private:
-    void dependsOn(Job * dependent);
-    void dependencyDone();
+    void notifyWhenDone(Job * waitingJob);
+    void onJobThisIsWaitingForIsDone();
 
     JobState state = JobState::idle;
 
     // dependents -- things what have to be told that I'm done
-    std::vector<Job *> dependents;
+    std::vector<Job *> jobsWaitingForThis;
 
     // dependencies -- things what have to get done for me to start
-    int numDependencies = 0;
-    int numDependenciesDone = 0;
-    std::mutex mxNumDependenciesDone;
-    std::condition_variable cvDependenciesDone;
+    int numJobsThisIsWaitingFor = 0;
+    int numJobsThisIsWaitingForThatAreDone = 0;
+    std::mutex mxNumJobsThisIsWaitingForThatAreDone;
+    std::condition_variable cvJobsThisIsWaitingForAreDone;
   };
 
 }

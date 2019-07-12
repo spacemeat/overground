@@ -35,7 +35,7 @@ namespace overground
 
     void loadFromHumon(humon::HuNode const & src);
     void integrate(ConfigData const & rhs);
-    void print(std::ostream & sout) const;
+    std::string print() const;
 
   private:
 //    FileReference * fileInfo;

@@ -23,17 +23,7 @@ FileReference::FileReference(FileReference && rhs)
 
 void FileReference::checkFileModTime()
 {
-  auto mt = decltype(modTime)::clock::to_time_t(modTime);
-  sout {} << "modTime:     "
-    << std::asctime(std::localtime(& mt));
-
   modTime = fs::last_write_time(path);
-
-  auto pmt = decltype(modTime)::clock::to_time_t(modTime);
-  sout {} << "modTime:     "
-    << std::asctime(std::localtime(& pmt))
-    << " (same? " << (mt == pmt ? "yes" : "no")
-    << endl;
 }
 
 
@@ -45,6 +35,10 @@ void FileReference::forceUpdate()
 
 bool FileReference::isModified()
 {
+  if (modTime != modTimePrev)
+  {
+    log(thId, "isModified == true");
+  }
   return modTime != modTimePrev;
 }
 

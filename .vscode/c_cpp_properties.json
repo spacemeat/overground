@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "~/src/balls/vulkan/1.1.77.0/x86_64/include",
+                "${workspaceFolder}/../fmt/include",
                 "${workspaceFolder}/../humon/inc",
                 "${workspaceFolder}/../ansiTermCpp/inc",
                 "${workspaceFolder}/inc",

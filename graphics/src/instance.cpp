@@ -34,15 +34,15 @@ void Graphics::resetVulkanInstance()
     }
   }
 
-  sout {} << "Making Vulkan instance:" << endl;
+  log(thId, "Making Vulkan instance:");
   for (auto & ext : extensions)
-    { sout {} << " -> Requesting extension " << ext << endl; }
+    { log(thId, fmt::format(" -> Requesting extension {}", ext)); }
   
   if (config->graphics.vulkanValidationEnabled)
   {
     for (auto & val : config->graphics.vulkanValidationLayers)
     {
-      sout {} << " -> Requesting layer " << val << endl;
+      log(thId, fmt::format(" -> Requesting layer {}", val));
       validationLayers.push_back(val.c_str());
     }
   }
@@ -79,7 +79,7 @@ void Graphics::resetVulkanInstance()
 
       CHK(vk::createInstance(& instInfo, nullptr,
         & vulkanInstance));
-      sout {} << " -> Instance made." << endl;
+      log(thId, " -> Instance made.");
 
       // TODO: If using multiple devices, call
 //      VkInstance inst = vulkanInstance;
@@ -101,11 +101,42 @@ VKAPI_ATTR VkBool32 VKAPI_CALL validationReportCallackFn(
   uint64_t obj,
   size_t location,
   int32_t code,
-  const char* layerPrefix,
-  const char* msg,
-  void* userData)
+  char const * layerPrefix,
+  char const * msg,
+  void * userData)
 {
-  sout {} << ansi::lightMagenta << layerPrefix << ": " << ansi::darkMagenta << msg << ansi::off << std::endl;
+  char const * titleColor;
+  char const * msgColor;
+  int logTags = 0;
+  if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+  {
+    titleColor = ansi::lightMagenta;
+    msgColor = ansi::darkMagenta;
+    logTags |= logTags::verb;
+  }
+  if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+  {
+    titleColor = ansi::lightBlue;
+    msgColor = ansi::darkBlue;
+    logTags |= logTags::dbg;
+  }
+  if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT ||
+      flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
+  {
+    titleColor = ansi::lightYellow;
+    msgColor = ansi::darkYellow;
+    logTags |= logTags::warn;
+  }
+  if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+  {
+    titleColor = ansi::lightRed;
+    msgColor = ansi::darkRed;
+    logTags |= logTags::err;
+  }
+
+  log(thId, logTags, fmt::format("{}{}: {}{}{}",
+    titleColor, layerPrefix, 
+    msgColor, msg, ansi::off));
 
   return VK_FALSE;
 }
@@ -207,7 +238,7 @@ bool Graphics::checkVulkanExtensionSupport()
     {
       if (strcmp(aeProp.extensionName, ext.c_str()) == 0)
       {
-        sout {} << "Extension " << ext << " available." << endl;
+        log(thId, fmt::format("Extension {} available.", ext));
         found = true;
         break;
       }
@@ -215,7 +246,7 @@ bool Graphics::checkVulkanExtensionSupport()
 
     if (found == false)
     {
-      sout {} << "Extension " << ext << " unavailable." << endl;
+        log(thId, fmt::format("Extension {} unavailable.", ext));
       allGood = false;
     }
   }
@@ -236,7 +267,7 @@ bool Graphics::checkVulkanValidationLayerSupport()
     {
       if (strcmp(alProp.layerName, layer.c_str()) == 0)
       {
-        sout {} << "Validation layer " << layer << " available." << endl;
+        log(thId, fmt::format("Validation layer {} available.", layer));
         found = true;
         break;
       }
@@ -244,7 +275,7 @@ bool Graphics::checkVulkanValidationLayerSupport()
 
     if (found == false)
     {
-      sout {} << "Extension " << layer << " unavailable." << endl;
+        log(thId, fmt::format("Validation layer {} unavailable.", layer));
       allGood = false;
     }
   }

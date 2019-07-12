@@ -17,7 +17,9 @@ constexpr auto pathSeparator = "/";
 
 Engine::Engine()
 : resMan(this, & jobManager, AssetBaseDir, AssetDataBaseDir)
-{  
+{
+  thId = createLogChannel(
+    "main", logTags::dbg, logTags::dev, & cout, & coutMx);
 }
 
 
@@ -29,13 +31,13 @@ Engine::~Engine()
   }
   catch(const std::exception& e)
   {
-    sout {} << "~Engine() threw: " << e.what() << endl;
+    log(thId, logTags::err, fmt::format("~Engine() threw: {}", e.what()));
   }
 }
 
 
 void Engine::registerAssetProvider(
-      std::string const & assetKind,
+      std::string_view assetKind,
       makeAssetFn_t const & fn)
 {
   resMan.registerAssetProvider(assetKind, fn);
@@ -44,7 +46,7 @@ void Engine::registerAssetProvider(
 
 void Engine::init(int argc, char ** argv)
 {
-  sout {} << "Engine::init()" << endl;
+  log(thId, "Engine::init()");
   
   startTime = chrono::high_resolution_clock::now();
   systemTime = startTime;
@@ -102,7 +104,7 @@ void Engine::latchSceneDelta()
 
 void Engine::enterEventLoop()
 {
-  sout {} << "Engine::enterEventLoop()" << endl;
+  log(thId, "Engine::enterEventLoop()");
 
   // TODO: temperorariry. kills the works after a bit. Trying to manage a runaway process. Might need to get more aggressive.
   /* 
@@ -115,7 +117,7 @@ void Engine::enterEventLoop()
   auto window = graphics.getMainWindow();
   if (window == nullptr)
   {
-    sout {} << "No window was created. Was graphics.reset() called?" << endl;
+    log(thId, logTags::err, "No window was created. Was graphics.reset() called?");
     return;
   }
 
@@ -125,7 +127,7 @@ void Engine::enterEventLoop()
     iterateGameLoop();
   }
 
-  sout {} << "End of enterEventLoop" << endl;
+  log(thId, "End of enterEventLoop");
 
   // g.waitForGraphicsOps();
 }
@@ -133,7 +135,7 @@ void Engine::enterEventLoop()
 
 void Engine::iterateGameLoop()
 {
-  //sout {} << "Engine::iterateGameLoop()" << endl;
+  // log(thId, "Engine::iterateGameLoop()");
 
   updateTimer();
   graphics.presentFrame();
@@ -153,12 +155,16 @@ void Engine::updateTimer()
   frameTime_us = systemTime - previousSystemTime;
   currentTime_us += frameTime_us;
 
-  /*
-  sout {} << "previousSystemTime: " << previousSystemTime.time_since_epoch().count() << endl
-          << "systemTime:         " << systemTime.time_since_epoch().count() << endl
-          << "frameTime_us:       " << frameTime_us.count() << endl
-          << "currentTime:        " << currentTime_us.time_since_epoch().count() << endl;
-  */
+  log(thId, logTags::verb, fmt::format(
+    "previousSystemTime:  {}\n"
+    "systemTime:          {}\n"
+    "frameTime_us:        {}\n"
+    "currentTime:         {}",
+    previousSystemTime.time_since_epoch().count(),
+    systemTime.time_since_epoch().count(),
+    frameTime_us.count(),
+    currentTime_us.time_since_epoch().count()
+    ));
 }
 
 
@@ -195,25 +201,30 @@ void Engine::checkForConfigUpdates()
     lock_guard<mutex> lock(mx_config);
 
     {
-      sout so {};
-      so  << "Config loaded:" << endl << config << endl
-          << "Differences required: ";
+      stringstream ss;
       if ((diffs & ConfigData::Deltas::JobManagement) == 
           ConfigData::Deltas::JobManagement)
-        { so << " JobManagement"; }
+        { ss << " JobManagement"; }
       if ((diffs & ConfigData::Deltas::Window) == 
           ConfigData::Deltas::Window)
-        { so << " Window"; }
+        { ss << " Window"; }
       if ((diffs & ConfigData::Deltas::VulkanInstance) == 
           ConfigData::Deltas::VulkanInstance)
-        { so << " VulkanInstance"; }
+        { ss << " VulkanInstance"; }
       if ((diffs & ConfigData::Deltas::PhysicalDevice) == 
           ConfigData::Deltas::PhysicalDevice)
-        { so << " PhysicalDevice"; }
+        { ss << " PhysicalDevice"; }
       if ((diffs & ConfigData::Deltas::LogicalDevice) == 
           ConfigData::Deltas::LogicalDevice)
-        { so << " LogicalDevice"; }
-      so << endl;
+        { ss << " LogicalDevice"; }
+
+      log(thId, fmt::format(
+        "Config loaded:\n"
+        "{}\n"
+        "Differences required:\n"
+        "{}\n",
+        config.print(), ss.str()
+      ));
     }
 
     graphics.reset(& config);
@@ -227,7 +238,7 @@ void Engine::checkForConfigUpdates()
 
 void Engine::checkForFileUpdates(bool synchronous)
 {
-  //sout {} << "Engine::checkForFileUpdates()" << endl;
+  log(thId, "Engine::checkForFileUpdates()");
 
   resMan.checkForAnyFileUpdates(synchronous);
 }
@@ -235,7 +246,7 @@ void Engine::checkForFileUpdates(bool synchronous)
 
 void Engine::checkForAssetUpdates(bool synchronous)
 {
-  //sout {} << "Engine::checkForAssetUpdates()" << endl;
+  log(thId, "Engine::checkForAssetUpdates()");
 
   resMan.checkForAssetUpdates(synchronous);
 }
@@ -243,7 +254,7 @@ void Engine::checkForAssetUpdates(bool synchronous)
 
 void Engine::updateConfig(ConfigData const & newConfig)
 {
-  sout {} << "Engine::updateConfig()" << endl;
+  log(thId, "Engine::updateConfig()");
 
   {
     lock_guard<mutex> lock(mx_config);
@@ -253,7 +264,7 @@ void Engine::updateConfig(ConfigData const & newConfig)
 
 
 unique_ptr<Asset> Engine::makeAsset(
-  std::string const & assetName,
+  std::string_view assetName,
   FileReference * assetDescFile, 
   humon::HuNode & descFromFile,
   bool cache, bool compress,
@@ -263,6 +274,3 @@ unique_ptr<Asset> Engine::makeAsset(
   return resMan.makeAsset(
     assetName, assetDescFile, descFromFile, cache, compress, monitor);
 }
-
-
-

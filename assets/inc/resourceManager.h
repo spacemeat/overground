@@ -14,12 +14,10 @@ namespace overground
   class Engine;
   class FileReference;
 
-  using AssetFileInfo = std::pair<std::unique_ptr<FileReference>, std::vector<std::string>>;
-
   using makeAssetFn_t = std::function<
     std::unique_ptr<Asset>(
       ResourceManager * resMan,
-      std::string const & assetName,
+      std::string_view assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
       bool cache, bool compress,
@@ -43,27 +41,27 @@ namespace overground
       { return baseAssetDataDir; }
 
     void registerAssetProvider(
-      std::string const & assetKind,
+      std::string_view assetKind,
       makeAssetFn_t const & fn);    
 
     std::unique_ptr<Asset> makeAsset(
-      std::string const & assetName,
+      std::string_view assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
       bool cache, bool compress,
       bool monitor);
 
-    AssetDescFile * addAssetDescFile(std::string const & assetFile);
-    void removeAssetDescFile(AssetFileInfo const & assetDescFileInfo);
+    AssetDescFile * addAssetDescFile(std::string_view assetFile);
+    void removeAssetDescFile(std::string_view file);
 
-    AssetDataFile * addAssetDataFile(std::string const & newAssetDataFile, bool asCompiledFile);
-    void removeAssetDataFile(std::string const & file, bool asCompiledFile);
+    AssetDataFile * addAssetDataFile(std::string_view newAssetDataFile, bool asCompiledFile);
+    void removeAssetDataFile(std::string_view file, bool asCompiledFile);
 
-    AssetDataFile * addAssetSrcFile(std::string const & assetDataFiles);
-    void removeAssetSrcFile(std::string const & file);
+    AssetDataFile * addAssetSrcFile(std::string_view assetDataFiles);
+    void removeAssetSrcFile(std::string_view file);
 
-    AssetDataFile * addAssetOptFile(std::string const & assetDataFiles);
-    void removeAssetOptFile(std::string const & file);
+    AssetDataFile * addAssetOptFile(std::string_view assetDataFiles);
+    void removeAssetOptFile(std::string_view file);
 
     void informAssetsChanged();
 
@@ -73,7 +71,7 @@ namespace overground
     void updateFromFreshAssets(bool synchronous);
 
   private:
-    std::map<std::string, makeAssetFn_t> assetProviders;
+    std::map<std::string, makeAssetFn_t, std::less<>> assetProviders;
 
     Engine * engine;
     JobManager * jobManager;
@@ -82,16 +80,11 @@ namespace overground
 
     bool assetsChanged = false;
 
-    std::map<std::string, AssetDescFile> assetDescFiles;
-    std::map<std::string, AssetDataFile> assetSrcFiles;
-    std::map<std::string, AssetDataFile> assetOptFiles;
-
-
-
-    //std::map<std::string, AssetFileInfo> assetFiles;
-    //std::map<std::string, std::unique_ptr<FileReferenc>> assetDataFiles;
+    std::map<std::string, AssetDescFile, std::less<>> assetDescFiles;
+    std::map<std::string, AssetDataFile, std::less<>> assetSrcFiles;
+    std::map<std::string, AssetDataFile, std::less<>> assetOptFiles;
     
-    std::map<std::string, std::unique_ptr<Asset>> assets;
+    std::map<std::string, std::unique_ptr<Asset>, std::less<>> assets;
   };
 }
 

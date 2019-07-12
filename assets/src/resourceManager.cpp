@@ -16,7 +16,7 @@
 using namespace std;
 using namespace overground;
 
-namespace fs = std::experimental::filesystem;
+namespace fs = experimental::filesystem;
 
 
 ResourceManager::ResourceManager(
@@ -33,15 +33,15 @@ ResourceManager::ResourceManager(
 
 
 void ResourceManager::registerAssetProvider(
-      std::string const & assetKind,
+      string_view assetKind,
       makeAssetFn_t const & fn)
 {
-  assetProviders.insert_or_assign(assetKind, fn);
+  assetProviders.emplace(assetKind, fn);
 }
 
 
 unique_ptr<Asset> ResourceManager::makeAsset(
-  std::string const & assetName,
+  string_view assetName,
   FileReference * assetDescFile, 
   humon::HuNode & descFromFile,
   bool cache, bool compress,
@@ -58,29 +58,28 @@ unique_ptr<Asset> ResourceManager::makeAsset(
     }
     else
     {
-      sout {} << "Missing kind \"" << kind << "\"" << endl;
+      log(thId, fmt::format("Missing kind {}", kind));
     }
-    
   }
 
   throw runtime_error("Asset kind missing or malformed, or provider not set for the asset.");
 }
 
 
-AssetDescFile * ResourceManager::addAssetDescFile(string const & assetFileBaseName)
+AssetDescFile * ResourceManager::addAssetDescFile(string_view assetFileBaseName)
 {
   if (auto it = assetDescFiles.find(assetFileBaseName);
       it != assetDescFiles.end())
     { return & it->second; }
   
-  auto assetFileName = assetFileBaseName + assetFileExtension;
-  auto p = findFile(assetFileName, baseAssetDescDir);
-  auto kvp = assetDescFiles.try_emplace(assetFileBaseName, p);
+  auto assetFileName = (string) assetFileBaseName + assetFileExtension;
+  auto p = findFile(assetFileName, baseAssetDescDir.string());
+  auto kvp = assetDescFiles.emplace(assetFileBaseName, p);
   return & kvp.first->second;
 }
 
 
-void ResourceManager::removeAssetDescFile(AssetFileInfo const & assetDescFileInfo)
+void ResourceManager::removeAssetDescFile(string_view file)
 {
   // TODO:
   // note all assets from this file
@@ -89,43 +88,43 @@ void ResourceManager::removeAssetDescFile(AssetFileInfo const & assetDescFileInf
 }
 
 
-AssetDataFile * ResourceManager::addAssetDataFile(string const & newAssetDataFile, bool asCompiledFile)
+AssetDataFile * ResourceManager::addAssetDataFile(string_view newAssetDataFile, bool asCompiledFile)
 {
   if (auto it = assetSrcFiles.find(newAssetDataFile);
       it != assetSrcFiles.end())
     { return & it->second; }
 
-  auto p = findFile(newAssetDataFile, baseAssetDataDir);
-  auto kvp = assetSrcFiles.try_emplace(newAssetDataFile, p, asCompiledFile);
+  auto p = findFile(newAssetDataFile, baseAssetDataDir.string());
+  auto kvp = assetSrcFiles.try_emplace((string) newAssetDataFile, p, asCompiledFile);
   return & kvp.first->second;
 }
 
 
-void ResourceManager::removeAssetDataFile(string const & file, bool asCompiledFile)
+void ResourceManager::removeAssetDataFile(string_view file, bool asCompiledFile)
 {
   // TODO
 }
 
 
-AssetDataFile * ResourceManager::addAssetSrcFile(string const & newAssetDataFile)
+AssetDataFile * ResourceManager::addAssetSrcFile(string_view newAssetDataFile)
 {
   return addAssetDataFile(newAssetDataFile, false);
 }
 
 
-void ResourceManager::removeAssetSrcFile(string const & file)
+void ResourceManager::removeAssetSrcFile(string_view file)
 {
   removeAssetDataFile(file, false);
 }
 
 
-AssetDataFile * ResourceManager::addAssetOptFile(string const & newAssetDataFile)
+AssetDataFile * ResourceManager::addAssetOptFile(string_view newAssetDataFile)
 {
   return addAssetDataFile(newAssetDataFile, true);
 }
 
 
-void ResourceManager::removeAssetOptFile(string const & file)
+void ResourceManager::removeAssetOptFile(string_view file)
 {
   removeAssetDataFile(file, true);
 }
@@ -150,11 +149,15 @@ void ResourceManager::checkForAnyFileUpdates(bool synchronous)
     assetDataFile.checkFileModTime();
     if (assetDataFile.isModified())
     {
-      sout {} << "opt file modified." << endl;
+      assetDataFile.clearModified();
+      log(thId, "opt file modified.");
       for (auto asset : assetDataFile.getClientAssets())
       {
         if (asset->isMonitored())
-          { asset->setNeedsUpdateFromOpt(); }
+        {
+          asset->setNeedsUpdateFromOpt();
+          assetsChanged = true;
+        }
       }
     }
   }
@@ -164,11 +167,15 @@ void ResourceManager::checkForAnyFileUpdates(bool synchronous)
     assetDataFile.checkFileModTime();
     if (assetDataFile.isModified())
     {
-      sout {} << "src file modified." << endl;
+      assetDataFile.clearModified();
       for (auto asset : assetDataFile.getClientAssets())
       {
+        log(thId, "src file modified.");
         if (asset->isMonitored())
-          { asset->setNeedsUpdateFromSrc(); }
+        {
+          asset->setNeedsUpdateFromSrc();
+          assetsChanged = true;
+        }
       }
     }
   }
@@ -177,7 +184,7 @@ void ResourceManager::checkForAnyFileUpdates(bool synchronous)
 
 void ResourceManager::checkForAssetDescFileUpdate(FileReference * file)
 {
-//  sout {} << "ResourceManager::checkForAssetDescFileUpdate()" << endl;
+//  log(thId, "ResourceManager::checkForAssetDescFileUpdate()");
 
   file->checkFileModTime();
   if (file->isModified())
@@ -231,12 +238,12 @@ void ResourceManager::checkForAssetDescFileUpdate(FileReference * file)
 
 void ResourceManager::checkForAssetUpdates(bool synchronous)
 {
-//  sout {} << "ResourceManager::checkForAssetUpdates()" << endl;
+//  log(thId, "ResourceManager::checkForAssetUpdates()");
 
   if (assetsChanged == false)
     { return; }
 
-  sout {} << "  assetcChanged == true" << endl;
+  log(thId, "assetcChanged == true");
 
   // we're handling it, y0
   // TODO: Does any of this need mutexing? Should only be one check job running, right..?
@@ -253,6 +260,7 @@ void ResourceManager::checkForAssetUpdates(bool synchronous)
 
     if (loadOpt && ! loadSrc)
     {
+
       asset->clearNeedUpdateFromOpt();
       auto loadJob = loadCompiledAssetJobs.next();
       loadJob->reset(this, asset.get());

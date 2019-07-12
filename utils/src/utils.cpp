@@ -6,18 +6,19 @@
 using namespace std;
 using namespace overground;
 
-mutex sout::mx{};
+//mutex sout::mx{};
 
-
+/*
 string overground::operator << (ostream & lhs, ss::endtoken rhs)
 {
   ostringstream oss;
   oss << lhs.rdbuf();
   return oss.str();
 }
+*/
 
 
-path_t overground::findFile(string const & filename, string const & baseDir)
+path_t overground::findFile(string_view filename, string_view baseDir)
 {
   queue<path_t> searchDirs;
   searchDirs.push(path_t(baseDir));
@@ -77,4 +78,3 @@ humon::nodePtr_t overground::loadHumonDataFromFile(path_t const & path)
     loadFileAsString(path)
   );
 }
-

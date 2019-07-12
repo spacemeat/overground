@@ -15,7 +15,7 @@ namespace overground
   public:
     Asset(
       ResourceManager * resMan,
-      std::string const & assetName,
+      std::string_view assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
       bool cache, bool compress,

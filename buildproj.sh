@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #  -Wextra
-gccArgs="--std=c++17 -Wall -g -O0 -fno-stack-protector"
+gccArgs="--std=c++2a -Wall -g -O0 -fno-stack-protector -Wno-class-memaccess"
 
 
 fg() {
@@ -166,6 +166,9 @@ buildtest() {
     local libDir="-L${ld}"
     allLibDirs+=($libDir)
   done
+
+  # include self as a lib
+  addLibs+=("${subProject}-d")
 
   # for each dep, if there's a lib, include it
   for dep in ${subProjectDeps[@]}; do

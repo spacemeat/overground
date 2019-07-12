@@ -5,7 +5,7 @@ using namespace overground;
 
 
 // slow; use sparingly
-vk::Format overground::formatFromString(string const & strFormat)
+vk::Format overground::formatFromString(string_view strFormat)
 {
   static initializer_list<vk::Format> il = {
     vk::Format::eUndefined,
@@ -282,7 +282,7 @@ vk::Format overground::formatFromString(string const & strFormat)
 
 
 vk::ColorSpaceKHR overground::colorSpaceFromString(
-  string const & strColorSpace)
+  string_view strColorSpace)
 {
   static initializer_list<vk::ColorSpaceKHR> il = {
     vk::ColorSpaceKHR::eSrgbNonlinear,
@@ -313,7 +313,7 @@ vk::ColorSpaceKHR overground::colorSpaceFromString(
 
 
 vk::PresentModeKHR overground::presentModeFromString(
-  string const & strPresentMode)
+  string_view strPresentMode)
 {
   static initializer_list<vk::PresentModeKHR> il = {
     vk::PresentModeKHR::eImmediate,
@@ -335,7 +335,7 @@ vk::PresentModeKHR overground::presentModeFromString(
 
 
 vk::SurfaceTransformFlagBitsKHR overground::pretransformFromString(
-  string const & strPretransform)
+  string_view strPretransform)
 {
   static initializer_list<vk::SurfaceTransformFlagBitsKHR> il = {
     vk::SurfaceTransformFlagBitsKHR::eIdentity,
@@ -360,7 +360,7 @@ vk::SurfaceTransformFlagBitsKHR overground::pretransformFromString(
 
 
 vk::CompositeAlphaFlagBitsKHR overground::compositeAlphaFromString(
-  string const & strCompositeAlpha)
+  string_view strCompositeAlpha)
 {
   static initializer_list<vk::CompositeAlphaFlagBitsKHR> il = {
     vk::CompositeAlphaFlagBitsKHR::eOpaque,

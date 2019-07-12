@@ -52,7 +52,8 @@
     "filesystem": "cpp",
     "codecvt": "cpp",
     "queue": "cpp",
-    "functional": "cpp"
+    "functional": "cpp",
+    "list": "cpp"
   },
   "files.useExperimentalFileWatcher": true
 }

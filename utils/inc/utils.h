@@ -2,12 +2,14 @@
 #define UTILS_H
 
 #include <type_traits>
+#include <algorithm>
 #include <sstream>
 #include <iostream>
 #include <mutex>
 #include <experimental/filesystem>
 #include "ansiTerm.h"
 #include "humon.h"
+#include "logger.h"
 
 namespace overground
 {
@@ -15,11 +17,6 @@ namespace overground
   constexpr auto engineName = "overground";
   constexpr version_t engineVersion = { 0, 0, 0 };
 
-#ifdef WINDOWS
-  constexpr auto pathSeparator = "\\";
-#else
-  constexpr auto pathSeparator = "/";
-#endif
   constexpr auto assetFileExtension = ".ass";
 
   namespace fs = std::experimental::filesystem;
@@ -27,13 +24,13 @@ namespace overground
   using path_t = std::experimental::filesystem::path;
 
 
-
+  /**/
   // Enum class bitwise ops
   // ~
   template <class EnumType,
     typename = std::enable_if_t
     < std::is_enum<EnumType>::value> > 
-  inline EnumType operator ~(EnumType rhs)
+  constexpr inline EnumType operator ~(EnumType rhs)
   {
     using UT = std::underlying_type_t<EnumType>;
     return static_cast<EnumType>(~ static_cast<UT>(rhs));
@@ -45,7 +42,7 @@ namespace overground
       std::is_enum<EnumType>::value &&
       std::is_integral<NumType>::value
     >>
-  inline EnumType operator ~(NumType rhs)
+  constexpr inline EnumType operator ~(NumType rhs)
   {
     return ~ static_cast<EnumType>(rhs);
   } 
@@ -54,7 +51,7 @@ namespace overground
   template <class EnumType,
     typename = std::enable_if_t
     < std::is_enum<EnumType>::value> > 
-  inline EnumType operator & (EnumType lhs, EnumType rhs)
+  constexpr inline EnumType operator & (EnumType lhs, EnumType rhs)
   {
     using UT = std::underlying_type_t<EnumType>;
     return static_cast<EnumType>(static_cast<UT>(lhs) & static_cast<UT>(rhs));
@@ -66,7 +63,7 @@ namespace overground
       std::is_enum<EnumType>::value &&
       std::is_integral<NumType>::value
     >>
-  inline EnumType operator & (EnumType lhs, NumType rhs)
+  constexpr inline EnumType operator & (EnumType lhs, NumType rhs)
   {
     return lhs & static_cast<EnumType>(rhs);
   }
@@ -75,7 +72,7 @@ namespace overground
   template <class EnumType,
     typename = std::enable_if_t
     < std::is_enum<EnumType>::value> > 
-  inline EnumType operator | (EnumType lhs, EnumType rhs)
+  constexpr inline EnumType operator | (EnumType lhs, EnumType rhs)
   {
     using UT = std::underlying_type_t<EnumType>;
     return static_cast<EnumType>(static_cast<UT>(lhs) | static_cast<UT>(rhs));
@@ -87,7 +84,7 @@ namespace overground
       std::is_enum<EnumType>::value &&
       std::is_integral<NumType>::value
     >>
-  inline EnumType operator | (EnumType lhs, NumType rhs)
+  constexpr inline EnumType operator | (EnumType lhs, NumType rhs)
   {
     return lhs | static_cast<EnumType>(rhs);
   }
@@ -96,7 +93,7 @@ namespace overground
   template <class EnumType,
     typename = std::enable_if_t
     < std::is_enum<EnumType>::value> > 
-  inline EnumType operator ^ (EnumType lhs, EnumType rhs)
+  constexpr inline EnumType operator ^ (EnumType lhs, EnumType rhs)
   {
     using UT = std::underlying_type_t<EnumType>;
     return static_cast<EnumType>(static_cast<UT>(lhs) ^ static_cast<UT>(rhs));
@@ -108,7 +105,7 @@ namespace overground
       std::is_enum<EnumType>::value &&
       std::is_integral<NumType>::value
     >>
-  inline EnumType operator ^ (EnumType lhs, NumType rhs)
+  constexpr inline EnumType operator ^ (EnumType lhs, NumType rhs)
   {
     return lhs ^ static_cast<EnumType>(rhs);
   }
@@ -120,7 +117,7 @@ namespace overground
       std::is_enum<EnumType>::value &&
       std::is_integral<NumType>::value
     >>
-  inline bool operator == (EnumType lhs, NumType rhs)
+  constexpr inline bool operator == (EnumType lhs, NumType rhs)
   {
     return lhs == static_cast<EnumType>(rhs);
   }
@@ -132,7 +129,7 @@ namespace overground
       std::is_enum<EnumType>::value &&
       std::is_integral<NumType>::value
     >>
-  inline bool operator != (EnumType lhs, NumType rhs)
+  constexpr inline bool operator != (EnumType lhs, NumType rhs)
   {
     return lhs != static_cast<EnumType>(rhs);
   }
@@ -141,7 +138,7 @@ namespace overground
   template <class EnumType,
     typename = std::enable_if_t
     < std::is_enum<EnumType>::value> > 
-  inline EnumType & operator &= (EnumType & lhs, EnumType rhs)
+  constexpr inline EnumType & operator &= (EnumType & lhs, EnumType rhs)
   {
     lhs = lhs & rhs;
     return lhs;
@@ -153,7 +150,7 @@ namespace overground
       std::is_enum<EnumType>::value &&
       std::is_integral<NumType>::value
     >>
-  inline EnumType & operator &= (EnumType & lhs, NumType rhs)
+  constexpr inline EnumType & operator &= (EnumType & lhs, NumType rhs)
   {
     lhs = lhs & rhs;
     return lhs;
@@ -163,7 +160,7 @@ namespace overground
   template <class EnumType,
     typename = std::enable_if_t
     < std::is_enum<EnumType>::value> > 
-  inline EnumType & operator |= (EnumType & lhs, EnumType rhs)
+  constexpr inline EnumType & operator |= (EnumType & lhs, EnumType rhs)
   {
     lhs = lhs | rhs;
     return lhs;
@@ -175,7 +172,7 @@ namespace overground
       std::is_enum<EnumType>::value &&
       std::is_integral<NumType>::value
     >>
-  inline EnumType & operator |= (EnumType & lhs, NumType rhs)
+  constexpr inline EnumType & operator |= (EnumType & lhs, NumType rhs)
   {
     lhs = lhs | rhs;
     return lhs;
@@ -185,7 +182,7 @@ namespace overground
   template <class EnumType,
     typename = std::enable_if_t
     < std::is_enum<EnumType>::value> > 
-  inline EnumType & operator ^= (EnumType & lhs, EnumType rhs)
+  constexpr inline EnumType & operator ^= (EnumType & lhs, EnumType rhs)
   {
     lhs = lhs ^ rhs;
     return lhs;
@@ -197,71 +194,47 @@ namespace overground
       std::is_enum<EnumType>::value &&
       std::is_integral<NumType>::value
     >>
-  inline EnumType & operator ^= (EnumType & lhs, NumType rhs)
+  constexpr inline EnumType & operator ^= (EnumType & lhs, NumType rhs)
   {
     lhs = lhs ^ rhs;
     return lhs;
   }
 
-
-  class sout : public std::ostringstream
-  {
-  public:
-    sout(bool doIt = true) : doIt(doIt) { }
-    ~sout()
-    {
-      if (doIt)
-      {
-        try
-        {
-          std::lock_guard<std::mutex> lock(mx);
-          std::cout << this->str();
-          std::cout.flush();
-        }
-        catch(const std::exception& e)
-        {
-          std::cerr << "Exception in ~sout(): " << e.what() << '\n';
-        }
-      }
-    }
-
-  private:
-    bool doIt;
-    static std::mutex mx;
-  };
-
-
-  class ss : public std::ostringstream
-  {
-  public:
-    struct endtoken { enum Value { }; };
-    static endtoken end;
-
-    ss() = default;
-    ~ss() = default;
-
-    operator char const *()
-    {
-      return str().c_str();
-    }
-  };
-
-  std::string operator << (std::ostream & lhs, ss::endtoken rhs);
-
-  path_t findFile(std::string const & filename, std::string const & baseDir);
+  path_t findFile(std::string_view filename, std::string_view baseDir);
 
   std::string loadFileAsString(path_t const & path);
   std::vector<char> loadFileAsBinary(path_t const & path);
 
   humon::nodePtr_t loadHumonDataFromFile(path_t const & path);
 
+  template<class T>
+  std::string join(T const & vec, 
+    std::string_view delim = ", ",
+    std::string_view form = "{}",
+    std::string_view orElse = "")
+  {
+    if (std::size(vec) == 0)
+      { return std::string(orElse); }
+
+    std::stringstream st;
+    st << fmt::format(form, * std::begin(vec));
+
+    for (auto it = std::next(std::begin(vec));
+         it != std::end(vec); ++ it)
+    {
+      st << delim;
+      st << fmt::format(form, *it);
+    }
+
+    return st.str();
+  }
+
+
 #define CHK(call) \
   {  \
     auto res = call;  \
     if (res != vk::Result::eSuccess)  \
-    { throw std::runtime_error(ss {}  \
-      << #call << " failed: "  \
-      << ss::end); } \
+    { throw std::runtime_error(fmt::format("{} failed", #call)); } \
   }
 }
 

@@ -7,7 +7,7 @@ using namespace std;
 using namespace std::chrono_literals;
 using namespace overground;
 
-constexpr bool debugOut = false;
+constexpr bool debugOut = true;
 constexpr bool spamOut = false;
 
 
@@ -37,6 +37,8 @@ void Worker::start()
 {
   if (running == false)
   {
+    log(thId, fmt::format("start() worker {}", id));
+  
     running = true;
     cv_start.notify_one();
   }
@@ -50,6 +52,7 @@ bool Worker::nudge()
 {
   if (available)
   {
+    log(thId, fmt::format("nudge() worker {}", id));
     cv_jobReady.notify_one();
     return true;
   }
@@ -60,13 +63,14 @@ bool Worker::nudge()
 
 void Worker::stop()
 {
+  log(thId, fmt::format("stop() worker {}", id));
   running = false;
 }
 
 
 void Worker::die()
 {
-  sout { debugOut } << "....Worker " << id << " sentenced to death." << endl;
+  log(thId, fmt::format("die() worker {}", id));
   dying = true;
   running = false;
   // don't even wait for the timeout; just die now pls
@@ -86,61 +90,64 @@ Job * Worker::getNextJob()
   Job * jayobee = nullptr;
   while (running && jayobee == nullptr)
   {
-    sout { spamOut } << "....Worker " << id << " trying to dequeue." << endl;
+    log(thId, logTags::verb, "trying to dequeue.");
     jayobee = jobManager->dequeueJob();
     if (jayobee != nullptr)
     {
-      sout { debugOut } << "++++Worker " << id << " got a job." << endl;
+      log(thId, "got a job.");
       break;
     }
 
-    sout { spamOut } << "....Worker " << id << " got no job, waiting for nudge or tineout." << endl;
+    log(thId, logTags::verb, "got no job; waiting for nudge or timeout.");
 
     {
       auto lock = unique_lock<mutex>(mx_jobReady);
       available = true;
       cv_jobReady.wait_for(lock, jobReadyWaitDuration);
 
-      sout { spamOut } << "....Worker " << id << " got nudged or timed out waiting." << endl;
+      log(thId, logTags::verb, "got nudged or timeout waiting.");
     }
   }
 
   available = (jayobee == nullptr);
-  return jayobee;  
+  return jayobee;
 }
 
 
 void Worker::threadFn()
 {
-  sout { debugOut } << "....Worker " << id << " thread start." << endl;
+  thId = createLogChannel(
+    fmt::format("wk {}", id), logTags::dbg, logTags::dev, & cout, & coutMx);
+
+  log(thId, "thread start");
   
   while (dying == false)
   {
     while (running == false && dying == false)
     {
-      sout { debugOut } << "....Worker " << id << " lock start mx." << endl;
+      log(thId, "lock start mx.");
       auto lock = unique_lock<mutex>(mx_start);
 
-      sout { debugOut } << "....Worker " << id << " wait for start notify." << endl;
+      log(thId, "wait for start notify.");
       cv_start.wait(lock, [&]{ return running || dying; });
     }
 
     if (dying == false)
     {
-      sout { debugOut } << "....Worker " << id << " getting next job." << endl;
+      log(thId, "getting next job.");
 
       Job * jayobee = getNextJob();
       if (jayobee != nullptr)
       {
-        sout { debugOut } << "++++Worker " << id << " running job." << endl;
+        log(thId, "running job.");
         jayobee->run(jobManager);
 
-        sout { debugOut } << "++++Worker " << id << " did job." << endl;
+        log(thId, "did job.");
         jobManager->jobDone();
       }
       else
       {
-        sout { debugOut } << "....Worker " << id << " bored, now." << endl;
+        log(thId, "bored now.");
       }
       
       // NOTE: Here we forget jayobee. Its lifetime has to
@@ -148,7 +155,7 @@ void Worker::threadFn()
     }
   }
 
-  sout { debugOut } << "....Worker " << id << " about to die." << endl;
+  log(thId, "about to die.");
 
   // Calling this results in the destructor being called.
   // DO NOTHING with *this after this call.

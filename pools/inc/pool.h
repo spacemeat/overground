@@ -60,17 +60,17 @@ namespace overground
   public:
     ObjectMap() { }
     size_t size() { return data.size(); }
-    Type & getOrCreate(std::string const & key);
+    Type & getOrCreate(std::string_view key);
 
   private:
-    std::map<std::string, Type> data;
+    std::map<std::string, Type, std::less<>> data;
     size_t cursor = 0;
     std::mutex mx;
   };
   
 
   template <class Type>
-  Type & ObjectMap<Type>::getOrCreate(std::string const & key)
+  Type & ObjectMap<Type>::getOrCreate(std::string_view key)
   {
     /*
 //    std::pair<typename std::map<std::string, Type>::iterator, bool> itb = data.try_emplace(key);

@@ -11,7 +11,7 @@ using namespace overground;
 
 unique_ptr<Asset> overground::makeConfig(
   ResourceManager * resMan,
-  string const & assetName,
+  string_view assetName,
   FileReference * assetDescFile, 
   HuNode & descFromFile,
   bool cache, bool compress,
@@ -24,7 +24,7 @@ unique_ptr<Asset> overground::makeConfig(
 
 
 Config::Config(ResourceManager * resMan,
-  std::string const & assetName,
+  std::string_view assetName,
   FileReference * assetDescFile, 
   humon::HuNode & descFromFile,
   bool cache, bool compress,
@@ -32,13 +32,13 @@ Config::Config(ResourceManager * resMan,
 : Asset(resMan, assetName, assetDescFile,
     descFromFile, cache, compress, monitor)
 {
-  sout {} << "Config::Config()" << endl;
+  log(thId, "Config::Config()");
 }
 
 
 void Config::compileSrcAsset_impl(path_t const & path)
 {
-  sout {} << "Config::compileSrcAsset_impl()" << endl;
+  log(thId, "Config::compileSrcAsset_impl()");
   auto huNode = loadHumonDataFromFile(path);
   data.loadFromHumon(* huNode);
 
@@ -48,7 +48,7 @@ void Config::compileSrcAsset_impl(path_t const & path)
 
 void Config::applyToEngine_impl()
 {
-  sout {} << "Config::applyToEngine_impl()" << endl;
+  log(thId, "Config::applyToEngine_impl()");
   clearDidReloadAssetData();
 
   getResMan()->getEngine()->updateConfig(data);

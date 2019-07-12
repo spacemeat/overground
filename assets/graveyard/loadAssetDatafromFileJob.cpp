@@ -24,7 +24,7 @@ void LoadAssetDatafromFileJob::reset(FileReference * fileInfo)
 
 void LoadAssetDatafromFileJob::run_impl(JobManager * jobManager)
 {
-  sout {} << "LoadAssetDatafromFileJob::run_impl()" << endl;
+  log(thId, "LoadAssetDatafromFileJob::run_impl()");
 
   resMan->gatherAssetsFromFile(fileInfo);
 

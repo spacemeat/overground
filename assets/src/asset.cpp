@@ -9,7 +9,7 @@ using namespace overground;
 
 Asset::Asset(
   ResourceManager * resMan,
-  std::string const & assetName,
+  std::string_view assetName,
   FileReference * assetDescFile, 
   humon::HuNode & descFromFile,
   bool cache, bool compile,
@@ -24,13 +24,15 @@ Asset::Asset(
     string filename = (string) (*desc / "dataFile");
     auto adf = resMan->addAssetDataFile(filename, false);
     srcFilePath = adf->getPath();
+    adf->setClientAsset(this);
 
     if (cache)
     {
       path_t compiledPath = srcFilePath;
       compiledPath.extension() = getCompiledExtension();
-      resMan->addAssetDataFile(compiledPath.filename(), false);
+      auto adfo = resMan->addAssetDataFile(compiledPath.filename().string(), false);
       optFilePath = compiledPath;
+      adfo->setClientAsset(this);
     }
   }
 }

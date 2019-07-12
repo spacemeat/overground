@@ -1,15 +1,20 @@
 #!/bin/bash
 
 source ../buildproj.sh
+source ../buildDefaults.sh
 
 main() {
   local subProject="jobs"
   local deps=("pools" "utils")
-  local inc=("../../ansiTermCpp/inc" "../../humon/inc" "../../../balls/vulkan/1.1.77.0/x86_64/include")
+  local inc=()
   local src=("job" "jobManager" "worker")
-  local libDirs=("../../humon/bin")
-  local libs=("jobs-d" "utils-d" "humon-d")
+  local libDirs=()
+  local libs=()
   local packages=()
+
+  inc+=" ${defaultInc[@]}"
+  libDirs+=" ${defaultLibDirs[@]}"
+  libs+=" ${defaultLibs[@]}"
 
   doTheThing $1 $subProject deps inc src libDirs libs packages
 

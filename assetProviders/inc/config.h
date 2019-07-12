@@ -16,7 +16,7 @@ namespace overground
 
   extern std::unique_ptr<Asset> makeConfig(
     ResourceManager * resMan,
-    std::string const & assetName,
+    std::string_view assetName,
     FileReference * assetDescFile, 
     humon::HuNode & descFromFile,
     bool cache, bool compress,
@@ -27,14 +27,11 @@ namespace overground
   {
   public:
     Config(ResourceManager * resMan,
-      std::string const & assetName,
+      std::string_view assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
       bool cache, bool compress,
       bool monitor);
-
-    // void setFileInfo(FileReference * newFileInfo);
-    // FileReference * getFileInfo() { return fileInfo; }
 
     virtual std::string getSrcExtension() override
       { return "config"; }

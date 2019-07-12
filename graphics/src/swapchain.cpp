@@ -61,8 +61,6 @@ void Graphics::destroySwapchain()
 
 void Graphics::chooseSurfaceFormat()
 {
-  sout ss {};
-
   auto & desiredFormats = config->graphics.swapchain.formatPriorities;
   
   if (swapchainSurfaceFormats.size() == 1 &&
@@ -71,7 +69,7 @@ void Graphics::chooseSurfaceFormat()
     swapchainSurfaceFormat =
     { formatFromString(desiredFormats[0].first),
       colorSpaceFromString(desiredFormats[0].second) };
-      ss << "No format restrictions." << endl;
+      log(thId, "No format restrictions.");
   }
   else
   {
@@ -98,13 +96,12 @@ void Graphics::chooseSurfaceFormat()
     swapchainSurfaceFormat = bestFormat;
 
     if (bestFormatIdx == desiredFormats.size())
-      { ss << "No requested formats found." << endl; }
+      { log(thId, "No requested formats found."); }
   }
 
-  ss << "Using swapchain format: " 
-     << to_string(swapchainSurfaceFormat.format) 
-     << "; " << to_string(swapchainSurfaceFormat.colorSpace)
-     << endl;
+  log(thId, fmt::format("Usingg swapchain format: {}; {}",
+    to_string(swapchainSurfaceFormat.format),
+    to_string(swapchainSurfaceFormat.colorSpace)));
 }
 
 
@@ -130,8 +127,7 @@ void Graphics::choosePresentMode()
     }
   }
 
-  sout {} << "Using present mode " << to_string(swapchainPresentMode) 
-          << " with " << swapchainImageCount << " images." << endl;
+  log(thId, fmt::format("Using presnet mode {} with {} images.", to_string(swapchainPresentMode), swapchainImageCount));
 }
 
 
@@ -155,10 +151,10 @@ void Graphics::getExtent()
         static_cast<uint32_t>(w)))
     };
   }
-  
-  sout {} << "Using extent { " << swapchainExtent.width << ", " 
-    << swapchainExtent.height << " }" << endl;
-}
+
+  log(thId, fmt::format("Using extent {{ {}, {} }}",
+    swapchainExtent.width, swapchainExtent.height));
+  }
 
 
 /* wip

@@ -7,7 +7,7 @@
     config: {
       kind: config
       dataFile: config.hu
-      cache: true
+      cache: false
       monitor: true
     }
   }

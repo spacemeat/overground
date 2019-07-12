@@ -1,15 +1,20 @@
 #!/bin/bash
 
 source ../buildproj.sh
+source ../buildDefaults.sh
 
 main() {
   local subProject="assets"
   local deps=("pools" "jobs" "utils")
-  local inc=("../../ansiTermCpp/inc" "../../humon/inc")
+  local inc=()
   local src=("asset" "configData" "fileReference" "resourceManager" "updateJobs")
-  local libDirs=("../../humon/bin")
-  local libs=("jobs-d" "utils-d" "humon-d" "vulkan" "stdc++fs")
+  local libDirs=()
+  local libs=()
   local packages=()
+
+  inc+=" ${defaultInc[@]}"
+  libDirs+=" ${defaultLibDirs[@]}"
+  libs+=" ${defaultLibs[@]}"
 
   doTheThing $1 $subProject deps inc src libDirs libs packages
 

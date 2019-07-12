@@ -20,6 +20,7 @@ JobManager::~JobManager()
 {
 }
 
+
 void JobManager::setNumWorkers(unsigned int numWorkers, Worker * callingWorker)
 {
   assert(numWorkers <= numCores * 8);
@@ -148,9 +149,12 @@ void JobManager::enqueueJob(Job * job)
 void JobManager::enqueueJobs(stack<Job *> jobGroup)
 {
   auto numJobs = jobGroup.size();
+  if (numJobs == 0)
+    { return; }
 
-  while(auto job = jobGroup.top())
+  while(jobGroup.size() != 0)
   {
+    auto job = jobGroup.top();
     jobGroup.pop();
 
     job->setPending();
@@ -168,7 +172,7 @@ void JobManager::enqueueJobs(stack<Job *> jobGroup)
     {
       worker->nudge();
 
-      if (numJobs-- == 0)
+      if (--numJobs == 0)
         { break; }
     }
   }

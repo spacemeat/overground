@@ -23,7 +23,7 @@ void CheckForAssetDescFileUpdateJobs::reset(ResourceManager * resMan, FileRefere
 
 void CheckForAssetDescFileUpdateJobs::run_impl(JobManager * jobManager)
 {
-  sout {} << "CheckForAssetDescFileUpdateJobs::run_impl()" << endl;
+  log(thId, "CheckForAssetDescFileUpdateJobs::run_impl()");
 
   resMan->checkForAssetDescFileUpdate(file);
 }
