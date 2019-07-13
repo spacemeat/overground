@@ -15,17 +15,24 @@ namespace overground
   class JobManager
   {
   public:
+    static unsigned int getNumCores();
+
     JobManager();
     ~JobManager();
 
-    // users of jobManager call these fns
-    void setNumWorkers(unsigned int numWorkers, Worker * callingWorker = nullptr);
-    unsigned int getNumWorkers() { return workers.size(); }
-    void increaseWorkers(unsigned int numWorkers = 1);
-    void decreaseWorkers(unsigned int numWorkers = 1, Worker * callingWorker = nullptr);
+    void allocateWorkers(unsigned int numWorkers);
 
-    void startWorkers();
-    void stopWorkers();
+    // users of jobManager call these fns
+    void setNumEmployedWorkers(
+      unsigned int numWorkers);
+    unsigned int getNumEmployedWorkers()
+      { return workers.size(); }
+    void increaseNumEmployedWorkers(
+      unsigned int numWorkers = 1);
+    void decreaseNumEmployedWorkers(
+      unsigned int numWorkers = 1,
+      Worker * callingWorker = nullptr);
+
     void stopAndJoin();
 
     bool isRunning() { return running; }
@@ -43,15 +50,12 @@ namespace overground
 
   private:
     std::vector<Worker *> workers;
-    std::mutex mx_workers;
+    std::mutex mxWorkers;
 
     std::deque<Job *> jobs;
     std::mutex mxJobs;
 
-    bool running = false;
-
-    std::condition_variable cv_join;
-    std::mutex mx_join;
+    bool running = true;
 
     unsigned int numCores;
     std::atomic_int_fast32_t numJobsStarted = 0;

@@ -112,6 +112,8 @@ namespace overground
     vk::PhysicalDeviceFeatures usedFeatures;
     std::set<uint32_t> uniqueFamilyIndices;
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+    std::vector<float> queuePriorities;
+    std::vector<size_t> queuePriorityStarts;
 
     vk::Device vulkanDevice;
 

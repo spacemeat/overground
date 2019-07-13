@@ -6,6 +6,8 @@ using namespace overground;
 
 void Graphics::createWindow()
 {
+  log(thId, "Graphics::createWindow()");
+
   glfwInit();
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -23,6 +25,8 @@ void Graphics::createWindow()
 
 void Graphics::updateWindow()
 {
+  log(thId, "Graphics::updateWindow()");
+  
   if (config->graphics.fullScreen != isFullScreen)
   {
     auto monitor = config->graphics.fullScreen ?
@@ -53,6 +57,8 @@ void Graphics::updateWindow()
 
 void Graphics::destroyWindow()
 {
+  log(thId, "Graphics::destroyWindow()");
+  
   if (mainWindow != nullptr)
   {
     glfwDestroyWindow(mainWindow);

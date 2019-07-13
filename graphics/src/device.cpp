@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include <set>
+#include <numeric>
 
 using namespace std;
 using namespace overground;
@@ -19,6 +20,8 @@ void Graphics::resetLogicalDevice()
     static_cast<uint32_t>(presentationQueueFamilyIndex)
   };
 
+  vector<int> queueCounts;
+
   queueCreateInfos.clear();
   for (auto qfi : uniqueFamilyIndices)
   {
@@ -36,14 +39,25 @@ void Graphics::resetLogicalDevice()
     if (static_cast<int>(qfi) == presentationQueueFamilyIndex)
     { queueCount = max(queueCount, static_cast<int>(pdf.queueCounts.p)); }
 
-    vector<float> priorities;
-    priorities.resize(queueCount);
+    queueCounts.push_back(queueCount);
+  }
+
+  queuePriorities.reserve(accumulate(
+    begin(queueCounts), end(queueCounts), 0, 
+    [](auto a, auto b){ return a + b; }));
+
+  for (auto qfi : uniqueFamilyIndices)
+  {
+    auto queueCount = queueCounts[queuePriorityStarts.size()];
     for (auto i = 0; i < queueCount; ++i)
-      { priorities.push_back(0.0f); }
+      { queuePriorities.push_back(0.0f); }
     
+    auto startIdx = queuePriorities.size();
+    queuePriorityStarts.push_back(startIdx);
+
     queueCreateInfos.emplace_back(
       vk::DeviceQueueCreateFlags(),
-      qfi, queueCount, priorities.data()
+      qfi, queueCount, queuePriorities.data() + startIdx
     );
   }
 
@@ -60,12 +74,12 @@ void Graphics::resetLogicalDevice()
   dci.pQueueCreateInfos = queueCreateInfos.data();
   if (config->graphics.vulkanValidationEnabled)
   {
-
     dci.enabledLayerCount = layersInC.size();
     dci.ppEnabledLayerNames = layersInC.data();
   }
   else
     { dci.enabledLayerCount = 0; }
+
   dci.enabledExtensionCount = deviceExtensionsInC.size();
   dci.ppEnabledExtensionNames = deviceExtensionsInC.data();
   dci.pEnabledFeatures = & usedFeatures;

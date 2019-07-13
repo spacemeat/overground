@@ -4,6 +4,7 @@
 #include <thread>
 #include <condition_variable>
 #include <chrono>
+#include <atomic>
 
 namespace overground
 {
@@ -19,14 +20,14 @@ namespace overground
 
     int getId() { return id; }
 
-    bool isAvailable() const { return available; }
+    bool isEmployed() const { return employed; }
+    bool isTasked() const { return tasked; }
 
     void start();
     bool nudge();
     void stop();
-    void die();   // called by owner when it should delete itself.
-
-    void joinDyingThread();
+    void die();   // called by owner when it should terminate its thread.
+    void join();
   
   private:
     Job * getNextJob();
@@ -35,9 +36,10 @@ namespace overground
 
     JobManager * jobManager = nullptr;
     int id;
-    bool available = true;
-    bool running = false;
-    bool dying = false;
+    std::atomic<bool> employed = false;
+    std::atomic<bool> tasked = false;
+    std::atomic<bool> running = false;
+    std::atomic<bool> dying = false;
 
     std::thread thread;
     std::mutex mx_start;

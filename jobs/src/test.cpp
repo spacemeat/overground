@@ -35,7 +35,7 @@ void report(JobManager & jm)
 
   lock_guard<mutex> lock(mxConsole);
   cout << "Running: " << (jm.isRunning() ? "true" : "false") << endl;
-  cout << "Num workers: " << jm.getNumWorkers() << endl;
+  cout << "Num workers: " << jm.getNumEmployedWorkers() << endl;
   cout << "Jobs enqueued: " << jm.getNumJobsEnqueued() << endl;
   cout << "Jobs started: " << jm.getNumJobsStarted() << endl;
   cout << "Jobs done: " << jobsDoneTotal << endl << " (this time: " << jobsDoneThisTime << ")" << endl;
@@ -45,6 +45,7 @@ void report(JobManager & jm)
 int main(int argc, char ** argv)
 {
   JobManager jm;
+  jm.allocateWorkers(24);
 
   auto jobs = array<NopJob, 20000>();
 
@@ -68,11 +69,10 @@ int main(int argc, char ** argv)
     lock_guard<mutex> lock(mxConsole);
     cout << "Starting workers." << endl;
   }
-  jm.startWorkers();
 
   for (int i = 1; i < 24; ++i)
   {
-    jm.setNumWorkers(i);
+    jm.setNumEmployedWorkers(i);
     this_thread::sleep_for(1s);
     report(jm);
   }

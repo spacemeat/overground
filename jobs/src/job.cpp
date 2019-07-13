@@ -20,7 +20,7 @@ void Job::run(JobManager * jobManager)
   if (numJobsThisIsWaitingFor > 0)
   {
     if (jobManager != nullptr)
-    { jobManager->increaseWorkers(); }
+    { jobManager->increaseNumEmployedWorkers(); }
 
     {
       unique_lock<mutex> lock(mxNumJobsThisIsWaitingForThatAreDone);
@@ -29,7 +29,7 @@ void Job::run(JobManager * jobManager)
     }
 
     if (jobManager != nullptr)
-    { jobManager->decreaseWorkers(); }
+    { jobManager->decreaseNumEmployedWorkers(); }
   }
 
   run_impl(jobManager);

@@ -15,7 +15,7 @@ Worker::Worker(JobManager * jobManager, int workerId)
 : jobManager(jobManager),
   id(workerId),
   thread([this]{ this->threadFn(); }),
-  jobReadyWaitDuration(1ms)
+  jobReadyWaitDuration(1s)
 {
 }
 
@@ -23,7 +23,7 @@ Worker::Worker(JobManager * jobManager, int workerId)
 Worker::Worker(Worker const & rhs)
 : jobManager(rhs.jobManager),
   thread([this]{ this->threadFn(); }),
-  jobReadyWaitDuration(1ms)
+  jobReadyWaitDuration(1s)
 {
 }
 
@@ -35,11 +35,11 @@ Worker::~Worker()
 
 void Worker::start()
 {
-  if (running == false)
+  if (employed == false)
   {
     log(thId, fmt::format("start() worker {}", id));
   
-    running = true;
+    employed = true;
     cv_start.notify_one();
   }
 }
@@ -50,10 +50,10 @@ void Worker::start()
 // Just so's ya know.
 bool Worker::nudge()
 {
-  if (available)
+  if (employed && tasked == false)
   {
     log(thId, fmt::format("nudge() worker {}", id));
-    cv_jobReady.notify_one();
+    cv_start.notify_one();
     return true;
   }
 
@@ -63,82 +63,61 @@ bool Worker::nudge()
 
 void Worker::stop()
 {
-  log(thId, fmt::format("stop() worker {}", id));
-  running = false;
+  if (employed)
+  {
+    log(thId, fmt::format("stop() worker {}", id));
+    employed = false;
+  }
 }
 
 
 void Worker::die()
 {
   log(thId, fmt::format("die() worker {}", id));
+  employed = false;
   dying = true;
-  running = false;
   // don't even wait for the timeout; just die now pls
-  cv_jobReady.notify_one();   // in case we're waiting for jobs
   cv_start.notify_one();      // in case we're stopped
 }
 
 
-void Worker::joinDyingThread()
+void Worker::join()
 {
+  log(thId, fmt::format("join() worker {}", id));
   thread.join();
 }
 
 
-Job * Worker::getNextJob()
-{
-  Job * jayobee = nullptr;
-  while (running && jayobee == nullptr)
-  {
-    log(thId, logTags::verb, "trying to dequeue.");
-    jayobee = jobManager->dequeueJob();
-    if (jayobee != nullptr)
-    {
-      log(thId, "got a job.");
-      break;
-    }
-
-    log(thId, logTags::verb, "got no job; waiting for nudge or timeout.");
-
-    {
-      auto lock = unique_lock<mutex>(mx_jobReady);
-      available = true;
-      cv_jobReady.wait_for(lock, jobReadyWaitDuration);
-
-      log(thId, logTags::verb, "got nudged or timeout waiting.");
-    }
-  }
-
-  available = (jayobee == nullptr);
-  return jayobee;
-}
-
-
+// new
 void Worker::threadFn()
 {
   thId = createLogChannel(
     fmt::format("wk {}", id), logTags::dbg, logTags::dev, & cout, & coutMx);
 
   log(thId, "thread start");
-  
+
   while (dying == false)
   {
-    while (running == false && dying == false)
+    /*
+      wait_for(dur, abit, [&}{ employed || dying }])
+      if employed:
+        while(getAJob()):
+          doAJob(job)
+    */
+
+    unique_lock<mutex> lock(mx_start);
+    cv_start.wait_for(lock, 
+      jobReadyWaitDuration, [&]
+      { return employed || dying; });
+    
+    if (employed && dying == false)
     {
-      log(thId, "lock start mx.");
-      auto lock = unique_lock<mutex>(mx_start);
-
-      log(thId, "wait for start notify.");
-      cv_start.wait(lock, [&]{ return running || dying; });
-    }
-
-    if (dying == false)
-    {
-      log(thId, "getting next job.");
-
-      Job * jayobee = getNextJob();
+      log(thId, logTags::verb, "getting next job.");
+      auto jayobee = jobManager->dequeueJob();
       if (jayobee != nullptr)
       {
+        tasked = true;
+
         log(thId, "running job.");
         jayobee->run(jobManager);
 
@@ -147,18 +126,14 @@ void Worker::threadFn()
       }
       else
       {
-        log(thId, "bored now.");
+        log(thId, logTags::verb, "bored now.");
+        tasked = false;
       }
-      
-      // NOTE: Here we forget jayobee. Its lifetime has to
-      // be managed elsewise.
     }
   }
 
   log(thId, "about to die.");
 
-  // Calling this results in the destructor being called.
-  // DO NOTHING with *this after this call.
   jobManager->workerDying(id);
 }
 

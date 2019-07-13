@@ -20,19 +20,13 @@ Engine::Engine()
 {
   thId = createLogChannel(
     "main", logTags::dbg, logTags::dev, & cout, & coutMx);
+  
+  jobManager.allocateWorkers(JobManager::getNumCores() * 2);
 }
 
 
 Engine::~Engine()
 {
-  try
-  {
-    jobManager.stopAndJoin();
-  }
-  catch(const std::exception& e)
-  {
-    log(thId, logTags::err, fmt::format("~Engine() threw: {}", e.what()));
-  }
 }
 
 
@@ -69,10 +63,6 @@ void Engine::init(int argc, char ** argv)
 
   // initial config
   checkForConfigUpdates();
-
-
-  // let's not stand on ceremony. There will be zero workers at the moment, but set it to start once we populate.
-  jobManager.startWorkers();
 }
 
 
@@ -227,12 +217,13 @@ void Engine::checkForConfigUpdates()
       ));
     }
 
+    jobManager.setNumEmployedWorkers(
+      config.general.numWorkerThreads);
+
     graphics.reset(& config);
 
     config.clearDiffs();
   }
-
-  jobManager.setNumWorkers(config.general.numWorkerThreads);
 }
 
 

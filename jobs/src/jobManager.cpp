@@ -10,118 +10,99 @@ using namespace std;
 using namespace overground;
 
 
+unsigned int JobManager::getNumCores()
+{
+  return std::thread::hardware_concurrency();
+}
+
+
 JobManager::JobManager()
 {
-  numCores = std::thread::hardware_concurrency();
 }
 
 
 JobManager::~JobManager()
 {
-}
-
-
-void JobManager::setNumWorkers(unsigned int numWorkers, Worker * callingWorker)
-{
-  assert(numWorkers <= numCores * 8);
-
-  auto numWorkersBefore = workers.size();
-
-  if (numWorkersBefore < numWorkers)
+  try
   {
-    int nextWorkerId = 0;
-
-    lock_guard lock(mx_workers);
-    while (workers.size() < numWorkers)
-      { workers.emplace_back(new Worker(this, nextWorkerId ++)); }
+    stopAndJoin();
   }
-  else
+  catch(const std::exception& e)
   {
-    for (int i = 0; i < (int) numWorkersBefore - (int) numWorkers; ++i)
-    {
-      // The worker will be removed from workers when its
-      // current job is done.
-      workers[workers.size() - i - 1]->die();
-    }
-  }
-  
-  if (running && numWorkers > numWorkersBefore)
-  {
-    for (auto it = workers.begin() + numWorkersBefore; it < workers.end(); ++it)
-    {
-      (* it)->start();
-    }
+    log(thId, fmt::format("Caught an error in ~JobManager(): {}", e.what()));
   }
 }
 
 
-void JobManager::increaseWorkers(unsigned int numWorkers)
+void JobManager::allocateWorkers(unsigned int numWorkers)
 {
-  setNumWorkers(workers.size() + numWorkers, nullptr);
-}
-
-
-void JobManager::decreaseWorkers(unsigned int numWorkers, Worker * callingWorker)
-{
-  setNumWorkers(workers.size() - min(
-    static_cast<unsigned int>(workers.size()), numWorkers), callingWorker);
-}
-
-
-void JobManager::startWorkers()
-{
-  if (running == false)
+  if (workers.size() > 0)
   {
-    lock_guard lock(mx_workers);
-    running = true;
-    for (auto worker : workers)
-    {
-      worker->start();
-    }
+    throw runtime_error("Not currently supporting changing the workers once they're running.");
+  }
+ 
+  workers.reserve(numWorkers);
+  int nextWorkerId = 0;
+
+  while (workers.size() < numWorkers)
+  { 
+    workers.emplace_back(
+      new Worker(this, nextWorkerId ++));
   }
 }
 
 
-void JobManager::stopWorkers()
+void JobManager::setNumEmployedWorkers(
+  unsigned int numWorkers)
 {
-  if (running)
+  log(thId, fmt::format("JobManager::setNumEmployedWorkers({})", 
+    numWorkers));
+
+  lock_guard lock(mxWorkers);
+
+  numWorkers = std::min((size_t) numWorkers, workers.size());
+
+  for (unsigned int i = 0; i < numWorkers; ++i)
   {
-    lock_guard lock(mx_workers);
-    running = false;
-    for (auto worker : workers)
-    {
-      worker->stop();
-    }
+    if (workers[i]->isEmployed() == false)
+      { workers[i]->start(); }
   }
+
+  for (unsigned int i = numWorkers; i < workers.size(); ++i)
+  {
+    if (workers[i]->isEmployed())
+      { workers[i]->stop(); }
+  }
+}
+
+
+void JobManager::increaseNumEmployedWorkers(
+  unsigned int numWorkers)
+{
+  setNumEmployedWorkers(workers.size() + numWorkers);
+}
+
+
+void JobManager::decreaseNumEmployedWorkers(
+  unsigned int numWorkers, Worker * callingWorker)
+{
+  setNumEmployedWorkers(workers.size() - min(
+    static_cast<unsigned int>(workers.size()), numWorkers));
 }
 
 
 void JobManager::stopAndJoin()
 {
-  stopWorkers();
-  setNumWorkers(0);
+  log(thId, "JobManager::stopAndJoin()");
 
-  {
-    size_t ws = 0;
-    {
-      lock_guard lock(mx_workers);
-      ws = workers.size();
-    }
+  running = false;
+  setNumEmployedWorkers(0);
 
-    while (ws > 0)
-    {
-      unique_lock<mutex> lock(mx_join);
-      cv_join.wait(lock, [&]
-      {
-        {
-          lock_guard lock(mx_workers);
-          ws = workers.size();
-        }
+  for (auto worker : workers)
+    { worker->die(); }
 
-        return ws == 0;
-      });
-    }
-  }
+  for (auto worker : workers)
+    { worker->join(); }
 }
 
 
@@ -137,7 +118,8 @@ void JobManager::enqueueJob(Job * job)
   // Check if any threads are asleep, and nudge one if so
   for (auto worker : workers)
   {
-    if (worker->isAvailable())
+    if (worker->isEmployed() && 
+        worker->isTasked() == false)
     {
       worker->nudge();
       break;
@@ -168,7 +150,8 @@ void JobManager::enqueueJobs(stack<Job *> jobGroup)
   // Check if any threads are asleep, and nudge as many as we can/need if so
   for (auto worker : workers)
   {
-    if (worker->isAvailable())
+    if (worker->isEmployed() && 
+        worker->isTasked() == false)
     {
       worker->nudge();
 
@@ -177,7 +160,6 @@ void JobManager::enqueueJobs(stack<Job *> jobGroup)
     }
   }
 }
-
 
 
 int JobManager::getNumJobsEnqueued()
@@ -195,14 +177,7 @@ int JobManager::getNumJobsEnqueued()
 
 void JobManager::workerDying(int workerId)
 {
-  {
-    lock_guard lock(mx_workers);
-    auto itW = find_if(workers.begin(), workers.end(),
-      [&](Worker * w){ return w->getId() == workerId; });
-    workers.erase(itW);
-  }
-
-  cv_join.notify_one();
+  log(thId, fmt::format("JobManager::workerDying({})", workerId));
 }
 
 

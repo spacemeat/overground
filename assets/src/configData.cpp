@@ -287,15 +287,15 @@ string ConfigData::print() const
     "      {}\n"
     "    swapchain:\n"
     "      formatPriorities:\n"
-    "        {}\n"
+    "{}"
     "      numViews: {}\n"
     "      imageUsages: {}\n"
     "      imageSharing: {}\n"
     "      pretransform: {}\n"
     "      windowAlpha: {}\n"
     "      presentModePriorities:\n"
-    "{}\n"
-    "      clipped: {}\n",
+    "{}"
+    "      clipped: {}",
     general.programName,
     join(general.version, ".", "{:0d}"),
     general.numWorkerThreads,

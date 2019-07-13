@@ -36,13 +36,13 @@ void Graphics::resetVulkanInstance()
 
   log(thId, "Making Vulkan instance:");
   for (auto & ext : extensions)
-    { log(thId, fmt::format(" -> Requesting extension {}", ext)); }
+    { log(thId, fmt::format(" Requesting extension {}", ext)); }
   
   if (config->graphics.vulkanValidationEnabled)
   {
     for (auto & val : config->graphics.vulkanValidationLayers)
     {
-      log(thId, fmt::format(" -> Requesting layer {}", val));
+      log(thId, fmt::format(" Requesting layer {}", val));
       validationLayers.push_back(val.c_str());
     }
   }
@@ -79,7 +79,7 @@ void Graphics::resetVulkanInstance()
 
       CHK(vk::createInstance(& instInfo, nullptr,
         & vulkanInstance));
-      log(thId, " -> Instance made.");
+      log(thId, " Instance made.");
 
       // TODO: If using multiple devices, call
 //      VkInstance inst = vulkanInstance;
@@ -267,7 +267,7 @@ bool Graphics::checkVulkanValidationLayerSupport()
     {
       if (strcmp(alProp.layerName, layer.c_str()) == 0)
       {
-        log(thId, fmt::format("Validation layer {} available.", layer));
+        log(thId, fmt::format("  Validation layer {} available.", layer));
         found = true;
         break;
       }
@@ -275,7 +275,7 @@ bool Graphics::checkVulkanValidationLayerSupport()
 
     if (found == false)
     {
-        log(thId, fmt::format("Validation layer {} unavailable.", layer));
+        log(thId, fmt::format("  Validation layer {} unavailable.", layer));
       allGood = false;
     }
   }
