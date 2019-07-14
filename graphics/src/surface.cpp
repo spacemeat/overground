@@ -6,7 +6,7 @@ using namespace overground;
 
 void Graphics::resetSurface()
 {
-  log(thId, "Graphics::resetSurface()");
+  logFn();
 
   if (surface)
     { destroySurface(); }
@@ -35,7 +35,7 @@ void Graphics::resetSurface()
 
 void Graphics::destroySurface()
 {
-  log(thId, "Graphics::destroySurface()");
+  logFn();
 
   destroySwapchain();
   

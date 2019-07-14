@@ -7,7 +7,7 @@
   graphics: {
     headless: false # implies swapchain extension
     fullScreen: false
-    width: 600
+    width: 800
     height: 600
     deviceExtensions: []
     debugger: true

@@ -6,7 +6,7 @@ using namespace overground;
 
 void Graphics::createWindow()
 {
-  log(thId, "Graphics::createWindow()");
+  logFn();
 
   glfwInit();
 
@@ -25,7 +25,7 @@ void Graphics::createWindow()
 
 void Graphics::updateWindow()
 {
-  log(thId, "Graphics::updateWindow()");
+  logFn();
   
   if (config->graphics.fullScreen != isFullScreen)
   {
@@ -57,7 +57,7 @@ void Graphics::updateWindow()
 
 void Graphics::destroyWindow()
 {
-  log(thId, "Graphics::destroyWindow()");
+  logFn();
   
   if (mainWindow != nullptr)
   {

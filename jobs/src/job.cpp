@@ -14,6 +14,7 @@ Job::Job(string_view jobTitle)
   : id(::id++), jobTitle(jobTitle)
 { }
 
+
 // only useful if *this hasn't started the job yet; TODO: assert(state == JobState::idle)?
 void Job::waitFor(Job * jobThisWaitsFor)
 {

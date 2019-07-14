@@ -7,7 +7,7 @@ using namespace overground;
 
 void Graphics::resetSwapchain()
 {
-  log(thId, "Graphics::resetSwapchain()");
+  logFn();
 
   // NOTE: Not destroying the old'n, because we want to use the old'n when making the new'n. We'll destroy at the end.
 
@@ -65,7 +65,7 @@ void Graphics::resetSwapchain()
 
 void Graphics::destroySwapchain()
 {
-  log(thId, "Graphics::destroySwapchain()");
+  logFn();
 
   if ((bool) swapchain == false)
     { return; }

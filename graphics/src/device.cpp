@@ -8,7 +8,7 @@ using namespace overground;
 
 void Graphics::resetLogicalDevice()
 {
-  log(thId, "Graphics::resetLogicalDevice()");
+  logFn();
 
   if (vulkanDevice)
     { destroyLogicalDevice(); }
@@ -94,7 +94,7 @@ void Graphics::resetLogicalDevice()
 
 void Graphics::destroyLogicalDevice()
 {
-  log(thId, "Graphics::destroyLogicalDevice()");
+  logFn();
 
   if ((bool) vulkanDevice == false)
     { return; }

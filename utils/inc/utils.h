@@ -229,6 +229,9 @@ namespace overground
     return st.str();
   }
 
+#define logFn() { log(thId, logTags::dbg, fmt::format("{}{}{}:", ansi::darkYellow, __PRETTY_FUNCTION__, ansi::off)); }
+
+
 
 #define CHK(call) \
   {  \

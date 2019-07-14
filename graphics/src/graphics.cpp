@@ -19,6 +19,8 @@ Graphics::~Graphics()
 
 void Graphics::reset(ConfigData * config)
 {
+  logFn();
+
   this->config = config;
   if (mainWindow == nullptr || 
     (config->getDiffs() & 
@@ -64,7 +66,7 @@ void Graphics::reset(ConfigData * config)
 
 void Graphics::shutDown()
 {
-  log(thId, "Graphics::shutDown()");
+  logFn();
   destroyVulkanInstance();
 }
 
@@ -84,10 +86,10 @@ void Graphics::drawFrame()
 }
 
 
-//void Graphics::waitForGraphicsOps()
-//{
-//  vd.waitIdle();
-//}
+void Graphics::waitForGraphicsOps()
+{
+  vulkanDevice.waitIdle();
+}
 
 
 bool Graphics::manageInvalidDevice()

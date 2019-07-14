@@ -40,7 +40,7 @@ void Engine::registerAssetProvider(
 
 void Engine::init(int argc, char ** argv)
 {
-  log(thId, "Engine::init()");
+  logFn();
   
   startTime = chrono::high_resolution_clock::now();
   systemTime = startTime;
@@ -68,6 +68,8 @@ void Engine::init(int argc, char ** argv)
 
 void Engine::shutDown()
 {
+  logFn();
+
   graphics.shutDown();
 }
 
@@ -82,19 +84,21 @@ void Engine::enqueueJob(Job * job)
 
 void Engine::loadScene()
 {
+  logFn();
   
 }
 
 
 void Engine::latchSceneDelta()
 {
+  logFn();
   
 }
 
 
 void Engine::enterEventLoop()
 {
-  log(thId, "Engine::enterEventLoop()");
+  logFn();
 
   // TODO: temperorariry. kills the works after a bit. Trying to manage a runaway process. Might need to get more aggressive.
   /* 
@@ -119,13 +123,13 @@ void Engine::enterEventLoop()
 
   log(thId, "End of enterEventLoop");
 
-  // g.waitForGraphicsOps();
+  graphics.waitForGraphicsOps();
 }
 
 
 void Engine::iterateGameLoop()
 {
-  // log(thId, "Engine::iterateGameLoop()");
+  // logFn();
 
   updateTimer();
   graphics.presentFrame();
@@ -228,23 +232,19 @@ void Engine::checkForConfigUpdates()
 
 void Engine::checkForFileUpdates(bool synchronous)
 {
-  log(thId, "Engine::checkForFileUpdates()");
-
   resMan.checkForAnyFileUpdates(synchronous);
 }
 
 
 void Engine::checkForAssetUpdates(bool synchronous)
 {
-  log(thId, "Engine::checkForAssetUpdates()");
-
   resMan.checkForAssetUpdates(synchronous);
 }
 
 
 void Engine::updateConfig(ConfigData const & newConfig)
 {
-  log(thId, "Engine::updateConfig()");
+  logFn();
 
   {
     lock_guard<mutex> lock(mx_config);

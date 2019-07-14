@@ -6,11 +6,10 @@ using namespace overground;
 
 void Graphics::resetVulkanInstance()
 {
-  log(thId, "Graphics::resetVulkanInstance()");
+  logFn();
+
   if ((bool) vulkanInstance == true)
-  {
-    destroyVulkanInstance();
-  }
+    { destroyVulkanInstance(); }
 
   auto appInfo = vk::ApplicationInfo();
   appInfo.pApplicationName = config->general.programName.c_str();
@@ -146,7 +145,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL validationReportCallackFn(
 
 void Graphics::destroyVulkanInstance()
 {
-  log(thId, "Graphics::destroyVulkanInstance()");
+  logFn();
 
   if ((bool) vulkanInstance == false)
     { return; }
@@ -161,22 +160,10 @@ void Graphics::destroyVulkanInstance()
   vulkanInstance = nullptr;
 }
 
-/*
-PFN_vkCreateDebugReportCallbackEXT fpCreateDebugReportCallbackEXT = &vkCreateDebugReportCallbackEXT_loader;
-
-VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugReportCallbackEXT(	VkInstance instance,
-	const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
-	const VkAllocationCallbacks* pAllocator,
-VkDebugReportCallbackEXT* pCallback)
-{
-  return fpCreateDebugReportCallbackEXT( instance, pCreateInfo, pAllocator, pCallback );
-
-}*/
-
 
 void Graphics::resetVulkanDebugReporter()
 {
-  log(thId, "Graphics::resetVulkanDebugReporter()");
+  logFn();
 
   if (debugCallback != nullptr)
   {
@@ -223,7 +210,7 @@ void Graphics::resetVulkanDebugReporter()
 
 void Graphics::destroyVulkanDebugReporter()
 {
-  log(thId, "Graphics::destroyVulkanDebugReporter()");
+  logFn();
 
   if (debugCallback == nullptr)
   { return; }

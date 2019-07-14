@@ -42,6 +42,7 @@ namespace overground
 
     void presentFrame();
     void drawFrame();
+    void waitForGraphicsOps();
 
   private:
     bool manageInvalidDevice();
