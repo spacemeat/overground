@@ -92,7 +92,8 @@ void Worker::join()
 void Worker::threadFn()
 {
   thId = createLogChannel(
-    fmt::format("wk {}", id), logTags::dbg, logTags::dev, & cout, & coutMx);
+    fmt::format("wk {}", id), logTags::dbg, logTags::dev,
+    & cout, & coutMx);
 
   log(thId, "thread start");
 
@@ -119,8 +120,11 @@ void Worker::threadFn()
         tasked = true;
 
         log(thId, "running job.");
-        jayobee->run(jobManager);
-
+        try
+          { jayobee->run(jobManager); }
+        catch(const std::exception& e)
+          { std::cerr << e.what() << '\n'; }
+        
         log(thId, "did job.");
         jobManager->jobDone();
       }

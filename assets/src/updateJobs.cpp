@@ -10,38 +10,31 @@ using namespace overground;
 
 // ------------ CompileAssetJob
 
-CheckForAssetDescFileUpdateJobs::CheckForAssetDescFileUpdateJobs()
+CheckForAssetDescFileUpdatesJob::CheckForAssetDescFileUpdatesJob(  
+  string_view jobTitle,
+  ResourceManager * resMan,
+  FileReference * file)
+: Job(jobTitle), resMan(resMan), file(file)
 {
 }
 
 
-void CheckForAssetDescFileUpdateJobs::reset(ResourceManager * resMan, FileReference * file)
-{
-  this->resMan = resMan;
-  this->file = file;
-}
-
-
-void CheckForAssetDescFileUpdateJobs::run_impl(JobManager * jobManager)
+void CheckForAssetDescFileUpdatesJob::run_impl(JobManager * jobManager)
 {
   resMan->checkForAssetDescFileUpdate(file);
 }
 
 
-JobPool<CheckForAssetDescFileUpdateJobs> overground::checkForAssetDescFileUpdateJobs;
+JobPool<CheckForAssetDescFileUpdatesJob> overground::checkForAssetDescFileUpdatesJobs;
 
 
 // ------------ CompileAssetJob
 
-CompileAssetJob::CompileAssetJob()
+CompileAssetJob::CompileAssetJob(
+  string_view jobTitle,
+  ResourceManager * resMan, Asset * asset)
+: Job(jobTitle), resMan(resMan), asset(asset)
 {
-}
-
-
-void CompileAssetJob::reset(ResourceManager * resMan, Asset * asset)
-{
-  this->resMan = resMan;
-  this->asset = asset;
 }
 
 
@@ -54,8 +47,8 @@ void CompileAssetJob::run_impl(JobManager * jobManager)
     // if asset is cached, save the compiled version to disk in a separate job
     if (asset->isCached())
     {
-      auto saveJob = saveCompiledAssetJobs.next();
-      saveJob->reset(resMan, asset);
+      auto saveJob = saveCompiledAssetJobs.next(
+        "saveCompiledAssetJob", resMan, asset);
       if (jobManager != nullptr)
         { jobManager->enqueueJob(saveJob); }
       else
@@ -70,15 +63,11 @@ JobPool<CompileAssetJob> overground::compileAssetJobs;
 
 // ------------ LoadCompiledAssetJob
 
-LoadCompiledAssetJob::LoadCompiledAssetJob()
+LoadCompiledAssetJob::LoadCompiledAssetJob(
+  string_view jobTitle,
+  ResourceManager * resMan, Asset * asset)
+: Job(jobTitle), resMan(resMan), asset(asset)
 {
-}
-
-
-void LoadCompiledAssetJob::reset(ResourceManager * resMan, Asset * asset)
-{
-  this->resMan = resMan;
-  this->asset = asset;
 }
 
 
@@ -93,15 +82,11 @@ JobPool<LoadCompiledAssetJob> overground::loadCompiledAssetJobs;
 
 // ------------ SaveCompiledAssetJob
 
-SaveCompiledAssetJob::SaveCompiledAssetJob()
+SaveCompiledAssetJob::SaveCompiledAssetJob(
+  string_view jobTitle,
+  ResourceManager * resMan, Asset * asset)
+: Job(jobTitle), resMan(resMan), asset(asset)
 {
-}
-
-
-void SaveCompiledAssetJob::reset(ResourceManager * resMan, Asset * asset)
-{
-  this->resMan = resMan;
-  this->asset = asset;
 }
 
 
@@ -116,14 +101,11 @@ JobPool<SaveCompiledAssetJob> overground::saveCompiledAssetJobs;
 
 // ------------ CreateAssetBufferJob
 
-CreateAssetBufferJob::CreateAssetBufferJob()
+CreateAssetBufferJob::CreateAssetBufferJob(
+  string_view jobTitle,
+  ResourceManager * resMan)
+: Job(jobTitle), resMan(resMan)
 {
-}
-
-
-void CreateAssetBufferJob::reset(ResourceManager * resMan)
-{
-  this->resMan = resMan;
 }
 
 
@@ -139,15 +121,11 @@ JobPool<CreateAssetBufferJob> overground::createAssetBufferJobs;
 
 // ------------ UpdateAssetJob
 
-UpdateAssetJob::UpdateAssetJob()
+UpdateAssetJob::UpdateAssetJob(
+  string_view jobTitle,
+  ResourceManager * resMan, Asset * asset)
+: Job(jobTitle), resMan(resMan), asset(asset)
 {
-}
-
-
-void UpdateAssetJob::reset(ResourceManager * resMan, Asset * asset)
-{
-  this->resMan = resMan;
-  this->asset = asset;
 }
 
 
@@ -163,14 +141,11 @@ JobPool<UpdateAssetJob> overground::updateAssetJobs;
 
 // ------------ SyncAssetBufferJob
 
-SyncAssetBufferJob::SyncAssetBufferJob()
+SyncAssetBufferJob::SyncAssetBufferJob(
+  string_view jobTitle,
+  ResourceManager * resMan)
+: Job(jobTitle), resMan(resMan)
 {
-}
-
-
-void SyncAssetBufferJob::reset(ResourceManager * resMan)
-{
-  this->resMan = resMan;
 }
 
 
@@ -185,14 +160,11 @@ JobPool<SyncAssetBufferJob> overground::syncAssetBufferJobs;
 
 // ------------ SyncAssetRenderPipelineJob
 
-SyncAssetRenderPipelineJob::SyncAssetRenderPipelineJob()
+SyncAssetRenderPipelineJob::SyncAssetRenderPipelineJob(
+  string_view jobTitle,
+  ResourceManager * resMan)
+: Job(jobTitle), resMan(resMan)
 {
-}
-
-
-void SyncAssetRenderPipelineJob::reset(ResourceManager * resMan)
-{
-  this->resMan = resMan;
 }
 
 

@@ -7,7 +7,7 @@ main() {
   local subProject="graphics"
   local deps=("assets" "pools" "jobs" "utils")
   local inc=()
-  local src=("graphics" "graphicsUtils" "instance" "window" "physDev" "device" "swapchain")
+  local src=("graphics" "graphicsUtils" "instance" "window" "physDev" "device" "surface" "swapchain")
   local libDirs=()
   local libs=("engine-d")
   local packages=("glfw3")

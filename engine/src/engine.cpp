@@ -192,21 +192,20 @@ void Engine::checkForConfigUpdates()
 
     {
       stringstream ss;
-      if ((diffs & ConfigData::Deltas::JobManagement) == 
-          ConfigData::Deltas::JobManagement)
+      if ((diffs & ConfigData::Deltas::JobManagement) != 0)
         { ss << " JobManagement"; }
-      if ((diffs & ConfigData::Deltas::Window) == 
-          ConfigData::Deltas::Window)
+      if ((diffs & ConfigData::Deltas::Window) != 0)
         { ss << " Window"; }
-      if ((diffs & ConfigData::Deltas::VulkanInstance) == 
-          ConfigData::Deltas::VulkanInstance)
+      if ((diffs & ConfigData::Deltas::WindowExtents) != 0)
+        { ss << " WindowExtents"; }
+      if ((diffs & ConfigData::Deltas::VulkanInstance) != 0)
         { ss << " VulkanInstance"; }
-      if ((diffs & ConfigData::Deltas::PhysicalDevice) == 
-          ConfigData::Deltas::PhysicalDevice)
+      if ((diffs & ConfigData::Deltas::PhysicalDevice) != 0)
         { ss << " PhysicalDevice"; }
-      if ((diffs & ConfigData::Deltas::LogicalDevice) == 
-          ConfigData::Deltas::LogicalDevice)
+      if ((diffs & ConfigData::Deltas::LogicalDevice) != 0)
         { ss << " LogicalDevice"; }
+      if ((diffs & ConfigData::Deltas::Swapchain) != 0)
+        { ss << " Swapchain"; }
 
       log(thId, fmt::format(
         "Config loaded:\n"

@@ -36,9 +36,17 @@ void Graphics::reset(ConfigData * config)
      ConfigData::Deltas::VulkanInstance) != 0)
     { resetVulkanInstance(); }
 
+  if ((bool) surface == false ||
+    (config->getDiffs() & 
+      (ConfigData::Deltas::Window |
+       ConfigData::Deltas::WindowExtents)) != 0)
+    { resetSurface(); }
+
   if ((bool) physicalDevice == false ||
     (config->getDiffs() & 
-     ConfigData::Deltas::PhysicalDevice) != 0)
+     (ConfigData::Deltas::Window |
+       ConfigData::Deltas::WindowExtents |
+       ConfigData::Deltas::PhysicalDevice)) != 0)
     { resetPhysicalDevice(); }
 
   if ((bool) vulkanDevice == false ||
@@ -48,17 +56,15 @@ void Graphics::reset(ConfigData * config)
 
   if ((bool) swapchain == false ||
     (config->getDiffs() & 
-     (ConfigData::Deltas::WindowExtents |
-      ConfigData::Deltas::Swapchain)) != 0)
+      (ConfigData::Deltas::WindowExtents |
+       ConfigData::Deltas::Swapchain)) != 0)
     { resetSwapchain(); }
 }
 
 
 void Graphics::shutDown()
 {
-  //...
-  destroySwapchain();
-  destroyLogicalDevice();
+  log(thId, "Graphics::shutDown()");
   destroyVulkanInstance();
 }
 

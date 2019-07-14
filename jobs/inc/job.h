@@ -16,7 +16,7 @@ namespace overground
     enum class JobState { idle = 0, pending, started };
 
   public:
-    Job() { }
+    Job(std::string_view jobTitle);
     virtual ~Job() { }
 
     bool isIdle() { return state == JobState::idle; }
@@ -35,6 +35,9 @@ namespace overground
   private:
     void notifyWhenDone(Job * waitingJob);
     void onJobThisIsWaitingForIsDone();
+
+    long id;
+    std::string jobTitle;
 
     JobState state = JobState::idle;
 

@@ -6,6 +6,7 @@ using namespace overground;
 
 void Graphics::resetVulkanInstance()
 {
+  log(thId, "Graphics::resetVulkanInstance()");
   if ((bool) vulkanInstance == true)
   {
     destroyVulkanInstance();
@@ -19,22 +20,24 @@ void Graphics::resetVulkanInstance()
   appInfo.apiVersion = VK_API_VERSION_1_0;
 
   uint32_t glfwExtensionCount = 0;
+  extensions.clear();
+  validationLayers.clear();
+
+  log(thId, "Graphics::resetVulkanInstance(): Making Vulkan instance:");
 
   if (config->graphics.isConfigured)
   {
     const char ** glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(& glfwExtensionCount);
+    glfwExtensions = glfwGetRequiredInstanceExtensions(
+      & glfwExtensionCount);
 
     extensions.insert(extensions.end(),
-    glfwExtensions, glfwExtensions + glfwExtensionCount);
+      glfwExtensions, glfwExtensions + glfwExtensionCount);
 
     if (config->graphics.vulkanValidationEnabled)
-    {
-      extensions.push_back("VK_EXT_debug_report");
-    }
+      { extensions.push_back("VK_EXT_debug_report"); }
   }
 
-  log(thId, "Making Vulkan instance:");
   for (auto & ext : extensions)
     { log(thId, fmt::format(" Requesting extension {}", ext)); }
   
@@ -79,7 +82,7 @@ void Graphics::resetVulkanInstance()
 
       CHK(vk::createInstance(& instInfo, nullptr,
         & vulkanInstance));
-      log(thId, " Instance made.");
+      log(thId, "Graphics::resetVulkanInstance(): Instance made.");
 
       // TODO: If using multiple devices, call
 //      VkInstance inst = vulkanInstance;
@@ -89,7 +92,6 @@ void Graphics::resetVulkanInstance()
       // endif
 
       resetVulkanDebugReporter();
-      resetSurface();
     }
   }
 }
@@ -144,10 +146,19 @@ VKAPI_ATTR VkBool32 VKAPI_CALL validationReportCallackFn(
 
 void Graphics::destroyVulkanInstance()
 {
+  log(thId, "Graphics::destroyVulkanInstance()");
+
+  if ((bool) vulkanInstance == false)
+    { return; }
+
+  destroyLogicalDevice();
+
   destroyVulkanDebugReporter();
 
-  if ((bool) vulkanInstance == true)
-    { vulkanInstance.destroy(nullptr); }
+  log(thId, "Graphics::destroyVulkanInstance(): actually do that");
+
+  vulkanInstance.destroy(nullptr);
+  vulkanInstance = nullptr;
 }
 
 /*
@@ -165,6 +176,8 @@ VkDebugReportCallbackEXT* pCallback)
 
 void Graphics::resetVulkanDebugReporter()
 {
+  log(thId, "Graphics::resetVulkanDebugReporter()");
+
   if (debugCallback != nullptr)
   {
     destroyVulkanDebugReporter();
@@ -210,6 +223,8 @@ void Graphics::resetVulkanDebugReporter()
 
 void Graphics::destroyVulkanDebugReporter()
 {
+  log(thId, "Graphics::destroyVulkanDebugReporter()");
+
   if (debugCallback == nullptr)
   { return; }
 
@@ -223,6 +238,8 @@ void Graphics::destroyVulkanDebugReporter()
     callbackKiller(vulkanInstance, 
       debugCallback, nullptr);
   }
+
+  debugCallback = nullptr;
 }
 
 
@@ -281,21 +298,4 @@ bool Graphics::checkVulkanValidationLayerSupport()
   }
 
   return allGood;
-}
-
-
-void Graphics::resetSurface()
-{
-  VkSurfaceKHR surfaceC;
-
-  if (glfwCreateWindowSurface(vulkanInstance, mainWindow, nullptr, & surfaceC) != VK_SUCCESS)
-  { throw std::runtime_error("failed to create window surface."); }
-
-  surface = vk::SurfaceKHR(surfaceC);
-}
-
-
-void Graphics::destroySurface()
-{
-  vulkanInstance.destroySurfaceKHR(surface, nullptr);
 }

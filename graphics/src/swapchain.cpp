@@ -7,6 +7,8 @@ using namespace overground;
 
 void Graphics::resetSwapchain()
 {
+  log(thId, "Graphics::resetSwapchain()");
+
   // NOTE: Not destroying the old'n, because we want to use the old'n when making the new'n. We'll destroy at the end.
 
   if ((bool) swapchain != false)
@@ -43,19 +45,37 @@ void Graphics::resetSwapchain()
   auto compositeAlpha = compositeAlphaFromString(
     config->graphics.swapchain.windowAlpha);
 
-  auto sci = vk::SwapchainCreateInfoKHR(vk::SwapchainCreateFlagsKHR(), surface, swapchainImageCount, swapchainSurfaceFormat.format, swapchainSurfaceFormat.colorSpace, swapchainExtent, config->graphics.swapchain.numViews, imageUsages, imageSharingMode, uqfis.size(), uqfis.data(), pretransform, compositeAlpha, swapchainPresentMode, config->graphics.swapchain.clipped, swapchain);
+  auto sci = vk::SwapchainCreateInfoKHR(
+    vk::SwapchainCreateFlagsKHR(), surface, 
+    swapchainImageCount, swapchainSurfaceFormat.format, 
+    swapchainSurfaceFormat.colorSpace, swapchainExtent, 
+    config->graphics.swapchain.numViews, imageUsages, 
+    imageSharingMode, uqfis.size(), uqfis.data(), 
+    pretransform, compositeAlpha, swapchainPresentMode, 
+    config->graphics.swapchain.clipped, swapchain);
   
+  auto oldSwapchain = swapchain;
   swapchain = vulkanDevice.createSwapchainKHR(sci);
   swapchainImages = vulkanDevice.getSwapchainImagesKHR(swapchain);
+
+  if ((bool) oldSwapchain == true)
+    { vulkanDevice.destroySwapchainKHR(oldSwapchain); }
 }
 
 
 void Graphics::destroySwapchain()
 {
+  log(thId, "Graphics::destroySwapchain()");
+
   if ((bool) swapchain == false)
     { return; }
 
+  //destroySwapchainImageViews();
+  
+  log(thId, "Graphics::destroySwapchain(): actually do that");
+
   vulkanDevice.destroySwapchainKHR(swapchain);
+  swapchain = nullptr;
 }
 
 

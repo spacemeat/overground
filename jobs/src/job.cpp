@@ -1,10 +1,18 @@
 #include "job.h"
 #include "jobManager.h"
+#include "utils.h"
 #include <cassert>
 
 using namespace std;
 using namespace overground;
 
+
+long id = 0;
+
+
+Job::Job(string_view jobTitle)
+  : id(::id++), jobTitle(jobTitle)
+{ }
 
 // only useful if *this hasn't started the job yet; TODO: assert(state == JobState::idle)?
 void Job::waitFor(Job * jobThisWaitsFor)
@@ -19,6 +27,10 @@ void Job::run(JobManager * jobManager)
   state = JobState::started;
   if (numJobsThisIsWaitingFor > 0)
   {
+    log(thId, fmt::format("{}delaying {}{}{}(job id {}{}{}){}", 
+      ansi::darkBlue, ansi::lightBlue, jobTitle, 
+      ansi::darkBlue, ansi::lightBlue, id,
+      ansi::darkBlue, ansi::off));
     if (jobManager != nullptr)
     { jobManager->increaseNumEmployedWorkers(); }
 
@@ -32,6 +44,10 @@ void Job::run(JobManager * jobManager)
     { jobManager->decreaseNumEmployedWorkers(); }
   }
 
+  log(thId, fmt::format("{}starting {}{}{}(job id {}{}{}){}", 
+    ansi::darkMagenta, ansi::lightMagenta, jobTitle, 
+    ansi::darkMagenta, ansi::lightMagenta, id,
+    ansi::darkMagenta, ansi::off));
   run_impl(jobManager);
 
   for (auto job : jobsWaitingForThis)

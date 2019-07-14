@@ -135,8 +135,15 @@ void ResourceManager::checkForAnyFileUpdates(bool synchronous)
   // Check asset description (.ass) files.
   for (auto & [_, assetFile] : assetDescFiles)
   {
-    auto newJob = checkForAssetDescFileUpdateJobs.next();
-    newJob->reset(this, & assetFile);
+    auto newJob = makeFnJob(
+      "checkForAssetDescFileUpdates",
+      [&](JobManager * jm)
+    {
+      checkForAssetDescFileUpdate(& assetFile);
+    });
+
+//    auto newJob = checkForAssetDescFileUpdatesJobs.next();
+//    newJob->reset(this, & assetFile);
     if (synchronous == false)
       { jobManager->enqueueJob(newJob); }
     else
@@ -251,8 +258,8 @@ void ResourceManager::checkForAssetUpdates(bool synchronous)
 
   stack<Job *> jobGroup;
 
-  auto createBufferJob = createAssetBufferJobs.next();
-  createBufferJob->reset(this);
+  auto createBufferJob = createAssetBufferJobs.next(
+    "createAssetBufferJob", this);
   for (auto & [_, asset] : assets)
   {
     bool loadSrc = asset->doesNeedUpdateFromSrc();
@@ -262,8 +269,8 @@ void ResourceManager::checkForAssetUpdates(bool synchronous)
     {
 
       asset->clearNeedUpdateFromOpt();
-      auto loadJob = loadCompiledAssetJobs.next();
-      loadJob->reset(this, asset.get());
+      auto loadJob = loadCompiledAssetJobs.next(
+        "loadCompiledAssetJob", this, asset.get());
       createBufferJob->waitFor(loadJob);
       if (synchronous == false)
         { jobGroup.push(loadJob); }
@@ -274,8 +281,8 @@ void ResourceManager::checkForAssetUpdates(bool synchronous)
     {
       asset->clearNeedUpdateFromSrc();
       asset->clearNeedUpdateFromOpt();
-      auto compileJob = compileAssetJobs.next();
-      compileJob->reset(this, asset.get());
+      auto compileJob = compileAssetJobs.next( 
+        "compileAssetJob", this, asset.get());
       createBufferJob->waitFor(compileJob);
       if (synchronous == false)
         { jobGroup.push(compileJob); }
@@ -299,19 +306,19 @@ void ResourceManager::updateFromFreshAssets(bool synchronous)
 {
   stack<Job *> jobGroup;
 
-  auto syncJob = syncAssetBufferJobs.next();  
-  syncJob->reset(this);
+  auto syncJob = syncAssetBufferJobs.next(
+    "syncAssetBufferJobs", this);  
 
-  auto rpJob = syncAssetRenderPipelineJobs.next();
-  rpJob->reset(this);
+  auto rpJob = syncAssetRenderPipelineJobs.next(
+    "syncAssetRenderPipelineJob", this);
 
   for (auto & [_, asset] : assets)
   {
     if (asset->didReloadAssetData())
     {
       asset->clearDidReloadAssetData();
-      auto updateJob = updateAssetJobs.next();
-      updateJob->reset(this, asset.get());
+      auto updateJob = updateAssetJobs.next(
+        "updateAssetJobs", this, asset.get());
       syncJob->waitFor(updateJob);
       rpJob->waitFor(updateJob);
       if (synchronous == false)

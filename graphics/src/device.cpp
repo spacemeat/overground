@@ -8,6 +8,8 @@ using namespace overground;
 
 void Graphics::resetLogicalDevice()
 {
+  log(thId, "Graphics::resetLogicalDevice()");
+
   if (vulkanDevice)
     { destroyLogicalDevice(); }
 
@@ -92,13 +94,20 @@ void Graphics::resetLogicalDevice()
 
 void Graphics::destroyLogicalDevice()
 {
+  log(thId, "Graphics::destroyLogicalDevice()");
+
   if ((bool) vulkanDevice == false)
     { return; }
 
   // TODO: destroy everythig device makes
-  // That's a lotta stuff
+
+  destroySwapchain();
+
+  log(thId, "Graphics::destroyLogicalDevice(): actually do that");
 
   vulkanDevice.destroy();
+  vulkanDevice = nullptr;
+
   gQueues.clear();
   cQueues.clear();
 

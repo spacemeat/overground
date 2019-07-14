@@ -53,6 +53,7 @@ void ConfigData::loadFromHumon(HuNode const & src)
 
     if (graphicsSrc % "vulkanValidationLayers")
     {
+      graphics.vulkanValidationLayers.clear();
       auto & listSrc = graphicsSrc / "vulkanValidationLayers";
       for (size_t i = 0; i < listSrc.size(); ++i)
         { graphics.vulkanValidationLayers.push_back(listSrc / i); }
@@ -60,6 +61,7 @@ void ConfigData::loadFromHumon(HuNode const & src)
 
     if (graphicsSrc % "vulkanValidationReports")
     {
+      graphics.vulkanValidationReports.clear();
       auto & listSrc = graphicsSrc / "vulkanValidationReports";
       for (size_t i = 0; i < listSrc.size(); ++i)
         { graphics.vulkanValidationReports.push_back(listSrc / i); }
@@ -67,6 +69,7 @@ void ConfigData::loadFromHumon(HuNode const & src)
 
     if (graphicsSrc % "vulkanExtensions")
     {
+      graphics.vulkanExtensions.clear();
       auto & listSrc = graphicsSrc / "vulkanExtensions";
       for (size_t i = 0; i < listSrc.size(); ++i)
         { graphics.vulkanExtensions.push_back(listSrc / i); }
@@ -74,6 +77,7 @@ void ConfigData::loadFromHumon(HuNode const & src)
 
     if (graphicsSrc % "deviceExtensions")
     {
+      graphics.deviceExtensions.clear();
       auto & listSrc = graphicsSrc / "deviceExtensions";
       for (size_t i = 0; i < listSrc.size(); ++i)
         { graphics.deviceExtensions.push_back(listSrc / i); }
@@ -102,6 +106,7 @@ void ConfigData::loadFromHumon(HuNode const & src)
   
     if (graphicsSrc % "minDeviceFeatures")
     {
+      graphics.minDeviceFeatures.clear();
       auto & listSrc = graphicsSrc / "minDeviceFeatures";
       for (size_t i = 0; i < listSrc.size(); ++i)
         { graphics.minDeviceFeatures.push_back(listSrc / i); }
@@ -109,6 +114,7 @@ void ConfigData::loadFromHumon(HuNode const & src)
 
     if (graphicsSrc % "desiredDeviceFeatures")
     {
+      graphics.desiredDeviceFeatures.clear();
       auto & listSrc = graphicsSrc / "desiredDeviceFeatures";
       for (size_t i = 0; i < listSrc.size(); ++i)
         { graphics.desiredDeviceFeatures.push_back(listSrc / i); }
@@ -120,6 +126,7 @@ void ConfigData::loadFromHumon(HuNode const & src)
       auto & swapchainSrc = graphicsSrc / "swapchain";
       if (swapchainSrc % "formatPriorities")
       {
+        graphics.swapchain.formatPriorities.clear();
         auto & src = swapchainSrc / "formatPriorities";
         for (size_t i = 0; i < src.size(); ++i)
         {
@@ -135,6 +142,7 @@ void ConfigData::loadFromHumon(HuNode const & src)
       
       if (swapchainSrc % "imageUsages")
       {
+        graphics.swapchain.imageUsages.clear();
         auto & src = swapchainSrc / "imageUsages";
         for (size_t i = 0; i < src.size(); ++i)
           { graphics.swapchain.imageUsages.push_back(src / i); }
@@ -151,6 +159,7 @@ void ConfigData::loadFromHumon(HuNode const & src)
       
       if (swapchainSrc % "presentModePriorities")
       {
+        graphics.swapchain.presentModePriorities.clear();
         auto & src = swapchainSrc / "presentModePriorities";
         for (size_t i = 0; i < src.size(); ++i)
         {

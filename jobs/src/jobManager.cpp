@@ -52,42 +52,55 @@ void JobManager::allocateWorkers(unsigned int numWorkers)
 }
 
 
+void JobManager::increaseNumEmployedWorkers(
+  unsigned int numWorkers)
+{
+  lock_guard lock(mxWorkers);
+
+  setNumEmployedWorkers_int(numEmployedWorkers + numWorkers);
+}
+
+
+void JobManager::decreaseNumEmployedWorkers(
+  unsigned int numWorkers)
+{
+  lock_guard lock(mxWorkers);
+
+  setNumEmployedWorkers_int(numEmployedWorkers - min(
+    static_cast<unsigned int>(numEmployedWorkers), numWorkers));
+}
+
+
 void JobManager::setNumEmployedWorkers(
+  unsigned int numWorkers)
+{
+  lock_guard lock(mxWorkers);
+
+  setNumEmployedWorkers_int(numWorkers);
+}
+
+
+void JobManager::setNumEmployedWorkers_int(
   unsigned int numWorkers)
 {
   log(thId, fmt::format("JobManager::setNumEmployedWorkers({})", 
     numWorkers));
 
-  lock_guard lock(mxWorkers);
+  numEmployedWorkers = std::min((size_t) numWorkers, workers.size());
 
-  numWorkers = std::min((size_t) numWorkers, workers.size());
-
-  for (unsigned int i = 0; i < numWorkers; ++i)
+  for (unsigned int i = 0; 
+       i < numEmployedWorkers; ++i)
   {
     if (workers[i]->isEmployed() == false)
       { workers[i]->start(); }
   }
 
-  for (unsigned int i = numWorkers; i < workers.size(); ++i)
+  for (unsigned int i = numEmployedWorkers; 
+       i < workers.size(); ++i)
   {
     if (workers[i]->isEmployed())
       { workers[i]->stop(); }
   }
-}
-
-
-void JobManager::increaseNumEmployedWorkers(
-  unsigned int numWorkers)
-{
-  setNumEmployedWorkers(workers.size() + numWorkers);
-}
-
-
-void JobManager::decreaseNumEmployedWorkers(
-  unsigned int numWorkers, Worker * callingWorker)
-{
-  setNumEmployedWorkers(workers.size() - min(
-    static_cast<unsigned int>(workers.size()), numWorkers));
 }
 
 

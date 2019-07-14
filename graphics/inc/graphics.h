@@ -58,6 +58,8 @@ namespace overground
     void destroyVulkanDebugReporter();
     bool checkVulkanExtensionSupport();
     bool checkVulkanValidationLayerSupport();
+
+    // surface.cpp
     void resetSurface();
     void destroySurface();
 
@@ -77,8 +79,8 @@ namespace overground
     void chooseSurfaceFormat();
     void choosePresentMode();
     void getExtent();
-    void createSwapChainImageViews();
-    void destroySwapChainImageViews();
+    void createSwapchainImageViews();
+    void destroySwapchainImageViews();
     
   private:
     ConfigData * config;
@@ -128,7 +130,7 @@ namespace overground
     int swapchainImageCount;
     vk::Extent2D swapchainExtent;
 
-    vk::SwapchainKHR swapchain;
+    vk::SwapchainKHR swapchain = nullptr;
     std::vector<vk::Image> swapchainImages;
     std::vector<vk::ImageView> swapchainImageViews;
   };

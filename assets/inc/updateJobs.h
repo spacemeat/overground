@@ -8,16 +8,17 @@
 namespace overground
 {
   class FileReference;
-  class ResourceManager;  
+  class ResourceManager;
   class Asset;
 
 
-  class CheckForAssetDescFileUpdateJobs : public Job
+  class CheckForAssetDescFileUpdatesJob : public Job
   {
   public:
-    CheckForAssetDescFileUpdateJobs();
-
-    void reset(ResourceManager * resMan, FileReference * file);
+    CheckForAssetDescFileUpdatesJob(
+      std::string_view jobTitle,
+      ResourceManager * resMan, 
+      FileReference * file);
 
   protected:
     virtual void run_impl(JobManager * jobManager) override;
@@ -27,15 +28,16 @@ namespace overground
     FileReference * file;
   };
 
-  extern JobPool<CheckForAssetDescFileUpdateJobs> checkForAssetDescFileUpdateJobs;
+  extern JobPool<CheckForAssetDescFileUpdatesJob> checkForAssetDescFileUpdatesJobs;
 
 
   class CompileAssetJob : public Job
   {
   public:
-    CompileAssetJob();
-
-    void reset(ResourceManager * resMan, Asset * asset);
+    CompileAssetJob(
+      std::string_view jobTitle,
+      ResourceManager * resMan, 
+      Asset * asset);
   
   protected:
     virtual void run_impl(JobManager * jobManager) override;
@@ -51,10 +53,11 @@ namespace overground
   class LoadCompiledAssetJob : public Job
   {
   public:
-    LoadCompiledAssetJob();
+    LoadCompiledAssetJob(
+      std::string_view jobTitle,
+      ResourceManager * resMan, 
+      Asset * asset);
 
-    void reset(ResourceManager * resMan, Asset * asset);
-  
   protected:
     virtual void run_impl(JobManager * jobManager) override;
 
@@ -69,10 +72,11 @@ namespace overground
   class SaveCompiledAssetJob : public Job
   {
   public:
-    SaveCompiledAssetJob();
+    SaveCompiledAssetJob(
+      std::string_view jobTitle,
+      ResourceManager * resMan, 
+      Asset * asset);
 
-    void reset(ResourceManager * resMan, Asset * asset);
-  
   protected:
     virtual void run_impl(JobManager * jobManager) override;
 
@@ -87,10 +91,10 @@ namespace overground
   class CreateAssetBufferJob : public Job
   {
   public:
-    CreateAssetBufferJob();
+    CreateAssetBufferJob(
+      std::string_view jobTitle,
+      ResourceManager * resMan);
 
-    void reset(ResourceManager * resMan);
-  
   protected:
     virtual void run_impl(JobManager * jobManager) override;
 
@@ -104,10 +108,11 @@ namespace overground
   class UpdateAssetJob : public Job
   {
   public:
-    UpdateAssetJob();
+    UpdateAssetJob(
+      std::string_view jobTitle,
+      ResourceManager * resMan, 
+      Asset * asset);
 
-    void reset(ResourceManager * resMan, Asset * asset);
-  
   protected:
     virtual void run_impl(JobManager * jobManager) override;
 
@@ -122,10 +127,10 @@ namespace overground
   class SyncAssetBufferJob : public Job
   {
   public:
-    SyncAssetBufferJob();
+    SyncAssetBufferJob(
+      std::string_view jobTitle,
+      ResourceManager * resMan);
 
-    void reset(ResourceManager * resMan);
-  
   protected:
     virtual void run_impl(JobManager * jobManager) override;
 
@@ -139,10 +144,10 @@ namespace overground
   class SyncAssetRenderPipelineJob : public Job
   {
   public:
-    SyncAssetRenderPipelineJob();
+    SyncAssetRenderPipelineJob(
+      std::string_view jobTitle,
+      ResourceManager * resMan);
 
-    void reset(ResourceManager * resMan);
-  
   protected:
     virtual void run_impl(JobManager * jobManager) override;
 

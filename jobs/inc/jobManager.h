@@ -8,6 +8,7 @@
 // also, TODO: Let's make sure we're doing atomic stuff right.
 #include <stack>
 #include "job.h"
+#include "fnJob.h"
 #include "worker.h"
 
 namespace overground
@@ -23,16 +24,19 @@ namespace overground
     void allocateWorkers(unsigned int numWorkers);
 
     // users of jobManager call these fns
-    void setNumEmployedWorkers(
-      unsigned int numWorkers);
     unsigned int getNumEmployedWorkers()
-      { return workers.size(); }
+      { return numEmployedWorkers; }
     void increaseNumEmployedWorkers(
       unsigned int numWorkers = 1);
     void decreaseNumEmployedWorkers(
-      unsigned int numWorkers = 1,
-      Worker * callingWorker = nullptr);
+      unsigned int numWorkers = 1);
+    void setNumEmployedWorkers(
+      unsigned int numWorkers);
+  private:
+    void setNumEmployedWorkers_int(
+      unsigned int numWorkers);
 
+  public:
     void stopAndJoin();
 
     bool isRunning() { return running; }
@@ -51,6 +55,7 @@ namespace overground
   private:
     std::vector<Worker *> workers;
     std::mutex mxWorkers;
+    size_t numEmployedWorkers = 0;
 
     std::deque<Job *> jobs;
     std::mutex mxJobs;
