@@ -23,17 +23,26 @@ void Job::waitFor(Job * jobThisWaitsFor)
 }
 
 
-void Job::run(JobManager * jobManager)
+void Job::setScheduleKind(ScheduleKind kind)
+{
+  scheduleKind = kind;
+}
+
+
+void Job::run()
 {
   state = JobState::started;
   if (numJobsThisIsWaitingFor > 0)
   {
-    log(thId, fmt::format("{}delaying {}{}{}(job id {}{}{}){}", 
-      ansi::darkBlue, ansi::lightBlue, jobTitle, 
-      ansi::darkBlue, ansi::lightBlue, id,
-      ansi::darkBlue, ansi::off));
-    if (jobManager != nullptr)
-    { jobManager->increaseNumEmployedWorkers(); }
+    log(thId, fmt::format("{}delaying {}{}{} (job {}{}{}).{}", 
+      ansi::darkBlue, 
+      ansi::lightBlue, jobTitle, 
+      ansi::darkBlue, 
+      ansi::lightBlue, id,
+      ansi::darkBlue, 
+      ansi::off));
+    if (scheduleKind == ScheduleKind::asynchronous)
+      { jobMan.increaseNumEmployedWorkers(); }
 
     {
       unique_lock<mutex> lock(mxNumJobsThisIsWaitingForThatAreDone);
@@ -41,15 +50,28 @@ void Job::run(JobManager * jobManager)
         [&]{ return numJobsThisIsWaitingForThatAreDone == numJobsThisIsWaitingFor; });
     }
 
-    if (jobManager != nullptr)
-    { jobManager->decreaseNumEmployedWorkers(); }
+    if (scheduleKind == ScheduleKind::asynchronous)
+    { jobMan.decreaseNumEmployedWorkers(); }
   }
 
-  log(thId, fmt::format("{}starting {}{}{}(job id {}{}{}){}", 
-    ansi::darkMagenta, ansi::lightMagenta, jobTitle, 
-    ansi::darkMagenta, ansi::lightMagenta, id,
-    ansi::darkMagenta, ansi::off));
-  run_impl(jobManager);
+  log(thId, fmt::format("{}starting {}{}{} (job {}{}{}).{}", 
+    ansi::darkMagenta, 
+    ansi::lightMagenta, jobTitle, 
+    ansi::darkMagenta, 
+    ansi::lightMagenta, id,
+    ansi::darkMagenta, 
+    ansi::off));
+
+  run_impl();
+
+  log(thId, fmt::format("{}Job done {}{}{} (job {}{}{}).{}", 
+    ansi::darkMagenta, 
+    ansi::lightMagenta, jobTitle, 
+    ansi::darkMagenta, 
+    ansi::lightMagenta, id,
+    ansi::darkMagenta, 
+    ansi::off));
+
 
   for (auto job : jobsWaitingForThis)
   {

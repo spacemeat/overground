@@ -19,9 +19,9 @@ namespace overground
       { }
 
   protected:
-    virtual void run_impl(JobManager * jobManager)
+    virtual void run_impl()
     {
-      jobFn(jobManager);
+      jobFn();
     }
 
   private:
@@ -31,8 +31,10 @@ namespace overground
     static JobPool<FnJob<Callable>> fnJobs;
   };
 
+
   template <class Callable>
   JobPool<FnJob<Callable>> FnJob<Callable>::fnJobs;
+
 
   template <class Callable>
   FnJob<Callable> * makeFnJob(std::string_view name, Callable jobFn)

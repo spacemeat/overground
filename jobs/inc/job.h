@@ -5,6 +5,7 @@
 #include <map>
 #include <condition_variable>
 #include <mutex>
+#include "jobScheduler.h"
 
 
 namespace overground
@@ -26,11 +27,14 @@ namespace overground
     void setPending() { state = JobState::pending; }
 
     void waitFor(Job * dependency);
-  
-    void run(JobManager * jobManager = nullptr);
+
+    ScheduleKind getScheduleKind()
+      { return scheduleKind; }
+    void setScheduleKind(ScheduleKind kind);
+    void run();
 
   protected:
-    virtual void run_impl(JobManager * jobManager) = 0;
+    virtual void run_impl() = 0;
 
   private:
     void notifyWhenDone(Job * waitingJob);
@@ -38,6 +42,7 @@ namespace overground
 
     long id;
     std::string jobTitle;
+    ScheduleKind scheduleKind;
 
     JobState state = JobState::idle;
 

@@ -1,7 +1,7 @@
 #include "engine.h"
-#include "updateJobs.h"
 #include "utils.h"
 #include "configData.h"
+#include "jobScheduler.h"
 
 #include <iostream>
 
@@ -16,17 +16,25 @@ constexpr auto pathSeparator = "/";
 
 
 Engine::Engine()
-: resMan(this, & jobManager, AssetBaseDir, AssetDataBaseDir)
+: resMan(this, AssetBaseDir, AssetDataBaseDir)
 {
   thId = createLogChannel(
     "main", logTags::dbg, logTags::dev, & cout, & coutMx);
   
-  jobManager.allocateWorkers(JobManager::getNumCores() * 2);
+  jobMan.allocateWorkers(JobManager::getNumCores() * 2);
 }
 
 
 Engine::~Engine()
 {
+  try
+  {
+    jobMan.stopAndJoin();
+  }
+  catch(const std::exception& e)
+  {
+    log(thId, fmt::format("Caught an error in ~Engine(): {}", e.what()));
+  }
 }
 
 
@@ -57,9 +65,10 @@ void Engine::init(int argc, char ** argv)
   lastEventTimes.push_back(currentTime_us + chrono::milliseconds{500});
 
   // load up the config file
-  checkForFileUpdates(true);
+  JobScheduler sched(ScheduleKind::synchronous);
+  checkForFileUpdates(sched);
   // latch the config to engine; creates the window, etc.
-  checkForAssetUpdates(true);
+  checkForAssetUpdates(sched);
 
   // initial config
   checkForConfigUpdates();
@@ -76,7 +85,7 @@ void Engine::shutDown()
 
 void Engine::enqueueJob(Job * job)
 {
-  jobManager.enqueueJob(job);
+  jobMan.enqueueJob(job);
 }
 
 
@@ -115,7 +124,7 @@ void Engine::enterEventLoop()
     return;
   }
 
-  while( ! glfwWindowShouldClose(window))
+  while (! glfwWindowShouldClose(window))
   {
     glfwPollEvents();
     iterateGameLoop();
@@ -164,6 +173,8 @@ void Engine::updateTimer()
 
 void Engine::performScheduledEvents()
 {
+  JobScheduler sched(ScheduleKind::asynchronous);
+
   // perform scheduled actions if any
   for (size_t i = 0; i < eventPeriods.size(); ++i)
   {
@@ -175,10 +186,10 @@ void Engine::performScheduledEvents()
       switch ((ScheduledEvents) i)
       {
         case ScheduledEvents::CheckForFileUpdates:
-          checkForFileUpdates(false);
+          checkForFileUpdates(sched);
           break;
         case ScheduledEvents::CheckForAssetUpdates:
-          checkForAssetUpdates(false);
+          checkForAssetUpdates(sched);
           break;
       }
     }
@@ -220,7 +231,7 @@ void Engine::checkForConfigUpdates()
       ));
     }
 
-    jobManager.setNumEmployedWorkers(
+    jobMan.setNumEmployedWorkers(
       config.general.numWorkerThreads);
 
     graphics.reset(& config);
@@ -230,15 +241,15 @@ void Engine::checkForConfigUpdates()
 }
 
 
-void Engine::checkForFileUpdates(bool synchronous)
+void Engine::checkForFileUpdates(JobScheduler & sched)
 {
-  resMan.checkForAnyFileUpdates(synchronous);
+  resMan.checkForAnyFileUpdates(sched);
 }
 
 
-void Engine::checkForAssetUpdates(bool synchronous)
+void Engine::checkForAssetUpdates(JobScheduler & sched)
 {
-  resMan.checkForAssetUpdates(synchronous);
+  resMan.checkForAssetUpdates(sched);
 }
 
 

@@ -1,6 +1,7 @@
 #include "asset.h"
 #include "resourceManager.h"
 #include "fileReference.h"
+#include "jobScheduler.h"
 //#include "engine.h"
 
 using namespace std;
@@ -56,9 +57,20 @@ std::string Asset::getCompiledExtension()
 }
 
 
-void Asset::compileSrcAsset()
+void Asset::compileSrcAsset(JobScheduler & sched)
 {
-  compileSrcAsset_impl(srcFilePath);
+  if (isCompiled())
+  {
+    compileSrcAsset_impl(srcFilePath);
+
+    // if asset is cached, save the compiled version to disk in a separate job
+    if (isCached())
+    {
+      auto saveJob = makeFnJob("saveCompiledAsset", [&]
+        { saveCompiledAsset(); });
+      sched.scheduleJob(saveJob);
+    }
+  }
 }
 
 

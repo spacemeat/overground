@@ -9,7 +9,9 @@ namespace overground
 {
   class ResourceManager;
   class FileReference;
-
+  class JobManager;
+  class JobScheduler;
+  
   class Asset
   {
   public:
@@ -58,7 +60,7 @@ namespace overground
     virtual std::string getCompiledExtension();
 
   public:
-    void compileSrcAsset();
+    void compileSrcAsset(JobScheduler & sched);
     void loadCompiledAsset();
     void saveCompiledAsset();
     

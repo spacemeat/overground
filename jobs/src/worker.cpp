@@ -119,13 +119,11 @@ void Worker::threadFn()
       {
         tasked = true;
 
-        log(thId, "running job.");
         try
-          { jayobee->run(jobManager); }
+          { jayobee->run(); }
         catch(const std::exception& e)
           { std::cerr << e.what() << '\n'; }
         
-        log(thId, "did job.");
         jobManager->jobDone();
       }
       else

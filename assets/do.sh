@@ -7,7 +7,7 @@ main() {
   local subProject="assets"
   local deps=("pools" "jobs" "utils")
   local inc=()
-  local src=("asset" "configData" "fileReference" "resourceManager" "updateJobs")
+  local src=("asset" "configData" "fileReference" "resourceManager")
   local libDirs=()
   local libs=()
   local packages=()

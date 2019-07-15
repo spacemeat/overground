@@ -7,7 +7,7 @@ main() {
   local subProject="jobs"
   local deps=("pools" "utils")
   local inc=()
-  local src=("job" "jobManager" "worker")
+  local src=("job" "jobManager" "worker" "jobScheduler")
   local libDirs=()
   local libs=()
   local packages=()

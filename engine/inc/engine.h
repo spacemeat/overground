@@ -22,6 +22,8 @@ namespace overground
     CheckForAssetUpdates = 1,
   };
 
+  class JobScheduler;
+
   class Engine
   {
   public:
@@ -60,8 +62,8 @@ namespace overground
     void checkForConfigUpdates();
 
     // timed events
-    void checkForFileUpdates(bool synchronous);
-    void checkForAssetUpdates(bool synchronous);
+    void checkForFileUpdates(JobScheduler & sched);
+    void checkForAssetUpdates(JobScheduler & sched);
 
     // external updates (say from file changes)
     void updateConfig(ConfigData const & newConfig);
@@ -90,7 +92,7 @@ namespace overground
 
     Graphics graphics;
 
-    JobManager jobManager;
+    //JobManager jobManager;
 
     systemTimePoint systemTime;
     systemTimePoint previousSystemTime;

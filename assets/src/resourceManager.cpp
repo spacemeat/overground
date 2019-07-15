@@ -5,12 +5,12 @@
 #include <algorithm>
 #include <experimental/filesystem>
 #include "utils.h"
+#include "jobScheduler.h"
 #include "asset.h"
 #include "resourceManager.h"
 #include "humon.h"
 #include "fileReference.h"
 #include "assetFiles.h"
-#include "updateJobs.h"
 
 
 using namespace std;
@@ -21,11 +21,9 @@ namespace fs = experimental::filesystem;
 
 ResourceManager::ResourceManager(
   Engine * engine,
-  JobManager * jobManager,
   path_t const & baseAssetDescDir,
   path_t const & baseAssetDataDir)
 : engine(engine),
-  jobManager(jobManager),
   baseAssetDescDir(baseAssetDescDir),
   baseAssetDataDir(baseAssetDataDir)
 {
@@ -130,24 +128,15 @@ void ResourceManager::removeAssetOptFile(string_view file)
 }
 
 
-void ResourceManager::checkForAnyFileUpdates(bool synchronous)
+void ResourceManager::checkForAnyFileUpdates(JobScheduler & sched)
 {
   // Check asset description (.ass) files.
   for (auto & [_, assetFile] : assetDescFiles)
   {
     auto newJob = makeFnJob(
-      "checkForAssetDescFileUpdates",
-      [&](JobManager * jm)
-    {
-      checkForAssetDescFileUpdate(& assetFile);
-    });
-
-//    auto newJob = checkForAssetDescFileUpdatesJobs.next();
-//    newJob->reset(this, & assetFile);
-    if (synchronous == false)
-      { jobManager->enqueueJob(newJob); }
-    else
-      { newJob->run(); }
+      "checkForAssetDescFileUpdates", [&]
+      { checkForAssetDescFileUpdate(& assetFile); });
+    sched.scheduleJob(newJob);
   }
 
   // Check all assetDataFiles (mesh, texture, etc).
@@ -243,10 +232,8 @@ void ResourceManager::checkForAssetDescFileUpdate(FileReference * file)
 }
 
 
-void ResourceManager::checkForAssetUpdates(bool synchronous)
+void ResourceManager::checkForAssetUpdates(JobScheduler & sched)
 {
-//  log(thId, "ResourceManager::checkForAssetUpdates()");
-
   if (assetsChanged == false)
     { return; }
 
@@ -256,10 +243,11 @@ void ResourceManager::checkForAssetUpdates(bool synchronous)
   // TODO: Does any of this need mutexing? Should only be one check job running, right..?
   assetsChanged = false;
 
-  stack<Job *> jobGroup;
+  sched.beginJobGroup();
 
-  auto createBufferJob = createAssetBufferJobs.next(
-    "createAssetBufferJob", this);
+  auto updateDeviceBuffersJob = makeFnJob("updateDeviceBuffers", [&]
+    { updateDeviceBuffers(sched.getKind()); });
+
   for (auto & [_, asset] : assets)
   {
     bool loadSrc = asset->doesNeedUpdateFromSrc();
@@ -267,76 +255,66 @@ void ResourceManager::checkForAssetUpdates(bool synchronous)
 
     if (loadOpt && ! loadSrc)
     {
-
       asset->clearNeedUpdateFromOpt();
-      auto loadJob = loadCompiledAssetJobs.next(
-        "loadCompiledAssetJob", this, asset.get());
-      createBufferJob->waitFor(loadJob);
-      if (synchronous == false)
-        { jobGroup.push(loadJob); }
-      else
-        { loadJob->run(); }
+
+      auto loadJob = makeFnJob(
+        "loadCompiledAsset", [&]
+        { asset->loadCompiledAsset(); });
+      updateDeviceBuffersJob->waitFor(loadJob);
+      sched.scheduleJob(loadJob);
     }
     else if (loadSrc)
     {
       asset->clearNeedUpdateFromSrc();
       asset->clearNeedUpdateFromOpt();
-      auto compileJob = compileAssetJobs.next( 
-        "compileAssetJob", this, asset.get());
-      createBufferJob->waitFor(compileJob);
-      if (synchronous == false)
-        { jobGroup.push(compileJob); }
-      else
-        { compileJob->run(); }
+
+      auto compileJob = makeFnJob(
+        "compileAsset", [&]
+        { asset->compileSrcAsset(sched); });
+      updateDeviceBuffersJob->waitFor(compileJob);
+      sched.scheduleJob(compileJob);
     }
   }
 
-  if (synchronous == false)
-  { 
-    jobGroup.push(createBufferJob);
-    jobManager->enqueueJobs(jobGroup);
-  }
-  else
-    { createBufferJob->run(); }
+  sched.scheduleJob(updateDeviceBuffersJob);
+  sched.runJobGroup();
 }
 
 
-// NOTE: called from createBufferJob
-void ResourceManager::updateFromFreshAssets(bool synchronous)
+void ResourceManager::updateDeviceBuffers(ScheduleKind scheduleKind)
 {
-  stack<Job *> jobGroup;
+  JobScheduler sched(scheduleKind);
 
-  auto syncJob = syncAssetBufferJobs.next(
-    "syncAssetBufferJobs", this);  
+  // TODO: compare asset data requirements against existing asset buffer. Handle all the details about which assets need to be updated, whether sizes change, when to recreate vs reuse the buffer, etc.
+  updateFromFreshAssets(sched);
+}
 
-  auto rpJob = syncAssetRenderPipelineJobs.next(
-    "syncAssetRenderPipelineJob", this);
+
+// NOTE: called from updateDeviceBuffersJob
+void ResourceManager::updateFromFreshAssets(JobScheduler & sched)
+{
+  auto sbJob = makeFnJob("syncAssetBuffer", [&]
+    { /* ? */ });
+
+  auto rpJob = makeFnJob("syncAssetRenderPipeline", [&]
+    { /* ? */ });
 
   for (auto & [_, asset] : assets)
   {
     if (asset->didReloadAssetData())
     {
       asset->clearDidReloadAssetData();
-      auto updateJob = updateAssetJobs.next(
-        "updateAssetJobs", this, asset.get());
-      syncJob->waitFor(updateJob);
+
+      auto updateJob = makeFnJob("updateAsset", [&]
+        { asset->applyToEngine(); });
+
+      sbJob->waitFor(updateJob);
       rpJob->waitFor(updateJob);
-      if (synchronous == false)
-        { jobGroup.push(updateJob); }
-      else
-        { updateJob->run(); }
+      sched.scheduleJob(updateJob);
     }
   }
 
-  if (synchronous == false)
-  {
-    jobGroup.push(syncJob);
-    jobGroup.push(rpJob);
-    jobManager->enqueueJobs(jobGroup);
-  }
-  else
-  {
-    syncJob->run();
-    rpJob->run();
-  }
+  sched.scheduleJob(sbJob);
+  sched.scheduleJob(rpJob);
+  sched.runJobGroup();
 }

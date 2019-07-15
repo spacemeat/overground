@@ -13,6 +13,7 @@ namespace overground
 {
   class Engine;
   class FileReference;
+  class JobScheduler;
 
   using makeAssetFn_t = std::function<
     std::unique_ptr<Asset>(
@@ -28,12 +29,10 @@ namespace overground
   {
   public:
     ResourceManager(Engine * engine, 
-      JobManager * jobManager,
       path_t const & baseAssetDescPath,
       path_t const & baseAssetDataPath);
     
     Engine * getEngine() { return engine; }
-    JobManager * getJobManager() { return jobManager; }
 
     path_t const & getBaseAssetDescDir() const
       { return baseAssetDescDir; }
@@ -65,16 +64,17 @@ namespace overground
 
     void informAssetsChanged();
 
-    void checkForAnyFileUpdates(bool synchronous);
+    void checkForAnyFileUpdates(JobScheduler & sched);
     void checkForAssetDescFileUpdate(FileReference * file);
-    void checkForAssetUpdates(bool synchronous);
-    void updateFromFreshAssets(bool synchronous);
+    void checkForAssetUpdates(JobScheduler & sched);
+
+    void updateDeviceBuffers(ScheduleKind scheduleKind);
+    void updateFromFreshAssets(JobScheduler & sched);
 
   private:
     std::map<std::string, makeAssetFn_t, std::less<>> assetProviders;
 
     Engine * engine;
-    JobManager * jobManager;
     path_t baseAssetDescDir;
     path_t baseAssetDataDir;
 

@@ -23,14 +23,6 @@ JobManager::JobManager()
 
 JobManager::~JobManager()
 {
-  try
-  {
-    stopAndJoin();
-  }
-  catch(const std::exception& e)
-  {
-    log(thId, fmt::format("Caught an error in ~JobManager(): {}", e.what()));
-  }
 }
 
 
@@ -106,7 +98,7 @@ void JobManager::setNumEmployedWorkers_int(
 
 void JobManager::stopAndJoin()
 {
-  log(thId, "JobManager::stopAndJoin()");
+  logFn();
 
   running = false;
   setNumEmployedWorkers(0);
@@ -209,3 +201,6 @@ Job * JobManager::dequeueJob()
     return nullptr;
   }
 }
+
+
+JobManager overground::jobMan;
