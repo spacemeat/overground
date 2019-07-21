@@ -34,9 +34,9 @@ namespace overground
 
   struct swapchainImageView_t
   {
-    std::string viewType;
-    std::array<std::string, 4> components;
-    std::string aspectMask;
+    vk::ImageViewType viewType;
+    std::array<vk::ComponentSwizzle, 4> components;
+    vk::ImageAspectFlags aspectMask;
     unsigned int layerCount;
   };
 

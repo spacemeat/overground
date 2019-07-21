@@ -34,6 +34,18 @@ namespace overground
 
   template<>
   vk::CompositeAlphaFlagBitsKHR fromString<vk::CompositeAlphaFlagBitsKHR>(std::string_view rhs);
+
+  template<>
+  vk::ImageViewType
+  fromString<vk::ImageViewType>(std::string_view rhs);
+
+  template<>
+  vk::ComponentSwizzle
+  fromString<vk::ComponentSwizzle>(std::string_view rhs);
+
+  template<>
+  vk::ImageAspectFlags
+  fromString<vk::ImageAspectFlags>(std::string_view rhs);
 }
 
 #endif // #ifndef GRAPHICSUTILS_H

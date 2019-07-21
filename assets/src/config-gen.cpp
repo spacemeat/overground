@@ -94,19 +94,19 @@ void overground::importPod(
   if (src % "viewType")
   {
     auto & src0 = src / "viewType";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
+    vk::ImageViewType dst0;
+    dst0 = fromString<vk::ImageViewType>((std::string) src0); // leaf
     dest.viewType = std::move(dst0);
   }
   if (src % "components")
   {
     auto & src0 = src / "components";
-    std::array<std::string, 4> dst0;
+    std::array<vk::ComponentSwizzle, 4> dst0;
     for (size_t i0 = 0; i0 < 4; ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      vk::ComponentSwizzle dst1;
+      dst1 = fromString<vk::ComponentSwizzle>((std::string) src1); // leaf
       dst0[i0] = std::move(dst1);
     }
     dest.components = std::move(dst0);
@@ -114,8 +114,8 @@ void overground::importPod(
   if (src % "aspectMask")
   {
     auto & src0 = src / "aspectMask";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
+    vk::ImageAspectFlags dst0;
+    dst0 = fromString<vk::ImageAspectFlags>((std::string) src0); // leaf
     dest.aspectMask = std::move(dst0);
   }
   if (src % "layerCount")
@@ -154,18 +154,18 @@ swapchainImageView_t const & src, int depth)
   std::ostringstream ss;
   ss << "{\n";
     ss << "    " << "viewType: ";
-    ss << (src.viewType) << "\n";
+    ss << to_string(src.viewType) << "\n";
     ss << "    " << "components: ";
     ss << "[\n";
     for (size_t i1 = 0; i1 < src.components.size(); ++i1)
     {
-      std::string const & src1 = src.components[i1];
+      vk::ComponentSwizzle const & src1 = src.components[i1];
       ss << "    ";
-      ss << (src1) << "\n";
+      ss << to_string(src1) << "\n";
     }
     ss << "  " << "]\n";
     ss << "    " << "aspectMask: ";
-    ss << (src.aspectMask) << "\n";
+    ss << to_string(src.aspectMask) << "\n";
     ss << "    " << "layerCount: ";
     ss << (src.layerCount) << "\n";
   ss << "}\n";

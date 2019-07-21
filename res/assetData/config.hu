@@ -47,9 +47,9 @@
       ]
       clipped: true
       imageView: {
-        viewType: 2d  # Is it ever not?
-        components: [ identity identity identity identity ]
-        aspectMask: color
+        viewType: 2D  # Is it ever not?
+        components: [ Identity Identity Identity Identity ]
+        aspectMask: Color
         layerCount: 1  # Same as numViews?
       }
     }

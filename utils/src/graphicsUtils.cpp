@@ -401,3 +401,49 @@ vk::ImageViewType overground::fromString<vk::ImageViewType>(std::string_view rhs
 
   throw runtime_error("Invalid compositeAlpha string");
 }
+
+
+template<>
+vk::ComponentSwizzle overground::fromString<vk::ComponentSwizzle>(std::string_view rhs)
+{
+  static initializer_list<vk::ComponentSwizzle> il = {
+    vk::ComponentSwizzle::eIdentity,
+    vk::ComponentSwizzle::eZero,
+    vk::ComponentSwizzle::eOne,
+    vk::ComponentSwizzle::eR,
+    vk::ComponentSwizzle::eG,
+    vk::ComponentSwizzle::eB,
+    vk::ComponentSwizzle::eA
+  };
+
+  for (auto space : il)
+  {
+    if (to_string(space) == rhs)
+      { return space; }
+  }
+
+  throw runtime_error("Invalid compositeAlpha string");
+}
+
+
+template<>
+vk::ImageAspectFlags overground::fromString<vk::ImageAspectFlags>(std::string_view rhs)
+{
+  static initializer_list<vk::ImageAspectFlagBits> il = {
+    vk::ImageAspectFlagBits::eColor,
+    vk::ImageAspectFlagBits::eDepth,
+    vk::ImageAspectFlagBits::eStencil,
+    vk::ImageAspectFlagBits::eMetadata,
+    vk::ImageAspectFlagBits::ePlane0,
+    vk::ImageAspectFlagBits::ePlane1,
+    vk::ImageAspectFlagBits::ePlane2
+  };
+
+  for (auto space : il)
+  {
+    if (to_string(space) == rhs)
+      { return space; }
+  }
+
+  throw runtime_error("Invalid compositeAlpha string");
+}

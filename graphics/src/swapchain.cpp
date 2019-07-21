@@ -178,32 +178,40 @@ void Graphics::getExtent()
 
 void Graphics::createSwapchainImageViews()
 {
-  /*
-  swapchainImageViews.resize(swapchainImages.size());
+  logFn();
 
-  auto viewType = imageViewTypeFromString(config->config.graphics.swapchain.viewType);
+  swapchainImageViews.resize(swapchainImages.size());
+  auto & imageView = config->config.graphics.swapchain.imageView;
+  auto viewType = imageView.viewType;
 
   for (size_t i = 0; i < swapchainImages.size(); ++i)
   {
     auto info = vk::ImageViewCreateInfo(
+      (vk::ImageViewCreateFlagBits) 0,
       swapchainImages[i],
       viewType, // e2D
       swapchainSurfaceFormat.format,
-      components,
-      subresourceRange
-    );
-
-    swapchainImageViews[i] = vulkanDevice.createImageView(
-      swapchainImages[i],
-      swapchainSurfaceFormat.format,
+      vk::ComponentMapping(
+        imageView.components[0],
+        imageView.components[1],
+        imageView.components[2],
+        imageView.components[3]
+      ),
+      vk::ImageSubresourceRange(
+        config->config.graphics.swapchain.imageView.aspectMask, 0, 1, 0, 
+        config->config.graphics.swapchain.imageView.layerCount)
       );
-  }
-   */
+
+      swapchainImageViews[i] = 
+        vulkanDevice.createImageView(info);
+    };
 }
 
 
 void Graphics::destroySwapchainImageViews()
 {
+  logFn();
+  
   for (auto & imageView : swapchainImageViews)
   {
     vulkanDevice.destroyImageView(imageView);

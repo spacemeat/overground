@@ -6,7 +6,9 @@
       "vk::PresentModeKHR"
       "vk::SurfaceTransformFlagBitsKHR"
       "vk::CompositeAlphaFlagBitsKHR"
-      "vk::imageViewTypeFromString"
+      "vk::ImageViewType"
+      "vk::ComponentSwizzle"
+      "vk::ImageAspectFlags"
     ]
     config: {
       general_t: {
@@ -16,9 +18,9 @@
       }
 
       swapchainImageView_t: {
-        viewType: { type: string }
-        components: { type: "array<string, 4>" }
-        aspectMask: { type: string }
+        viewType: { type: "vk::ImageViewType" }
+        components: { type: "array<vk::ComponentSwizzle, 4>" }
+        aspectMask: { type: "vk::ImageAspectFlags" }
         layerCount: { type: "unsigned int" }   # same as numViews?
       }
 
