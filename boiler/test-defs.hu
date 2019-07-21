@@ -1,0 +1,24 @@
+{
+  defs: {
+    @loadFromString: [
+    ]
+    test: {
+      testStr0: {
+        dog:  { type: float }
+        cat:  { type: "vector<float>" }
+        cow:  { type: "pair<float, int>" }
+        bee:  { type: "array<int, 3>" }
+        pig:  { type: "vector<vector<float>>" }
+        roo:  { type: "vector<pair<float, int>>" }
+        ant:  { type: "pair<vector<float>, int>" }
+        ewe:  { type: "pair<float, vector<int>>" }
+        eel:  { type: "pair<vector<float>, vector<int>" }
+        fly:  { type: "pair<pair<float, int>, pair<size_t, string>>" }
+        boar: { type: "vector<array<int, 3>>" }
+        frog: { type: "array<vector<float>, 4>" }
+        toad: { type: "pair<array<int, 10>, array<float, 20>>" }
+        fish: { type: "vector<pair<array<vector<float>, 10>, pair<vector<array<string, 20>>, array<vector<long>, 30>>>>" }
+      }
+    }
+  }
+}

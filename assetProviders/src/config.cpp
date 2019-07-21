@@ -3,6 +3,7 @@
 #include "engine.h"
 #include "resourceManager.h"
 #include "fileReference.h"
+#include "config-gen.h"
 
 using namespace std;
 using namespace humon;
@@ -32,13 +33,14 @@ Config::Config(ResourceManager * resMan,
 : Asset(resMan, assetName, assetDescFile,
     descFromFile, cache, compress, monitor)
 {
-  log(thId, "Config::Config()");
+  logFn();
 }
 
 
 void Config::compileSrcAsset_impl(path_t const & path)
 {
-  log(thId, "Config::compileSrcAsset_impl()");
+  logFn();
+
   auto huNode = loadHumonDataFromFile(path);
   data.loadFromHumon(* huNode);
 
@@ -48,7 +50,8 @@ void Config::compileSrcAsset_impl(path_t const & path)
 
 void Config::applyToEngine_impl()
 {
-  log(thId, "Config::applyToEngine_impl()");
+  logFn();
+
   clearDidReloadAssetData();
 
   getResMan()->getEngine()->updateConfig(data);

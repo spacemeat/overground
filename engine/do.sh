@@ -7,7 +7,8 @@ main() {
   local subProject="engine"
   local deps=("graphics" "assetProviders" "assets" "pools" "jobs" "utils")
   local inc=()
-  local src=("engine")
+  local libSrc=("engine")
+  local exeSrc=("test")
   local libDirs=()
   local libs=()
   local packages=("glfw3")
@@ -16,7 +17,7 @@ main() {
   libDirs+=" ${defaultLibDirsWithVk[@]}"
   libs+=" ${defaultLibsWithVk[@]}"
 
-  doTheThing $1 $subProject deps inc src libDirs libs packages
+  doTheThing $1 $subProject deps inc libSrc exeSrc libDirs libs packages
 
   return $?
 }

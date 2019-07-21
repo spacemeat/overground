@@ -12,8 +12,8 @@ void Graphics::resetVulkanInstance()
     { destroyVulkanInstance(); }
 
   auto appInfo = vk::ApplicationInfo();
-  appInfo.pApplicationName = config->general.programName.c_str();
-  appInfo.applicationVersion = makeVulkanVersion(config->general.version);
+  appInfo.pApplicationName = config->config.general.programName.c_str();
+  appInfo.applicationVersion = makeVulkanVersion(config->config.general.version);
   appInfo.pEngineName = engineName;
   appInfo.engineVersion = makeVulkanVersion(engineVersion);
   appInfo.apiVersion = VK_API_VERSION_1_0;
@@ -24,7 +24,7 @@ void Graphics::resetVulkanInstance()
 
   log(thId, "Graphics::resetVulkanInstance(): Making Vulkan instance:");
 
-  if (config->graphics.isConfigured)
+  if (config->config.graphics.isConfigured)
   {
     const char ** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(
@@ -33,16 +33,16 @@ void Graphics::resetVulkanInstance()
     extensions.insert(extensions.end(),
       glfwExtensions, glfwExtensions + glfwExtensionCount);
 
-    if (config->graphics.vulkanValidationEnabled)
+    if (config->config.graphics.vulkanValidationEnabled)
       { extensions.push_back("VK_EXT_debug_report"); }
   }
 
   for (auto & ext : extensions)
     { log(thId, fmt::format(" Requesting extension {}", ext)); }
   
-  if (config->graphics.vulkanValidationEnabled)
+  if (config->config.graphics.vulkanValidationEnabled)
   {
-    for (auto & val : config->graphics.vulkanValidationLayers)
+    for (auto & val : config->config.graphics.vulkanValidationLayers)
     {
       log(thId, fmt::format(" Requesting layer {}", val));
       validationLayers.push_back(val.c_str());
@@ -59,7 +59,7 @@ void Graphics::resetVulkanInstance()
     transform(validationLayers.begin(), validationLayers.end(), 
       layersInC.begin(), [](auto & la){ return la.c_str(); });
 
-    bool validating = config->graphics.vulkanValidationEnabled;
+    bool validating = config->config.graphics.vulkanValidationEnabled;
     if (validating == false || 
         checkVulkanValidationLayerSupport())
     {
@@ -170,11 +170,11 @@ void Graphics::resetVulkanDebugReporter()
     destroyVulkanDebugReporter();
   }
 
-  if (config->graphics.vulkanValidationEnabled)
+  if (config->config.graphics.vulkanValidationEnabled)
   {
     vk::DebugReportFlagsEXT flags = 
       (vk::DebugReportFlagBitsEXT) 0;
-    for (auto report : config->graphics.vulkanValidationReports)
+    for (auto report : config->config.graphics.vulkanValidationReports)
     {
       if (report == "info")
         { flags |= vk::DebugReportFlagBitsEXT::eInformation; }

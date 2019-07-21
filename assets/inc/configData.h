@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "utils.h"
+#include "config-gen.h"
 
 namespace overground
 {
@@ -19,7 +20,6 @@ namespace overground
       PhysicalDevice      = 1 << 4,
       LogicalDevice       = 1 << 5,
       Swapchain           = 1 << 6,
-
 
       Framebuffer         = 1 << 7,
       RenderPasses        = 1 << 8,
@@ -38,54 +38,13 @@ namespace overground
     std::string print() const;
 
   private:
-//    FileReference * fileInfo;
     Deltas lastDiffs = Deltas::None;
   
   public:
 
-    struct General
-    {
-      std::string programName;
-      version_t version;
-      int numWorkerThreads;
-    } general;
-
-    struct Graphics
-    {
-      bool isConfigured = false;
-      bool headless;
-      bool fullScreen;
-      unsigned int width;
-      unsigned int height;
-      bool vulkanValidationEnabled;
-      std::vector<std::string> vulkanValidationLayers;
-      std::vector<std::string> vulkanValidationReports;
-      std::vector<std::string> vulkanExtensions;
-      std::vector<std::string> deviceExtensions;
-      unsigned int minGraphicsQueues;
-      unsigned int desiredGraphicsQueues;
-      unsigned int minComputeQueues;
-      unsigned int desiredComputeQueues;
-      unsigned int minTransferQueues;
-      unsigned int desiredTransferQueues;
-      std::vector<std::string> minDeviceFeatures;
-      std::vector<std::string>
-      desiredDeviceFeatures;
-      
-      struct Swapchain
-      {
-        std::vector<std::pair<std::string, std::string>> formatPriorities;
-        unsigned int numViews;
-        std::vector<std::string> imageUsages;
-        bool imageSharing;
-        std::string pretransform;
-        std::string windowAlpha;
-        std::vector<std::pair<std::string, unsigned int>> presentModePriorities;
-        bool clipped;
-      } swapchain;
-
-    } graphics;
+    config_t config;
   };
+
 
   extern std::ostream & operator << (
     std::ostream & stream, 

@@ -74,7 +74,7 @@ void Graphics::resetLogicalDevice()
   auto dci = vk::DeviceCreateInfo();
   dci.queueCreateInfoCount = queueCreateInfos.size();
   dci.pQueueCreateInfos = queueCreateInfos.data();
-  if (config->graphics.vulkanValidationEnabled)
+  if (config->config.graphics.vulkanValidationEnabled)
   {
     dci.enabledLayerCount = layersInC.size();
     dci.ppEnabledLayerNames = layersInC.data();

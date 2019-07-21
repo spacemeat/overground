@@ -5,9 +5,10 @@
     numWorkerThreads: 2
   }
   graphics: {
+    isConfigured: true
     headless: false # implies swapchain extension
     fullScreen: false
-    width: 600
+    width: 800
     height: 600
     deviceExtensions: []
     debugger: true
@@ -45,6 +46,12 @@
         [FifoRelaxed 3]
       ]
       clipped: true
+      imageView: {
+        viewType: 2d  # Is it ever not?
+        components: [ identity identity identity identity ]
+        aspectMask: color
+        layerCount: 1  # Same as numViews?
+      }
     }
   }
 }

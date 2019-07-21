@@ -16,9 +16,9 @@ void Graphics::resetPhysicalDevice()
   presentationQueueFamilyIndex = -1;
   
   deviceExtensions = set<string>(
-    config->graphics.deviceExtensions.begin(), 
-    config->graphics.deviceExtensions.end());
-  if (config->graphics.headless == false)
+    config->config.graphics.deviceExtensions.begin(), 
+    config->config.graphics.deviceExtensions.end());
+  if (config->config.graphics.headless == false)
     { deviceExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME); }
   
   auto && devices = vulkanInstance.enumeratePhysicalDevices();
@@ -88,13 +88,13 @@ void Graphics::resetPhysicalDevice()
       // graphics
       if (qfp.queueFlags & vk::QueueFlagBits::eGraphics)
       {
-        if (qfp.queueCount >= config->graphics.minGraphicsQueues)
+        if (qfp.queueCount >= config->config.graphics.minGraphicsQueues)
         {
-          qca.g = min(qfp.queueCount, config->graphics.desiredGraphicsQueues);
+          qca.g = min(qfp.queueCount, config->config.graphics.desiredGraphicsQueues);
           fit.g = 100;
-          if (qfp.queueCount < config->graphics.desiredGraphicsQueues)
+          if (qfp.queueCount < config->config.graphics.desiredGraphicsQueues)
           {
-            fit.g -= min(config->graphics.desiredGraphicsQueues - qfp.queueCount, 50u);
+            fit.g -= min(config->config.graphics.desiredGraphicsQueues - qfp.queueCount, 50u);
           }
         }
 
@@ -105,13 +105,13 @@ void Graphics::resetPhysicalDevice()
       // compute
       if (qfp.queueFlags & vk::QueueFlagBits::eCompute)
       {
-        if (qfp.queueCount >= config->graphics.minComputeQueues)
+        if (qfp.queueCount >= config->config.graphics.minComputeQueues)
         {
-          qca.c = min(qfp.queueCount, config->graphics.desiredComputeQueues);
+          qca.c = min(qfp.queueCount, config->config.graphics.desiredComputeQueues);
           fit.c = 100;
-          if (qfp.queueCount < config->graphics.desiredComputeQueues)
+          if (qfp.queueCount < config->config.graphics.desiredComputeQueues)
           {
-            fit.c -= min(config->graphics.desiredComputeQueues - qfp.queueCount, 50u);
+            fit.c -= min(config->config.graphics.desiredComputeQueues - qfp.queueCount, 50u);
           }
         }
 
@@ -165,10 +165,10 @@ void Graphics::resetPhysicalDevice()
     dqf.t = bestT->t;
     dqf.p = bestP->p;
 
-    bool usingGraphics = config->graphics.desiredGraphicsQueues > 0;
-    bool usingCompute = config->graphics.desiredComputeQueues > 0;
-    bool usingTransfer = config->graphics.desiredTransferQueues > 0;
-    bool usingPresentation = config->graphics.headless == false;
+    bool usingGraphics = config->config.graphics.desiredGraphicsQueues > 0;
+    bool usingCompute = config->config.graphics.desiredComputeQueues > 0;
+    bool usingTransfer = config->config.graphics.desiredTransferQueues > 0;
+    bool usingPresentation = config->config.graphics.headless == false;
 
     if (usingGraphics)
       { bqi.g = distance(qff.begin(), bestG); }
@@ -275,7 +275,7 @@ void Graphics::reportPhysicalDevice(vk::PhysicalDevice device,
       (delim ? " | " : "")); }
 
     auto canPresent = device.getSurfaceSupportKHR(qfIdx, surface) &&
-      config->graphics.headless == false;
+      config->config.graphics.headless == false;
     auto & fit = fitness.queueFamilyFitness[qfIdx];
 
     families << fmt::format(
@@ -344,7 +344,7 @@ bool Graphics::computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFi
   stringstream ss;
   auto supportedFeatures = device.getFeatures();
   ss << "Checking required features:\n";
-  for (auto & feature : config->graphics.minDeviceFeatures)
+  for (auto & feature : config->config.graphics.minDeviceFeatures)
   {
     ss << "  " << feature << ": ";
 #define FEATURE(feat)                                     \
@@ -369,7 +369,7 @@ bool Graphics::computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFi
   ss = stringstream();
 
   ss << "Checking desired features:\n";
-  for (auto & feature : config->graphics.desiredDeviceFeatures)
+  for (auto & feature : config->config.graphics.desiredDeviceFeatures)
   {
     ss << "  " << feature << ": ";
 #define FEATURE(feat)                                     \

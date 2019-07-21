@@ -4,11 +4,11 @@ source ../buildproj.sh
 source ../buildDefaults.sh
 
 main() {
-  local subProject="jobs"
-  local deps=("pools" "utils")
+  local subProject="boiler"
+  local deps=("utils")
   local inc=()
-  local libSrc=("job" "jobManager" "worker" "jobScheduler")
-  local exeSrc=()
+  local libSrc=()
+  local exeSrc=("boiler")
   local libDirs=()
   local libs=()
   local packages=()

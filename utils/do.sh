@@ -7,16 +7,17 @@ main() {
   local subProject="utils"
   local deps=()
   local inc=()
-  local src=("utils" "logger")
+  local libSrc=("graphicsUtils" "utils" "logger")
+  local exeSrc=()
   local libDirs=()
   local libs=()
   local packages=()
 
-  inc+=" ${defaultInc[@]}"
-  libDirs+=" ${defaultLibDirs[@]}"
-  libs+=" ${defaultLibs[@]}"
+  inc+=" ${defaultIncWithVk[@]}"
+  libDirs+=" ${defaultLibDirsWithVk[@]}"
+  libs+=" ${defaultLibsWithVk[@]}"
 
-  doTheThing $1 $subProject deps inc src libDirs libs packages
+  doTheThing $1 $subProject deps inc libSrc exeSrc libDirs libs packages
 
   return $?
 }

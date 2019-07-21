@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include <algorithm>
+#include "graphicsUtils.h"
 
 using namespace std;
 using namespace overground;
@@ -34,25 +35,23 @@ void Graphics::resetSwapchain()
   // TODO: HRK
   auto imageUsages = vk::ImageUsageFlagBits::eColorAttachment;
 
-  auto imageSharingMode = config->graphics.swapchain.imageSharing ? 
+  auto imageSharingMode = config->config.graphics.swapchain.imageSharing ? 
     vk::SharingMode::eConcurrent : vk::SharingMode::eExclusive;
   
   vector<uint32_t> uqfis(uniqueFamilyIndices.begin(), uniqueFamilyIndices.end());
 
-  auto pretransform = pretransformFromString(
-    config->graphics.swapchain.pretransform);
+  auto pretransform =     config->config.graphics.swapchain.pretransform;
 
-  auto compositeAlpha = compositeAlphaFromString(
-    config->graphics.swapchain.windowAlpha);
+  auto compositeAlpha =   config->config.graphics.swapchain.windowAlpha;
 
   auto sci = vk::SwapchainCreateInfoKHR(
     vk::SwapchainCreateFlagsKHR(), surface, 
     swapchainImageCount, swapchainSurfaceFormat.format, 
     swapchainSurfaceFormat.colorSpace, swapchainExtent, 
-    config->graphics.swapchain.numViews, imageUsages, 
+    config->config.graphics.swapchain.numViews, imageUsages, 
     imageSharingMode, uqfis.size(), uqfis.data(), 
     pretransform, compositeAlpha, swapchainPresentMode, 
-    config->graphics.swapchain.clipped, swapchain);
+    config->config.graphics.swapchain.clipped, swapchain);
   
   auto oldSwapchain = swapchain;
   swapchain = vulkanDevice.createSwapchainKHR(sci);
@@ -81,14 +80,14 @@ void Graphics::destroySwapchain()
 
 void Graphics::chooseSurfaceFormat()
 {
-  auto & desiredFormats = config->graphics.swapchain.formatPriorities;
+  auto & desiredFormats = config->config.graphics.swapchain.formatPriorities;
   
   if (swapchainSurfaceFormats.size() == 1 &&
     swapchainSurfaceFormats[0].format == vk::Format::eUndefined)
   {
     swapchainSurfaceFormat =
-    { formatFromString(desiredFormats[0].first),
-      colorSpaceFromString(desiredFormats[0].second) };
+    { desiredFormats[0].first,
+      desiredFormats[0].second };
       log(thId, "No format restrictions.");
   }
   else
@@ -98,8 +97,8 @@ void Graphics::chooseSurfaceFormat()
     for (auto & format : swapchainSurfaceFormats)
     {
       auto pair = make_pair(
-        to_string(format.format), 
-        to_string(format.colorSpace));
+        format.format, 
+        format.colorSpace);
       if (auto f = find(
         desiredFormats.begin(), desiredFormats.end(), pair);
         f != desiredFormats.end())
@@ -127,14 +126,14 @@ void Graphics::chooseSurfaceFormat()
 
 void Graphics::choosePresentMode()
 {
-  auto & desiredPresentModes = config->graphics.swapchain.presentModePriorities;
+  auto & desiredPresentModes = config->config.graphics.swapchain.presentModePriorities;
 
   swapchainPresentMode = swapchainPresentModes.front();
   swapchainImageCount = swapchainSurfaceCaps.minImageCount;
 
   for (auto & pm : desiredPresentModes)
   {
-    auto desiredPm = presentModeFromString(pm.first);
+    auto desiredPm = pm.first;
     if (pm.second >= swapchainSurfaceCaps.minImageCount &&
         pm.second <= swapchainSurfaceCaps.maxImageCount &&
         find(swapchainPresentModes.begin(), 
@@ -174,27 +173,39 @@ void Graphics::getExtent()
 
   log(thId, fmt::format("Using extent {{ {}, {} }}",
     swapchainExtent.width, swapchainExtent.height));
-  }
-
-
-/* wip
-void Graphics::createSwapChainImageViews()
-{
-  swapChainImageViews.resize(swapChainImages.size());
-
-  for (size_t i = 0; i < swapChainImages.size(); ++i)
-  {
-//    swapChainImageViews[i] = createImageView(
-//      swapChainImages[i], swapChainSurfaceFormat.format);
-  }
 }
 
 
-void Graphics::destroySwapChainImageViews()
+void Graphics::createSwapchainImageViews()
 {
-  for (auto & imageView : swapChainImageViews)
+  /*
+  swapchainImageViews.resize(swapchainImages.size());
+
+  auto viewType = imageViewTypeFromString(config->config.graphics.swapchain.viewType);
+
+  for (size_t i = 0; i < swapchainImages.size(); ++i)
+  {
+    auto info = vk::ImageViewCreateInfo(
+      swapchainImages[i],
+      viewType, // e2D
+      swapchainSurfaceFormat.format,
+      components,
+      subresourceRange
+    );
+
+    swapchainImageViews[i] = vulkanDevice.createImageView(
+      swapchainImages[i],
+      swapchainSurfaceFormat.format,
+      );
+  }
+   */
+}
+
+
+void Graphics::destroySwapchainImageViews()
+{
+  for (auto & imageView : swapchainImageViews)
   {
     vulkanDevice.destroyImageView(imageView);
   }
 }
-*/

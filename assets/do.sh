@@ -7,16 +7,17 @@ main() {
   local subProject="assets"
   local deps=("pools" "jobs" "utils")
   local inc=()
-  local src=("asset" "configData" "fileReference" "resourceManager")
+  local libSrc=("asset" "config-gen" "configData" "fileReference" "resourceManager")
+  local exeSrc=()
   local libDirs=()
   local libs=()
   local packages=()
 
-  inc+=" ${defaultInc[@]}"
-  libDirs+=" ${defaultLibDirs[@]}"
-  libs+=" ${defaultLibs[@]}"
+  inc+=" ${defaultIncWithVk[@]}"
+  libDirs+=" ${defaultLibDirsWithVk[@]}"
+  libs+=" ${defaultLibsWithVk[@]}"
 
-  doTheThing $1 $subProject deps inc src libDirs libs packages
+  doTheThing $1 $subProject deps inc libSrc exeSrc libDirs libs packages
 
   return $?
 }

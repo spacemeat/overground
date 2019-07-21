@@ -1,0 +1,238 @@
+GNU gdb (Ubuntu 8.1-0ubuntu3) 8.1.0.20180409-git
+Copyright (C) 2018 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from bin/test-engine...done.
+(gdb) r
+Starting program: /home/schrock/src/git/overground/bin/test-engine 
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ffff5ca3700 (LWP 9299)]
+     0> wk 0: thread start
+[New Thread 0x7ffff54a2700 (LWP 9300)]
+     0> wk 1: thread start
+[New Thread 0x7ffff4ba0700 (LWP 9301)]
+     0> wk 2: thread start
+[New Thread 0x7fffe7fff700 (LWP 9302)]
+     0> wk 3: thread start
+[New Thread 0x7fffdf7fe700 (LWP 9303)]
+     1> wk 4: thread start
+[New Thread 0x7fffe77fe700 (LWP 9304)]
+     1> wk 5: thread start
+[New Thread 0x7fffe6efc700 (LWP 9305)]
+     1> wk 6: thread start
+[New Thread 0x7fffe65fa700 (LWP 9306)]
+     1> main: void overground::Engine::init(int, char**):
+     1> wk 7: thread start
+     1> main: starting checkForAssetDescFileUpdates (job 0).
+     1> main: isModified == true
+     1> main: Config::Config()
+     1> main: Job done checkForAssetDescFileUpdates (job 0).
+     1> main: isModified == true
+     1> main: src file modified.
+     1> main: assetcChanged == true
+     1> main: starting compileAsset (job 2).
+     1> main: Config::compileSrcAsset_impl()
+     2> main: Job done compileAsset (job 2).
+     2> main: delaying updateDeviceBuffers (job 1).
+     2> main: starting updateDeviceBuffers (job 1).
+     2> main: starting updateAsset (job 5).
+     2> main: Config::applyToEngine_impl()
+     2> main: void overground::Engine::updateConfig(const overground::ConfigData&):
+     2> main: Job done updateAsset (job 5).
+     2> main: delaying syncAssetBuffer (job 3).
+     2> main: starting syncAssetBuffer (job 3).
+     2> main: Job done syncAssetBuffer (job 3).
+     2> main: delaying syncAssetRenderPipeline (job 4).
+     2> main: starting syncAssetRenderPipeline (job 4).
+     2> main: Job done syncAssetRenderPipeline (job 4).
+     2> main: Job done updateDeviceBuffers (job 1).
+     2> main: Config loaded:
+Config:
+  general:
+    programName: OG-Demo
+    version: 0.0.0
+    numWorkerThreads: 2
+  graphics:
+    isConfigured: yes
+    headless: no
+    fullScreen: no
+    width: 600
+    height: 600
+    vulkanValidationEnabled: yes
+    vulkanValidationLayers: VK_LAYER_LUNARG_standard_validation
+    vulkanValidationReports: info, warning, perfWarning, error, debug
+    vulkanExtensions: (none)
+    deviceExtensions: (none)
+    minGraphicsQueues: 1
+    desiredGraphicsQueues: 2
+    minComputeQueues: 1
+    desiredCopmuetqueues: 2
+    minTransferQueues: 1
+    desiredTransferQueues: 2
+    minDeviceFeatures:
+      samplerAnisotropy
+    desiredDeviceFeatures:
+      geometryShader
+    swapchain:
+      formatPriorities:
+        [B8G8R8A8Unorm SrgbNonlinear]
+        [R8G8B8A8Unorm SrgbNonlinear]
+      numViews: 1
+      imageUsages: transferDst
+      colorAttachment
+      imageSharing: no
+      pretransform: Identity
+      windowAlpha: Opaque
+      presentModePriorities:
+        [Mailbox 3]
+        [Immediate 2]
+        [Fifo 3]
+        [Mailbox 2]
+        [FifoRelaxed 3]
+      clipped: yes
+Differences required:
+ JobManagement Window WindowExtents VulkanInstance PhysicalDevice LogicalDevice Swapchain
+
+     2> main: JobManager::setNumEmployedWorkers(2)
+     2> main: start() worker 0
+     2> main: start() worker 1
+     2> main: void overground::Graphics::reset(overground::ConfigData*):
+     2> main: void overground::Graphics::createWindow():
+    83> main: void overground::Graphics::resetVulkanInstance():
+    83> main: Graphics::resetVulkanInstance(): Making Vulkan instance:
+   581> main:  Requesting extension VK_KHR_surface
+   581> main:  Requesting extension VK_KHR_xcb_surface
+   581> main:  Requesting extension VK_EXT_debug_report
+   581> main:  Requesting layer VK_LAYER_LUNARG_standard_validation
+   664> main: Extension VK_KHR_surface available.
+   664> main: Extension VK_KHR_xcb_surface available.
+   665> main: Extension VK_EXT_debug_report available.
+   668> main:   Validation layer VK_LAYER_LUNARG_standard_validation available.
+   807> main: Graphics::resetVulkanInstance(): Instance made.
+   807> main: void overground::Graphics::resetVulkanDebugReporter():
+   810> main: DebugReport: Object: 0x555555ed7af0 (Type = 28) | Added callback
+   810> main: DebugReport: Object: 0x555555ed7af0 (Type = 28) | Added callback
+   810> main: DebugReport: Object: 0x555555ed7af0 (Type = 28) | Added callback
+   810> main: DebugReport: Object: 0x555555ed7af0 (Type = 28) | Added callback
+   810> main: void overground::Graphics::resetSurface():
+   810> main: Graphics::resetSurface(): acually do that
+   812> main: void overground::Graphics::resetPhysicalDevice():
+INTEL-MESA: warning: Haswell Vulkan support is incomplete
+[New Thread 0x7fffc79c7700 (LWP 9307)]
+   871> main: Checking required features:
+  samplerAnisotropy: yes
+
+   871> main: Checking desired features:
+  geometryShader: yes
+
+   871> main: physical device: 
+  name:           Intel(R) Haswell Mobile
+  vendorId:       0x8086
+  deviceId:       0xa16
+  type:           IntegratedGpu
+  cache uuid:     0xd3d2c3aadf58c66ea1b763d7471cb4
+  queue families:
+    graphics | compute | transfer (1 queue(s))
+      can present: yes
+      fitness scores: g = 89; c = 89; t = 80; p = 90
+      feature score: 1
+  unmet feature requirements:
+    (none)
+  unmet feature desirements:
+    (none)
+  device fitness score: g = 89; c = 89; t = 80; p = 90
+  device feature score: 1
+  device total score: 57031200
+   871> main: using device #0.
+validation layers: VK_LAYER_LUNARG_standard_validation
+extensions: VK_KHR_surface, VK_KHR_xcb_surface, VK_EXT_debug_report
+device extensions: VK_KHR_swapchain
+   871> main: void overground::Graphics::resetLogicalDevice():
+   875> main: void overground::Graphics::resetSwapchain():
+   875> main: Usingg swapchain format: B8G8R8A8Unorm; SrgbNonlinear
+   875> main: Using presnet mode Immediate with 2 images.
+   875> main: Using extent { 600, 600 }
+   877> main: void overground::Engine::enterEventLoop():
+  1001> main: nudge() worker 0
+  1001> wk 1: starting checkForAssetDescFileUpdates (job 6).
+  1001> wk 1: Job done checkForAssetDescFileUpdates (job 6).
+  2001> main: nudge() worker 0
+  2001> wk 1: starting checkForAssetDescFileUpdates (job 7).
+  2001> wk 1: Job done checkForAssetDescFileUpdates (job 7).
+  3001> main: nudge() worker 0
+  3001> wk 1: starting checkForAssetDescFileUpdates (job 8).
+  3001> wk 1: Job done checkForAssetDescFileUpdates (job 8).
+  4001> main: nudge() worker 1
+  4001> wk 0: starting checkForAssetDescFileUpdates (job 9).
+  4001> wk 0: Job done checkForAssetDescFileUpdates (job 9).
+  5001> main: nudge() worker 0
+  5001> wk 1: starting checkForAssetDescFileUpdates (job 10).
+  5001> wk 1: Job done checkForAssetDescFileUpdates (job 10).
+  5985> main: End of enterEventLoop
+  5985> main: void overground::Engine::shutDown():
+  5985> main: void overground::Graphics::shutDown():
+  5985> main: void overground::Graphics::destroyVulkanInstance():
+  5985> main: void overground::Graphics::destroyLogicalDevice():
+  5985> main: void overground::Graphics::destroySwapchain():
+  5985> main: Graphics::destroySwapchain(): actually do that
+  5987> main: Graphics::destroyLogicalDevice(): actually do that
+  5987> main: void overground::Graphics::destroyVulkanDebugReporter():
+  5987> main: Graphics::destroyVulkanInstance(): actually do that
+[Thread 0x7fffc79c7700 (LWP 9307) exited]
+  6011> main: void overground::JobManager::stopAndJoin():
+  6011> main: JobManager::setNumEmployedWorkers(0)
+  6011> main: stop() worker 0
+  6011> main: stop() worker 1
+  6011> main: die() worker 0
+  6011> main: die() worker 1
+  6011> wk 0: about to die.
+  6011> main: die() worker 2
+  6011> wk 0: JobManager::workerDying(0)
+  6011> wk 1: about to die.
+  6011> main: die() worker 3
+  6011> wk 2: about to die.
+  6011> main: die() worker 4
+  6011> main: die() worker 5
+  6011> main: die() worker 6
+  6011> main: die() worker 7
+[Thread 0x7ffff5ca3700 (LWP 9299) exited]
+  6011> wk 7: about to die.
+  6011> wk 4: about to die.
+  6011> wk 5: about to die.
+  6011> main: join() worker 0
+  6011> main: join() worker 1
+  6011> wk 1: JobManager::workerDying(1)
+  6011> wk 7: JobManager::workerDying(7)
+  6011> wk 3: about to die.
+  6011> main: join() worker 2
+[Thread 0x7fffe65fa700 (LWP 9306) exited]
+  6011> wk 4: JobManager::workerDying(4)
+[Thread 0x7ffff54a2700 (LWP 9300) exited]
+  6012> wk 6: about to die.
+  6012> wk 6: JobManager::workerDying(6)
+  6012> wk 3: JobManager::workerDying(3)
+[Thread 0x7fffe6efc700 (LWP 9305) exited]
+[Thread 0x7fffdf7fe700 (LWP 9303) exited]
+  6012> wk 2: JobManager::workerDying(2)
+[Thread 0x7fffe7fff700 (LWP 9302) exited]
+  6012> wk 5: JobManager::workerDying(5)
+[Thread 0x7fffe77fe700 (LWP 9304) exited]
+  6012> main: join() worker 3
+[Thread 0x7ffff4ba0700 (LWP 9301) exited]
+  6012> main: join() worker 4
+  6012> main: join() worker 5
+  6012> main: join() worker 6
+  6012> main: join() worker 7
+  6012> main: void overground::Graphics::destroyWindow():
+[Inferior 1 (process 9295) exited normally]

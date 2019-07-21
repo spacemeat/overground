@@ -138,18 +138,19 @@ buildlib() {
 # $4 looks like ["../../humon/bin"]
 # $5 looks like ["humon-d"]
 # $6 looks like ["glfw3"]
-buildtest() {
+buildexe() {
   local subProject=$1
   local -n subProjectDeps=$2
   local -n addInc=$3
   local -n addLibDirs=$4
   local -n addLibs=$5
   local -n packageModules=$6
+  local -n dotcppFiles=$7
 
   local libFile="../bin/lib${subProject}-d.a"
-  local testFile="../bin/test-${subProject}"
+  local exeFile="../bin/exe-${subProject}"
 
-  fg "lt-blue" "Building executable $testFile"
+  fg "lt-blue" "Building executable $exeFile"
 
   local allIncludes=()
   for inc in ${addInc[@]}; do
@@ -194,11 +195,20 @@ buildtest() {
   finalLibDirs="${allLibDirs[@]}"
   finalLibs="${allLibs[@]}"
 
-  buildcpp src/test.cpp "../obj/${subProject}-test.o" allIncludes packageModules || return $?
+  # build the additional src
+  local dotoFiles=()
+  for baseFile in ${dotcppFiles[@]}; do
+    local dotcpp="src/${baseFile}.cpp"
+    local doto="../obj/${subProject}-${baseFile}.o"
+    buildcpp $dotcpp $doto allIncludes packageModules || return $?
+    dotoFiles+=($doto)
+  done
+
+  finalDotoFiles="${dotoFiles[@]}"
 
   fg "dk-yellow" "Linking objects"
 
-  runCommand "g++ $gccArgs -o $testFile $finalLibDirs -pthread -Wl,--start-group ../obj/${subProject}-test.o $finalLibs $packageDefs -Wl,--end-group" || return $?
+  runCommand "g++ $gccArgs -o $exeFile $finalLibDirs -pthread -Wl,--start-group $finalDotoFiles $finalLibs $packageDefs -Wl,--end-group" || return $?
   return 0
 }
 
@@ -218,19 +228,20 @@ doTheThing() {
   local subProject_=$2
   local -n deps_=$3
   local -n inc_=$4
-  local -n src_=$5
-  local -n libDirs_=$6
-  local -n libs_=$7
-  local -n packages_=$8
+  local -n libSrc_=$5
+  local -n exeSrc_=$6
+  local -n libDirs_=$7
+  local -n libs_=$8
+  local -n packages_=$9
 
   if [ "$1" == "buildlib" ]; then
-    buildlib $subProject_ deps_ inc_ packages_ src_ || return $?
-  elif [ "$1" == "buildtest" ]; then
+    buildlib $subProject_ deps_ inc_ packages_ libSrc_ || return $?
+  elif [ "$1" == "buildexe" ]; then
     # NOTE: If buildlib appears to change the values of inc_ (bash bug?) so we replicate it here before the next call.
     # TODO: packages_ sufferes not the same affliction
     local inc2=${inc_[@]}
-    buildlib $subProject_ deps_ inc_ packages_ src_ || return $?
-    buildtest $subProject_ deps_ inc2 libDirs_ libs_ packages_ || return $?
+    buildlib $subProject_ deps_ inc_ packages_ libSrc_ || return $?
+    buildexe $subProject_ deps_ inc2 libDirs_ libs_ packages_ exeSrc_ || return $?
   elif [ "$1" == "runtest" ]; then
     runtest $subProject_ || return $?
   fi

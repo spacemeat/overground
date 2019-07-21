@@ -1,0 +1,65 @@
+{
+  defs: {
+    @loadFromString: [
+      "vk::Format"
+      "vk::ColorSpaceKHR"
+      "vk::PresentModeKHR"
+      "vk::SurfaceTransformFlagBitsKHR"
+      "vk::CompositeAlphaFlagBitsKHR"
+      "vk::imageViewTypeFromString"
+    ]
+    config: {
+      general_t: {
+        programName: { type: string }
+        version: { type: "array<int, 3>" }
+        numWorkerThreads: { type: int }
+      }
+
+      swapchainImageView_t: {
+        viewType: { type: string }
+        components: { type: "array<string, 4>" }
+        aspectMask: { type: string }
+        layerCount: { type: "unsigned int" }   # same as numViews?
+      }
+
+      swapchain_t: {
+        formatPriorities: { type: "vector<pair<vk::Format, vk::ColorSpaceKHR>>" }
+        numViews: { type: "unsigned int" }
+        imageUsages: { type: "vector<string>" }
+        imageSharing: { type: bool }
+        pretransform: { type: "vk::SurfaceTransformFlagBitsKHR" }
+        windowAlpha: { type: "vk::CompositeAlphaFlagBitsKHR" }
+        presentModePriorities: { type: "vector<pair<vk::PresentModeKHR, std::uint32_t>>" }
+        clipped: { type: bool }
+        imageView: { type: swapchainImageView_t }
+      }
+
+      graphics_t: {
+        isConfigured: { type: bool def: false }
+        headless: { type: bool }
+        fullScreen: { type: bool }
+        width: { type: "unsigned int" }
+        height: { type: "unsigned int" }
+        vulkanValidationEnabled: { type: bool }
+        vulkanValidationLayers: { type: "vector<string>" }
+        vulkanValidationReports: { type: "vector<string>" }
+        vulkanExtensions: { type: "vector<string>" }
+        deviceExtensions: { type: "vector<string>" }
+        minGraphicsQueues: { type: "unsigned int" }
+        desiredGraphicsQueues: { type: "unsigned int" }
+        minComputeQueues: { type: "unsigned int" }
+        desiredComputeQueues: { type: "unsigned int" }
+        minTransferQueues: { type: "unsigned int" }
+        desiredTransferQueues: { type: "unsigned int" }
+        minDeviceFeatures: { type: "vector<string>" }
+        desiredDeviceFeatures: { type: "vector<string>" }
+        swapchain: { type: swapchain_t }
+      }
+
+      config_t: {
+        general: { type: general_t }
+        graphics: { type: graphics_t }
+      }
+    }
+  }
+}

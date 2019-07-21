@@ -5,7 +5,8 @@ using namespace overground;
 
 
 // slow; use sparingly
-vk::Format overground::formatFromString(string_view strFormat)
+template<>
+vk::Format overground::fromString<vk::Format>(std::string_view rhs)
 {
   static initializer_list<vk::Format> il = {
     vk::Format::eUndefined,
@@ -273,7 +274,7 @@ vk::Format overground::formatFromString(string_view strFormat)
 
   for (auto fmt : il)
   {
-    if (to_string(fmt) == strFormat)
+    if (to_string(fmt) == rhs)
       { return fmt; }
   }
 
@@ -281,8 +282,8 @@ vk::Format overground::formatFromString(string_view strFormat)
 }
 
 
-vk::ColorSpaceKHR overground::colorSpaceFromString(
-  string_view strColorSpace)
+template<>
+vk::ColorSpaceKHR overground::fromString<vk::ColorSpaceKHR>(std::string_view rhs)
 {
   static initializer_list<vk::ColorSpaceKHR> il = {
     vk::ColorSpaceKHR::eSrgbNonlinear,
@@ -304,7 +305,7 @@ vk::ColorSpaceKHR overground::colorSpaceFromString(
 
   for (auto space : il)
   {
-    if (to_string(space) == strColorSpace)
+    if (to_string(space) == rhs)
       { return space; }
   }
 
@@ -312,8 +313,8 @@ vk::ColorSpaceKHR overground::colorSpaceFromString(
 }
 
 
-vk::PresentModeKHR overground::presentModeFromString(
-  string_view strPresentMode)
+template<>
+vk::PresentModeKHR overground::fromString<vk::PresentModeKHR>(std::string_view rhs)
 {
   static initializer_list<vk::PresentModeKHR> il = {
     vk::PresentModeKHR::eImmediate,
@@ -326,7 +327,7 @@ vk::PresentModeKHR overground::presentModeFromString(
 
   for (auto space : il)
   {
-    if (to_string(space) == strPresentMode)
+    if (to_string(space) == rhs)
       { return space; }
   }
 
@@ -334,8 +335,8 @@ vk::PresentModeKHR overground::presentModeFromString(
 }
 
 
-vk::SurfaceTransformFlagBitsKHR overground::pretransformFromString(
-  string_view strPretransform)
+template<>
+vk::SurfaceTransformFlagBitsKHR overground::fromString<vk::SurfaceTransformFlagBitsKHR>(std::string_view rhs)
 {
   static initializer_list<vk::SurfaceTransformFlagBitsKHR> il = {
     vk::SurfaceTransformFlagBitsKHR::eIdentity,
@@ -351,7 +352,7 @@ vk::SurfaceTransformFlagBitsKHR overground::pretransformFromString(
 
   for (auto space : il)
   {
-    if (to_string(space) == strPretransform)
+    if (to_string(space) == rhs)
       { return space; }
   }
 
@@ -359,8 +360,8 @@ vk::SurfaceTransformFlagBitsKHR overground::pretransformFromString(
 }
 
 
-vk::CompositeAlphaFlagBitsKHR overground::compositeAlphaFromString(
-  string_view strCompositeAlpha)
+template<>
+vk::CompositeAlphaFlagBitsKHR overground::fromString<vk::CompositeAlphaFlagBitsKHR>(std::string_view rhs)
 {
   static initializer_list<vk::CompositeAlphaFlagBitsKHR> il = {
     vk::CompositeAlphaFlagBitsKHR::eOpaque,
@@ -371,10 +372,32 @@ vk::CompositeAlphaFlagBitsKHR overground::compositeAlphaFromString(
 
   for (auto space : il)
   {
-    if (to_string(space) == strCompositeAlpha)
+    if (to_string(space) == rhs)
       { return space; }
   }
 
   throw runtime_error("Invalid compositeAlpha string");
 }
 
+
+template<>
+vk::ImageViewType overground::fromString<vk::ImageViewType>(std::string_view rhs)
+{
+  static initializer_list<vk::ImageViewType> il = {
+    vk::ImageViewType::e1D,
+    vk::ImageViewType::e2D,
+    vk::ImageViewType::e3D,
+    vk::ImageViewType::eCube,
+    vk::ImageViewType::e1DArray,
+    vk::ImageViewType::e2DArray,
+    vk::ImageViewType::eCubeArray
+  };
+
+  for (auto space : il)
+  {
+    if (to_string(space) == rhs)
+      { return space; }
+  }
+
+  throw runtime_error("Invalid compositeAlpha string");
+}

@@ -15,7 +15,8 @@ void Graphics::resetSurface()
 
   log(thId, "Graphics::resetSurface(): acually do that");
 
-  if (glfwCreateWindowSurface(vulkanInstance, mainWindow, nullptr, & surfaceC) != VK_SUCCESS)
+  auto res = glfwCreateWindowSurface(vulkanInstance, mainWindow, nullptr, & surfaceC);
+  if (res != VK_SUCCESS)
   { throw std::runtime_error("failed to create window surface."); }
 
   surface = vk::SurfaceKHR(surfaceC);

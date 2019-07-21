@@ -232,7 +232,7 @@ void Engine::checkForConfigUpdates()
     }
 
     jobMan.setNumEmployedWorkers(
-      config.general.numWorkerThreads);
+      config.config.general.numWorkerThreads);
 
     graphics.reset(& config);
 
