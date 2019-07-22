@@ -2,9 +2,9 @@
 #define GRAPHICS_H
 
 #include "graphicsUtils.h"
+#include "config.h"
 #include <string>
 #include <set>
-#include "configData.h"
 
 namespace overground
 {
@@ -36,7 +36,7 @@ namespace overground
 
     GLFWwindow * getMainWindow() { return mainWindow; }
 
-    void reset(ConfigData * config);
+    void reset(config_t * config, Config::Deltas & diffs);
 //    void waitForGraphicsOps();
     void shutDown();
 
@@ -53,7 +53,7 @@ namespace overground
     void destroyWindow();
 
     // instance.cpp
-    void resetVulkanInstance();
+    void resetVulkanInstance(Config::Deltas & diffs);
     void destroyVulkanInstance();
     void resetVulkanDebugReporter();
     void destroyVulkanDebugReporter();
@@ -61,21 +61,21 @@ namespace overground
     bool checkVulkanValidationLayerSupport();
 
     // surface.cpp
-    void resetSurface();
+    void resetSurface(Config::Deltas & diffs);
     void destroySurface();
 
     // physDev.cpp
-    void resetPhysicalDevice();
+    void resetPhysicalDevice(Config::Deltas & diffs);
     void reportPhysicalDevice(vk::PhysicalDevice device, deviceFitness_t const & fitness);
     bool computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFitness_t & pdf);
 
     // device.cpp
-    void resetLogicalDevice();
+    void resetLogicalDevice(Config::Deltas & diffs);
     void destroyLogicalDevice();
     void prepareQueues();
 
     // swapChain.cpp
-    void resetSwapchain();
+    void resetSwapchain(Config::Deltas & diffs);
     void destroySwapchain();
     void chooseSurfaceFormat();
     void choosePresentMode();
@@ -84,7 +84,7 @@ namespace overground
     void destroySwapchainImageViews();
     
   private:
-    ConfigData * config;
+    config_t * config;
     GLFWwindow * mainWindow = nullptr;
     uint32_t diWidth = 0;   // device-indep. units
     uint32_t diHeight = 0;  // device-indep. units

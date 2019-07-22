@@ -8,7 +8,7 @@
     isConfigured: true
     headless: false # implies swapchain extension
     fullScreen: false
-    width: 800
+    width: 600
     height: 600
     deviceExtensions: []
     debugger: true

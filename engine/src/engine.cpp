@@ -1,6 +1,6 @@
 #include "engine.h"
 #include "utils.h"
-#include "configData.h"
+#include "config.h"
 #include "jobScheduler.h"
 
 #include <iostream>
@@ -199,27 +199,25 @@ void Engine::performScheduledEvents()
 
 void Engine::checkForConfigUpdates()
 {
-  ConfigData::Deltas diffs = config.getDiffs();
-
-  if (diffs != ConfigData::Deltas::None)
+  if (configDiffs != Config::Deltas::None)
   {
     lock_guard<mutex> lock(mx_config);
 
     {
       stringstream ss;
-      if ((diffs & ConfigData::Deltas::JobManagement) != 0)
+      if ((configDiffs & Config::Deltas::JobManagement) != 0)
         { ss << " JobManagement"; }
-      if ((diffs & ConfigData::Deltas::Window) != 0)
+      if ((configDiffs & Config::Deltas::Window) != 0)
         { ss << " Window"; }
-      if ((diffs & ConfigData::Deltas::WindowExtents) != 0)
+      if ((configDiffs & Config::Deltas::WindowExtents) != 0)
         { ss << " WindowExtents"; }
-      if ((diffs & ConfigData::Deltas::VulkanInstance) != 0)
+      if ((configDiffs & Config::Deltas::VulkanInstance) != 0)
         { ss << " VulkanInstance"; }
-      if ((diffs & ConfigData::Deltas::PhysicalDevice) != 0)
+      if ((configDiffs & Config::Deltas::PhysicalDevice) != 0)
         { ss << " PhysicalDevice"; }
-      if ((diffs & ConfigData::Deltas::LogicalDevice) != 0)
+      if ((configDiffs & Config::Deltas::LogicalDevice) != 0)
         { ss << " LogicalDevice"; }
-      if ((diffs & ConfigData::Deltas::Swapchain) != 0)
+      if ((configDiffs & Config::Deltas::Swapchain) != 0)
         { ss << " Swapchain"; }
 
       log(thId, fmt::format(
@@ -227,16 +225,16 @@ void Engine::checkForConfigUpdates()
         "{}\n"
         "Differences required:\n"
         "{}\n",
-        config.print(), ss.str()
+        print(config), ss.str()
       ));
     }
 
     jobMan.setNumEmployedWorkers(
-      config.config.general.numWorkerThreads);
+      config.general.numWorkerThreads);
 
-    graphics.reset(& config);
+    graphics.reset(& config, configDiffs);
 
-    config.clearDiffs();
+    configDiffs = Config::Deltas::None;
   }
 }
 
@@ -253,13 +251,13 @@ void Engine::checkForAssetUpdates(JobScheduler & sched)
 }
 
 
-void Engine::updateConfig(ConfigData const & newConfig)
+void Engine::updateConfig(config_t const & newConfig)
 {
   logFn();
 
   {
     lock_guard<mutex> lock(mx_config);
-    config.integrate(newConfig);
+    configDiffs = integrate(config, newConfig);
   }
 }
 

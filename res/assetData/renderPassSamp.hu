@@ -1,0 +1,27 @@
+{
+  renderPass: {
+    name: sampRenderPass
+    attachments: [ {
+        name: colorTarget
+        # format is derived from swapchain
+        samples: 1
+        loadOp: Clear
+        storeOp: Store
+        stencilLoadOp: DontCare
+        stencilStoreOp: DontCare
+        initialLayout: Undefined
+        finalLayout: PresentSrc
+      }
+    ]
+    subpasses: [ {
+        name: sampSubpass
+        bindPoint: Graphics
+        colorAttachments: [ {
+            attachment: colorTarget
+            layout: ColorAttachmentOptimal
+          }
+        ]
+      }
+    ]
+  }
+}

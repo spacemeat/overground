@@ -5,7 +5,7 @@ source ../buildDefaults.sh
 
 main() {
   local subProject="graphics"
-  local deps=("assets" "pools" "jobs" "utils")
+  local deps=("assets" "assetProviders" "pools" "jobs" "utils")
   local inc=()
   local libSrc=("graphics" "instance" "window" "physDev" "device" "surface" "swapchain")
   local exeSrc=()

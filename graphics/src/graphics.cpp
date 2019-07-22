@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "config.h"
 #include <iostream>
 
 using namespace std;
@@ -17,15 +18,15 @@ Graphics::~Graphics()
 }
 
 
-void Graphics::reset(ConfigData * config)
+void Graphics::reset(config_t * config, Config::Deltas & diffs)
 {
   logFn();
 
   this->config = config;
   if (mainWindow == nullptr || 
-    (config->getDiffs() & 
-      (ConfigData::Deltas::Window | 
-       ConfigData::Deltas::WindowExtents)) != 0)
+    (diffs & 
+      (Config::Deltas::Window | 
+       Config::Deltas::WindowExtents)) != 0)
   {
     if (mainWindow == nullptr)
       { createWindow(); }
@@ -34,33 +35,33 @@ void Graphics::reset(ConfigData * config)
   }
     
   if ((bool) vulkanInstance == false ||
-    (config->getDiffs() & 
-     ConfigData::Deltas::VulkanInstance) != 0)
-    { resetVulkanInstance(); }
+    (diffs & 
+     Config::Deltas::VulkanInstance) != 0)
+    { resetVulkanInstance(diffs); }
 
   if ((bool) surface == false ||
-    (config->getDiffs() & 
-      (ConfigData::Deltas::Window |
-       ConfigData::Deltas::WindowExtents)) != 0)
-    { resetSurface(); }
+    (diffs & 
+      (Config::Deltas::Window |
+       Config::Deltas::WindowExtents)) != 0)
+    { resetSurface(diffs); }
 
   if ((bool) physicalDevice == false ||
-    (config->getDiffs() & 
-     (ConfigData::Deltas::Window |
-       ConfigData::Deltas::WindowExtents |
-       ConfigData::Deltas::PhysicalDevice)) != 0)
-    { resetPhysicalDevice(); }
+    (diffs & 
+     (Config::Deltas::Window |
+       Config::Deltas::WindowExtents |
+       Config::Deltas::PhysicalDevice)) != 0)
+    { resetPhysicalDevice(diffs); }
 
   if ((bool) vulkanDevice == false ||
-    (config->getDiffs() & 
-     ConfigData::Deltas::LogicalDevice) != 0)
-    { resetLogicalDevice(); }
+    (diffs & 
+     Config::Deltas::LogicalDevice) != 0)
+    { resetLogicalDevice(diffs); }
 
   if ((bool) swapchain == false ||
-    (config->getDiffs() & 
-      (ConfigData::Deltas::WindowExtents |
-       ConfigData::Deltas::Swapchain)) != 0)
-    { resetSwapchain(); }
+    (diffs & 
+      (Config::Deltas::WindowExtents |
+       Config::Deltas::Swapchain)) != 0)
+    { resetSwapchain(diffs); }
 }
 
 

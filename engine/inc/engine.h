@@ -7,7 +7,6 @@
 #include <mutex>
 #include <chrono>
 #include <functional>
-#include "configData.h"
 #include "asset.h"
 #include "graphics.h"
 #include "fileReference.h"
@@ -66,7 +65,7 @@ namespace overground
     void checkForAssetUpdates(JobScheduler & sched);
 
     // external updates (say from file changes)
-    void updateConfig(ConfigData const & newConfig);
+    void updateConfig(config_t const & newConfig);
 
     // assets
     std::string getBaseAssetDir()
@@ -87,7 +86,8 @@ namespace overground
 
     ResourceManager resMan;
 
-    ConfigData config;
+    config_t config;
+    Config::Deltas configDiffs;
     std::mutex mx_config;
 
     Graphics graphics;

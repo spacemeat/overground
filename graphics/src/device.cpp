@@ -6,7 +6,7 @@ using namespace std;
 using namespace overground;
 
 
-void Graphics::resetLogicalDevice()
+void Graphics::resetLogicalDevice(Config::Deltas & diffs)
 {
   logFn();
 
@@ -74,7 +74,7 @@ void Graphics::resetLogicalDevice()
   auto dci = vk::DeviceCreateInfo();
   dci.queueCreateInfoCount = queueCreateInfos.size();
   dci.pQueueCreateInfos = queueCreateInfos.data();
-  if (config->config.graphics.vulkanValidationEnabled)
+  if (config->graphics.vulkanValidationEnabled)
   {
     dci.enabledLayerCount = layersInC.size();
     dci.ppEnabledLayerNames = layersInC.data();

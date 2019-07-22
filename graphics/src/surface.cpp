@@ -4,7 +4,7 @@ using namespace std;
 using namespace overground;
 
 
-void Graphics::resetSurface()
+void Graphics::resetSurface(Config::Deltas & diffs)
 {
   logFn();
 
