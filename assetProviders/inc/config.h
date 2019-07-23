@@ -37,10 +37,9 @@ namespace overground
       LogicalDevice       = 1 << 5,
       Swapchain           = 1 << 6,
 
-      Framebuffer         = 1 << 7,
-      RenderPasses        = 1 << 8,
-      NumConcurrentFrames = 1 << 9,
-      GraphicsPipelines   = 1 << 10,
+      RenderPasses        = 1 << 7,
+      NumConcurrentFrames = 1 << 8,
+      GraphicsPipelines   = 1 << 9,
     };
 
     Config(ResourceManager * resMan,

@@ -1,5 +1,5 @@
 {
-  frameScript: {
+  frameProcess: {
     name: samp
     phases: [ {
         name: start

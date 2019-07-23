@@ -4,7 +4,7 @@
     attachments: [ {
         name: colorTarget
         # format is derived from swapchain
-        samples: 1
+        numSamples: 1
         loadOp: Clear
         storeOp: Store
         stencilLoadOp: DontCare

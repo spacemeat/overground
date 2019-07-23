@@ -4,21 +4,20 @@
 #include <map>
 #include <unordered_map>
 #include <set>
+#include <functional>
 #include <cstdlib>
 #include "ansiTerm.h"
 #include "fmt/core.h"
 #include "fmt/ostream.h"
-#include "../../humon/inc/humon.h"
-#include "../utils/inc/utils.h"
+#include "humon.h"
+#include "utils.h"
+#include "boiler.h"
 
 
 using namespace std;
 using namespace humon;
 using namespace overground;
 
-
-constexpr auto defaultDefsPath = "./boiler/test-defs.hu";
-constexpr auto defaultOutputDir = "./boiler/test-output";
 
 constexpr auto featurePreamble = "\
 #ifndef {featureName}_GEN_H\n\
@@ -28,6 +27,7 @@ constexpr auto featurePreamble = "\
 #include <vector>\n\
 #include \"utils.h\"\n\
 #include \"graphicsUtils.h\"\n\
+#include \"enumParsers.h\"\n\
 \n\
 namespace overground\n\
 {{\n\
@@ -165,6 +165,19 @@ memberTypeDef resolveType(string_view member)
 }
 
 
+set<string> loadFromString;
+
+void markStringLoads(memberTypeDef const & mtd)
+{
+  if (auto const vk = "vk::"sv; 
+      equal(vk.begin(), vk.end(), mtd.name.begin()))
+    { loadFromString.insert(mtd.name); }
+  
+  for (auto const mtdch: mtd.subTypes)
+    { markStringLoads(mtdch); }
+}
+
+
 structDef * findStructDef(string_view rhs)
 {
   for (auto & [_, idx] : featuresKeys)
@@ -180,8 +193,6 @@ structDef * findStructDef(string_view rhs)
 
   return nullptr;
 }
-
-set<string> loadFromString;
 
 void parseDefsFile(path_t const & path)
 {
@@ -239,15 +250,22 @@ void parseDefsFile(path_t const & path)
         if (memberNode % "type")
         {
           member.type = resolveType(string(memberNode / "type"));
+          markStringLoads(member.type);
         }
         member.def = (memberNode % "def") ? string(memberNode / "def") : "";
       }
     }
   }
+
+  for (auto & lfs : loadFromString)
+  {
+    log(0, fmt::format("Enum-like value: {}{}{}",
+      ansi::lightMagenta, lfs, ansi::off));
+  }
 }
 
 
-void openFiles(path_t const & dir)
+static void openFiles(path_t const & dir)
 {
   logFn();
 
@@ -279,7 +297,7 @@ void openFiles(path_t const & dir)
 }
 
 
-void closeFiles()
+static void closeFiles()
 {
   for (auto & [featureName, _] : featuresKeys)
   {
@@ -537,7 +555,7 @@ void outputExportToHumon(structDef const & stru, ofstream & ofs)
 {
   logFn();
 
-  log(thId, logTags::warn, "This operation has not been implemented yet.");
+  log(0, logTags::warn, "This operation has not been implemented yet.");
 
   ofs << fmt::format("\
 void overground::exportPod({structName} const & src, \n\
@@ -546,7 +564,9 @@ humon::HuNode & dest, int depth)\n\
     fmt::arg("structName", stru.name));
 
   ofs << "\
-  // NOTE: This operation has not been implemented yet.\n";
+  log(0, logTags::warn, \"This operation has not been implemented yet.\");\n\
+\n\
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.\n";
 
   ofs << fmt::format("}}\n\n\n");
 }
@@ -722,24 +742,8 @@ ostream & overground::operator << (ostream & stream, {structType} const & rhs)\n
 }
 
 
-int main(int argc, char* argv[])
+int overground::assetsMain(path_t const & defsPath, path_t const & outputDir)
 {
-  createLogChannel("boiler", logTags::dev, logTags::spam, & cout);
-
-  string defsPathS;
-  if (argc >= 2)
-    { defsPathS = argv[1]; }
-  else
-    { defsPathS = defaultDefsPath; }
-  auto defsPath = fs::current_path().append(defsPathS);
-  
-  string outputDirS;
-  if (argc >= 3)
-    { outputDirS = argv[2]; }
-  else
-    { outputDirS = defaultOutputDir; }
-  auto outputDir = fs::current_path().append( outputDirS);
-  
   log(0, fmt::format("\
 {}Making boilerplate code from definitions in {}.{}\n\
 Output base: {}{}{}",
@@ -790,4 +794,6 @@ Output base: {}{}{}",
   }
 
   closeFiles();
+
+  return 0;
 }

@@ -47,7 +47,9 @@ std::vector<uint8_t> const & src, general_t & dest)
 void overground::exportPod(general_t const & src, 
 humon::HuNode & dest, int depth)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
@@ -114,8 +116,8 @@ void overground::importPod(
   if (src % "aspectMask")
   {
     auto & src0 = src / "aspectMask";
-    vk::ImageAspectFlags dst0;
-    dst0 = fromString<vk::ImageAspectFlags>((std::string) src0); // leaf
+    vk::ImageAspectFlagBits dst0;
+    dst0 = fromString<vk::ImageAspectFlagBits>((std::string) src0); // leaf
     dest.aspectMask = std::move(dst0);
   }
   if (src % "layerCount")
@@ -137,7 +139,9 @@ std::vector<uint8_t> const & src, swapchainImageView_t & dest)
 void overground::exportPod(swapchainImageView_t const & src, 
 humon::HuNode & dest, int depth)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
@@ -298,7 +302,9 @@ std::vector<uint8_t> const & src, swapchain_t & dest)
 void overground::exportPod(swapchain_t const & src, 
 humon::HuNode & dest, int depth)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
@@ -573,7 +579,9 @@ std::vector<uint8_t> const & src, graphics_t & dest)
 void overground::exportPod(graphics_t const & src, 
 humon::HuNode & dest, int depth)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
@@ -710,7 +718,9 @@ std::vector<uint8_t> const & src, config_t & dest)
 void overground::exportPod(config_t const & src, 
 humon::HuNode & dest, int depth)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 

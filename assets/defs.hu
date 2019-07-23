@@ -1,14 +1,6 @@
 {
   defs: {
     @loadFromString: [
-      "vk::Format"
-      "vk::ColorSpaceKHR"
-      "vk::PresentModeKHR"
-      "vk::SurfaceTransformFlagBitsKHR"
-      "vk::CompositeAlphaFlagBitsKHR"
-      "vk::ImageViewType"
-      "vk::ComponentSwizzle"
-      "vk::ImageAspectFlags"
     ]
     config: {
       general_t: {
@@ -20,7 +12,7 @@
       swapchainImageView_t: {
         viewType: { type: "vk::ImageViewType" }
         components: { type: "array<vk::ComponentSwizzle, 4>" }
-        aspectMask: { type: "vk::ImageAspectFlags" }
+        aspectMask: { type: "vk::ImageAspectFlagBits" }
         layerCount: { type: "unsigned int" }   # same as numViews?
       }
 
@@ -61,6 +53,44 @@
       config_t: {
         general: { type: general_t }
         graphics: { type: graphics_t }
+      }
+    }
+
+    renderPass: {
+      subpassAttachment_t: {
+        attachment: { type: string }
+        layout: { type: "vk::ImageLayout"}
+      }
+
+      subpass_t: {
+        name: { type: string }
+        bindPoint: { type: "vk::PipelineBindPoint" }
+        colorAttachments: { type: "vector<subpassAttachment_t>" }
+      }
+
+      renderPass_t: {
+        name: { type: string }
+        numSamples: { type: "vk::SampleCountFlagBits" }
+        loadOp: { type: "vk::AttachmentLoadOp" }
+        storeOp: { type: "vk::AttachmentStoreOp" }
+        stencilLoadOp: { type: "vk::AttachmentLoadOp" }
+        stencilStoreOp: { type: "vk::AttachmentStoreOp" }
+        initialLayout: { type: "vk::ImageLayout" }
+        finalLayout: { type: "vk::ImageLayout" }
+        subpasses: { type: "vector<subpass_t>" }
+      }
+    }
+
+    frameProcess: {
+      framePhase_t: {
+        name: { type: string }
+        kind: { type: string }  # TODO: enum
+        ref: { type: string }
+      }
+
+      frameProcess_t: {
+        name: { type: string }
+        phases: { type: vector<framePhase_t> }
       }
     }
   }

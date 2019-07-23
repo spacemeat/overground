@@ -16,36 +16,6 @@ namespace overground
       rhs[0], rhs[1], rhs[2]
     );
   }
-
-  template<class EnumType>
-  EnumType fromString(std::string_view rhs);
-
-  template<>
-  vk::Format fromString<vk::Format>(std::string_view rhs);
-
-  template<>
-  vk::ColorSpaceKHR fromString<vk::ColorSpaceKHR>(std::string_view rhs);
-
-  template<>
-  vk::PresentModeKHR fromString<vk::PresentModeKHR>(std::string_view rhs);
-
-  template<>
-  vk::SurfaceTransformFlagBitsKHR fromString<vk::SurfaceTransformFlagBitsKHR>(std::string_view rhs);
-
-  template<>
-  vk::CompositeAlphaFlagBitsKHR fromString<vk::CompositeAlphaFlagBitsKHR>(std::string_view rhs);
-
-  template<>
-  vk::ImageViewType
-  fromString<vk::ImageViewType>(std::string_view rhs);
-
-  template<>
-  vk::ComponentSwizzle
-  fromString<vk::ComponentSwizzle>(std::string_view rhs);
-
-  template<>
-  vk::ImageAspectFlags
-  fromString<vk::ImageAspectFlags>(std::string_view rhs);
 }
 
 #endif // #ifndef GRAPHICSUTILS_H

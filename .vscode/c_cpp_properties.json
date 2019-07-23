@@ -14,7 +14,8 @@
                 "${workspaceFolder}/pools/inc",
                 "${workspaceFolder}/graphics/inc",
                 "${workspaceFolder}/engine/inc",
-                "${workspaceFolder}/assetProviders/inc"
+                "${workspaceFolder}/assetProviders/inc",
+                "${workspaceFolder}/boiler/inc"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

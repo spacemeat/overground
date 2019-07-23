@@ -30,7 +30,15 @@ void Graphics::resetSwapchain(Config::Deltas & diffs)
     { diffs |= Config::Deltas::NumConcurrentFrames; }
 
   if (oldExtent != swapchainExtent)
-    { diffs |= Config::Deltas::WindowExtents; }
+  {
+    if ((diffs & Config::Deltas::WindowExtents) == 0)
+    {
+      log(thId, logTags::err, "Window extent delta caught later than is useful.");
+      throw runtime_error("SHOULD NOT HAPPEN");
+    }
+
+    diffs |= Config::Deltas::WindowExtents;
+  }
 
   // TODO: HRK
   auto imageUsages = vk::ImageUsageFlagBits::eColorAttachment;

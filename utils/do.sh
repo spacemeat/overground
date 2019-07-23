@@ -7,7 +7,7 @@ main() {
   local subProject="utils"
   local deps=()
   local inc=()
-  local libSrc=("graphicsUtils" "utils" "logger")
+  local libSrc=("enumParsers" "graphicsUtils" "utils" "logger")
   local exeSrc=()
   local libDirs=()
   local libs=()

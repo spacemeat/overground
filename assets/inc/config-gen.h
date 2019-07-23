@@ -5,6 +5,7 @@
 #include <vector>
 #include "utils.h"
 #include "graphicsUtils.h"
+#include "enumParsers.h"
 
 namespace overground
 {
@@ -36,7 +37,7 @@ namespace overground
   {
     vk::ImageViewType viewType;
     std::array<vk::ComponentSwizzle, 4> components;
-    vk::ImageAspectFlags aspectMask;
+    vk::ImageAspectFlagBits aspectMask;
     unsigned int layerCount;
   };
 
