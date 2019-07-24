@@ -23,7 +23,6 @@ void overground::importPod(
     dest.layout = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, subpassAttachment_t & dest)
 {
@@ -43,20 +42,24 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 subpassAttachment_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 subpassAttachment_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "attachment: ";
-    ss << (src.attachment) << "\n";
-    ss << "    " << "layout: ";
-    ss << to_string(src.layout) << "\n";
-  ss << "}\n";
+  ss << "{";
+  ss << "\n" << indentIn << "attachment: ";
+  ss << (src.attachment);
+  ss << "\n" << indentIn << "layout: ";
+  ss << to_string(src.layout);
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 
@@ -99,7 +102,6 @@ void overground::importPod(
     dest.colorAttachments = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, subpass_t & dest)
 {
@@ -119,29 +121,37 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 subpass_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 subpass_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "name: ";
-    ss << (src.name) << "\n";
-    ss << "    " << "bindPoint: ";
-    ss << to_string(src.bindPoint) << "\n";
-    ss << "    " << "colorAttachments: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.colorAttachments.size(); ++i1)
-    {
-      subpassAttachment_t const & src1 = src.colorAttachments[i1];
-      ss << "    ";
-      ss << print(src1, 3);
-    }
-    ss << "  " << "]\n";
-  ss << "}\n";
+  ss << "{";
+  ss << "\n" << indentIn << "name: ";
+  ss << (src.name);
+  ss << "\n" << indentIn << "bindPoint: ";
+  ss << to_string(src.bindPoint);
+  ss << "\n" << indentIn << "colorAttachments: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.colorAttachments.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    subpassAttachment_t const & src0 = src.colorAttachments[i0];
+    ss << "\n" << indentIn;
+    ss << print(src0, depth + 1);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 
@@ -226,7 +236,6 @@ void overground::importPod(
     dest.subpasses = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, renderPass_t & dest)
 {
@@ -246,41 +255,49 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 renderPass_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 renderPass_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "name: ";
-    ss << (src.name) << "\n";
-    ss << "    " << "numSamples: ";
-    ss << to_string(src.numSamples) << "\n";
-    ss << "    " << "loadOp: ";
-    ss << to_string(src.loadOp) << "\n";
-    ss << "    " << "storeOp: ";
-    ss << to_string(src.storeOp) << "\n";
-    ss << "    " << "stencilLoadOp: ";
-    ss << to_string(src.stencilLoadOp) << "\n";
-    ss << "    " << "stencilStoreOp: ";
-    ss << to_string(src.stencilStoreOp) << "\n";
-    ss << "    " << "initialLayout: ";
-    ss << to_string(src.initialLayout) << "\n";
-    ss << "    " << "finalLayout: ";
-    ss << to_string(src.finalLayout) << "\n";
-    ss << "    " << "subpasses: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.subpasses.size(); ++i1)
-    {
-      subpass_t const & src1 = src.subpasses[i1];
-      ss << "    ";
-      ss << print(src1, 3);
-    }
-    ss << "  " << "]\n";
-  ss << "}\n";
+  ss << "{";
+  ss << "\n" << indentIn << "name: ";
+  ss << (src.name);
+  ss << "\n" << indentIn << "numSamples: ";
+  ss << to_string(src.numSamples);
+  ss << "\n" << indentIn << "loadOp: ";
+  ss << to_string(src.loadOp);
+  ss << "\n" << indentIn << "storeOp: ";
+  ss << to_string(src.storeOp);
+  ss << "\n" << indentIn << "stencilLoadOp: ";
+  ss << to_string(src.stencilLoadOp);
+  ss << "\n" << indentIn << "stencilStoreOp: ";
+  ss << to_string(src.stencilStoreOp);
+  ss << "\n" << indentIn << "initialLayout: ";
+  ss << to_string(src.initialLayout);
+  ss << "\n" << indentIn << "finalLayout: ";
+  ss << to_string(src.finalLayout);
+  ss << "\n" << indentIn << "subpasses: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.subpasses.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    subpass_t const & src0 = src.subpasses[i0];
+    ss << "\n" << indentIn;
+    ss << print(src0, depth + 1);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 

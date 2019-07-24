@@ -30,7 +30,6 @@ void overground::importPod(
     dest.ref = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, framePhase_t & dest)
 {
@@ -50,22 +49,26 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 framePhase_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 framePhase_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "name: ";
-    ss << (src.name) << "\n";
-    ss << "    " << "kind: ";
-    ss << (src.kind) << "\n";
-    ss << "    " << "ref: ";
-    ss << (src.ref) << "\n";
-  ss << "}\n";
+  ss << "{";
+  ss << "\n" << indentIn << "name: ";
+  ss << (src.name);
+  ss << "\n" << indentIn << "kind: ";
+  ss << (src.kind);
+  ss << "\n" << indentIn << "ref: ";
+  ss << (src.ref);
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 
@@ -101,7 +104,6 @@ void overground::importPod(
     dest.phases = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, frameProcess_t & dest)
 {
@@ -121,27 +123,35 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 frameProcess_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 frameProcess_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "name: ";
-    ss << (src.name) << "\n";
-    ss << "    " << "phases: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.phases.size(); ++i1)
-    {
-      framePhase_t const & src1 = src.phases[i1];
-      ss << "    ";
-      ss << print(src1, 3);
-    }
-    ss << "  " << "]\n";
-  ss << "}\n";
+  ss << "{";
+  ss << "\n" << indentIn << "name: ";
+  ss << (src.name);
+  ss << "\n" << indentIn << "phases: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.phases.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    framePhase_t const & src0 = src.phases[i0];
+    ss << "\n" << indentIn;
+    ss << print(src0, depth + 1);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 

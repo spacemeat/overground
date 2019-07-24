@@ -528,7 +528,7 @@ void outputImportFromHumon(structDef const & stru, ofstream & ofs)
     ofs << "  }\n";
   }
 
-  ofs << "}\n\n";
+  ofs << "}\n";
 }
 
 
@@ -585,7 +585,9 @@ void overground::exportPod(\n\
     fmt::arg("structName", stru.name));
 
   ofs << "\
-  // NOTE: This operation has not been implemented yet.\n";
+  log(0, logTags::warn, \"This operation has not been implemented yet.\");\n\
+\n\
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.\n";
 
   ofs << fmt::format("}}\n\n\n");
 }
@@ -599,8 +601,10 @@ void outputPrint(structDef const & stru, ofstream & ofs)
 std::string overground::print(\n\
 {structName} const & src, int depth)\n\
 {{\n\
+  string prevIndentIn(depth * 2, ' ');\n\
+  string indentIn(2 + depth * 2, ' ');\n\
   std::ostringstream ss;\n\
-  ss << \"{{\\n\";\n", 
+  ss << \"{{\";\n", 
     fmt::arg("structName", stru.name));
 
   for (auto & member : stru.memberDefs)
@@ -616,13 +620,18 @@ std::string overground::print(\n\
         string prevIndentIn = "\"" + string(0 + 2 * depth, ' ') + "\"";
         string indent (2 + 2 * depth, ' ');
 
-        if (depth == 1)
+        if (depth == 0)
         {
           ofs << fmt::format("\
-{indent}ss << {indentIn} << \"{srcName}: \";\n", 
+{indent}ss << \"\\n\" << indentIn << \"{srcName}: \";\n", 
             fmt::arg("indent", indent),
-            fmt::arg("indentIn", indentIn),
             fmt::arg("srcName", srcName));
+        }
+        else if(mtd.subTypes.size() == 0)
+        {
+          ofs << fmt::format("\
+{indent}ss << \"\\n\" << indentIn;\n", 
+            fmt::arg("indent", indent));
         }
 
         // vector | array
@@ -630,13 +639,14 @@ std::string overground::print(\n\
             mtd.name == "std::array")
         {
           ofs << fmt::format("\
-{indent}ss << \"[\\n\";\n\
+{indent}ss << \"[\";\n\
 {indent}for (size_t i{depth} = 0; i{depth} < {memberName}.size(); ++i{depth})\n\
 {indent}{{\n\
-{indent}  {subType} const & src{depth} = {memberName}[i{depth}];\n\
-{indent}  ss << {indentIn};\n",
+{indent}  depth += 1;\n\
+{indent}  string prevIndentIn(depth * 2, ' ');\n\
+{indent}  string indentIn(2 + depth * 2, ' ');\n\
+{indent}  {subType} const & src{depth} = {memberName}[i{depth}];\n",
             fmt::arg("indent", indent),
-            fmt::arg("indentIn", indentIn),
             fmt::arg("depth", depth),
             fmt::arg("subType", mtd.subTypes[0]),
             fmt::arg("memberName", memberName));
@@ -644,10 +654,10 @@ std::string overground::print(\n\
           fn_ref(mtd.subTypes[0], (string_view) fmt::format("src{}", depth), (string_view) fmt::format("src{}", depth), depth + 1, fn_ref);
 
           ofs << fmt::format("\
+{indent}  depth -= 1;\n\
 {indent}}}\n\
-{indent}ss << {prevIndentIn} << \"]\\n\";\n", 
-            fmt::arg("indent", indent),
-            fmt::arg("prevIndentIn", prevIndentIn));
+{indent}ss << \"\\n\" << indentIn << \"]\";\n", 
+            fmt::arg("indent", indent));
         }
 
         // pair
@@ -655,11 +665,12 @@ std::string overground::print(\n\
         {
           ofs << fmt::format("\
 {indent}{{\n\
-{indent}  ss << \"[\\n\";\n\
-{indent}  {subType} const & src{depth} = {memberName}.first;\n\
-{indent}  ss << {indentIn};\n",
+{indent}  ss << \"[\";\n\
+{indent}  depth += 1;\n\
+{indent}  string prevIndentIn(depth * 2, ' ');\n\
+{indent}  string indentIn(2 + depth * 2, ' ');\n\
+{indent}  {subType} const & src{depth} = {memberName}.first;\n",
             fmt::arg("indent", indent),
-            fmt::arg("indentIn", indentIn),
             fmt::arg("subType", mtd.subTypes[0]),
             fmt::arg("depth", depth),
             fmt::arg("memberName", memberName));
@@ -667,13 +678,15 @@ std::string overground::print(\n\
           fn_ref(mtd.subTypes[0], (string_view) fmt::format("src{}", depth), (string_view) fmt::format("src{}", depth), depth + 1, fn_ref);
 
           ofs << fmt::format("\
-{indent}  ss << {indentIn};\n\
+{indent}  ss << indentIn;\n\
+{indent}  depth -= 1;\n\
 {indent}}}\n\
 {indent}{{\n\
-{indent}  {subType} const & src{depth} = {memberName}.second;\n\
-\n",
+{indent}  depth += 1;\n\
+{indent}  string prevIndentIn(depth * 2, ' ');\n\
+{indent}  string indentIn(2 + depth * 2, ' ');\n\
+{indent}  {subType} const & src{depth} = {memberName}.second;\n",
             fmt::arg("indent", indent),
-            fmt::arg("indentIn", indentIn),
             fmt::arg("subType", mtd.subTypes[1]),
             fmt::arg("depth", depth),
             fmt::arg("memberName", memberName));
@@ -681,10 +694,10 @@ std::string overground::print(\n\
           fn_ref(mtd.subTypes[1], (string_view) fmt::format("src{}", depth), (string_view) fmt::format("src{}", depth), depth + 1, fn_ref);
 
           ofs << fmt::format("\
-{indent}  ss << {prevIndentIn} << \"]\\n\";\n\
+{indent}depth -= 1;\n\
+{indent}ss << \"\\n\" << prevIndentIn << \"]\";\n\
 {indent}}}\n",
-            fmt::arg("indent", indent),
-            fmt::arg("prevIndentIn", prevIndentIn));
+            fmt::arg("indent", indent));
         }
 
         // nested struct
@@ -692,10 +705,8 @@ std::string overground::print(\n\
           pstru != nullptr)
         {
           ofs << fmt::format("\
-{indent}ss << print({memberName}, {depth});\n",
+{indent}ss << print({memberName}, depth + 1);\n",
             fmt::arg("indent", indent),
-            fmt::arg("indentIn", indentIn),
-            fmt::arg("depth", depth + 1),
             fmt::arg("memberName", memberName));
         }
 
@@ -704,18 +715,16 @@ std::string overground::print(\n\
           loadFromString.end())
         {
           ofs << fmt::format("\
-{indent}ss << to_string({src}) << \"\\n\";\n",
+{indent}ss << to_string({src});\n",
             fmt::arg("indent", indent),
-            fmt::arg("indentIn", indentIn),
             fmt::arg("src", memberName));
         }
 
         else
         {
           ofs << fmt::format("\
-{indent}ss << ({src}) << \"\\n\";\n",
+{indent}ss << ({src});\n",
             fmt::arg("indent", indent),
-            fmt::arg("indentIn", indentIn),
             fmt::arg("src", memberName));
         }
       };
@@ -723,11 +732,11 @@ std::string overground::print(\n\
       fn_int(mtd, memberName, srcName, depth, fn_int);
     };
 
-    fn(member.type, "src." + memberName, memberName, 1);
+    fn(member.type, "src." + memberName, memberName, 0);
   }
 
   ofs << fmt::format("\
-  ss << \"}}\\n\";\n\
+  ss << \"\\n\" << prevIndentIn << \"}}\";\n\
   return ss.str();\n\
 }}\n\
 \n\

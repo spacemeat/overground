@@ -36,7 +36,6 @@ void overground::importPod(
     dest.numWorkerThreads = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, general_t & dest)
 {
@@ -56,29 +55,37 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 general_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 general_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "programName: ";
-    ss << (src.programName) << "\n";
-    ss << "    " << "version: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.version.size(); ++i1)
-    {
-      int const & src1 = src.version[i1];
-      ss << "    ";
-      ss << (src1) << "\n";
-    }
-    ss << "  " << "]\n";
-    ss << "    " << "numWorkerThreads: ";
-    ss << (src.numWorkerThreads) << "\n";
-  ss << "}\n";
+  ss << "{";
+  ss << "\n" << indentIn << "programName: ";
+  ss << (src.programName);
+  ss << "\n" << indentIn << "version: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.version.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    int const & src0 = src.version[i0];
+    ss << "\n" << indentIn;
+    ss << (src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "numWorkerThreads: ";
+  ss << (src.numWorkerThreads);
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 
@@ -128,7 +135,6 @@ void overground::importPod(
     dest.layerCount = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, swapchainImageView_t & dest)
 {
@@ -148,31 +154,39 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 swapchainImageView_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 swapchainImageView_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "viewType: ";
-    ss << to_string(src.viewType) << "\n";
-    ss << "    " << "components: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.components.size(); ++i1)
-    {
-      vk::ComponentSwizzle const & src1 = src.components[i1];
-      ss << "    ";
-      ss << to_string(src1) << "\n";
-    }
-    ss << "  " << "]\n";
-    ss << "    " << "aspectMask: ";
-    ss << to_string(src.aspectMask) << "\n";
-    ss << "    " << "layerCount: ";
-    ss << (src.layerCount) << "\n";
-  ss << "}\n";
+  ss << "{";
+  ss << "\n" << indentIn << "viewType: ";
+  ss << to_string(src.viewType);
+  ss << "\n" << indentIn << "components: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.components.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    vk::ComponentSwizzle const & src0 = src.components[i0];
+    ss << "\n" << indentIn;
+    ss << to_string(src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "aspectMask: ";
+  ss << to_string(src.aspectMask);
+  ss << "\n" << indentIn << "layerCount: ";
+  ss << (src.layerCount);
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 
@@ -291,7 +305,6 @@ void overground::importPod(
     dest.imageView = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, swapchain_t & dest)
 {
@@ -311,79 +324,109 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 swapchain_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 swapchain_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "formatPriorities: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.formatPriorities.size(); ++i1)
+  ss << "{";
+  ss << "\n" << indentIn << "formatPriorities: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.formatPriorities.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    std::pair<vk::Format, vk::ColorSpaceKHR> const & src0 = src.formatPriorities[i0];
     {
-      std::pair<vk::Format, vk::ColorSpaceKHR> const & src1 = src.formatPriorities[i1];
-      ss << "    ";
-      {
-        ss << "[\n";
-        vk::Format const & src2 = src1.first;
-        ss << "      ";
-        ss << to_string(src2) << "\n";
-        ss << "      ";
-      }
-      {
-        vk::ColorSpaceKHR const & src2 = src1.second;
-
-        ss << to_string(src2) << "\n";
-        ss << "    " << "]\n";
-      }
+      ss << "[";
+      depth += 1;
+      string prevIndentIn(depth * 2, ' ');
+      string indentIn(2 + depth * 2, ' ');
+      vk::Format const & src1 = src0.first;
+      ss << "\n" << indentIn;
+      ss << to_string(src1);
+      ss << indentIn;
+      depth -= 1;
     }
-    ss << "  " << "]\n";
-    ss << "    " << "numViews: ";
-    ss << (src.numViews) << "\n";
-    ss << "    " << "imageUsages: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.imageUsages.size(); ++i1)
     {
-      std::string const & src1 = src.imageUsages[i1];
-      ss << "    ";
-      ss << (src1) << "\n";
+      depth += 1;
+      string prevIndentIn(depth * 2, ' ');
+      string indentIn(2 + depth * 2, ' ');
+      vk::ColorSpaceKHR const & src1 = src0.second;
+      ss << "\n" << indentIn;
+      ss << to_string(src1);
+    depth -= 1;
+    ss << "\n" << prevIndentIn << "]";
     }
-    ss << "  " << "]\n";
-    ss << "    " << "imageSharing: ";
-    ss << (src.imageSharing) << "\n";
-    ss << "    " << "pretransform: ";
-    ss << to_string(src.pretransform) << "\n";
-    ss << "    " << "windowAlpha: ";
-    ss << to_string(src.windowAlpha) << "\n";
-    ss << "    " << "presentModePriorities: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.presentModePriorities.size(); ++i1)
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "numViews: ";
+  ss << (src.numViews);
+  ss << "\n" << indentIn << "imageUsages: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.imageUsages.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    std::string const & src0 = src.imageUsages[i0];
+    ss << "\n" << indentIn;
+    ss << (src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "imageSharing: ";
+  ss << (src.imageSharing);
+  ss << "\n" << indentIn << "pretransform: ";
+  ss << to_string(src.pretransform);
+  ss << "\n" << indentIn << "windowAlpha: ";
+  ss << to_string(src.windowAlpha);
+  ss << "\n" << indentIn << "presentModePriorities: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.presentModePriorities.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    std::pair<vk::PresentModeKHR, std::uint32_t> const & src0 = src.presentModePriorities[i0];
     {
-      std::pair<vk::PresentModeKHR, std::uint32_t> const & src1 = src.presentModePriorities[i1];
-      ss << "    ";
-      {
-        ss << "[\n";
-        vk::PresentModeKHR const & src2 = src1.first;
-        ss << "      ";
-        ss << to_string(src2) << "\n";
-        ss << "      ";
-      }
-      {
-        std::uint32_t const & src2 = src1.second;
-
-        ss << (src2) << "\n";
-        ss << "    " << "]\n";
-      }
+      ss << "[";
+      depth += 1;
+      string prevIndentIn(depth * 2, ' ');
+      string indentIn(2 + depth * 2, ' ');
+      vk::PresentModeKHR const & src1 = src0.first;
+      ss << "\n" << indentIn;
+      ss << to_string(src1);
+      ss << indentIn;
+      depth -= 1;
     }
-    ss << "  " << "]\n";
-    ss << "    " << "clipped: ";
-    ss << (src.clipped) << "\n";
-    ss << "    " << "imageView: ";
-    ss << print(src.imageView, 2);
-  ss << "}\n";
+    {
+      depth += 1;
+      string prevIndentIn(depth * 2, ' ');
+      string indentIn(2 + depth * 2, ' ');
+      std::uint32_t const & src1 = src0.second;
+      ss << "\n" << indentIn;
+      ss << (src1);
+    depth -= 1;
+    ss << "\n" << prevIndentIn << "]";
+    }
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "clipped: ";
+  ss << (src.clipped);
+  ss << "\n" << indentIn << "imageView: ";
+  ss << print(src.imageView, depth + 1);
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 
@@ -568,7 +611,6 @@ void overground::importPod(
     dest.swapchain = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, graphics_t & dest)
 {
@@ -588,96 +630,124 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 graphics_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 graphics_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "isConfigured: ";
-    ss << (src.isConfigured) << "\n";
-    ss << "    " << "headless: ";
-    ss << (src.headless) << "\n";
-    ss << "    " << "fullScreen: ";
-    ss << (src.fullScreen) << "\n";
-    ss << "    " << "width: ";
-    ss << (src.width) << "\n";
-    ss << "    " << "height: ";
-    ss << (src.height) << "\n";
-    ss << "    " << "vulkanValidationEnabled: ";
-    ss << (src.vulkanValidationEnabled) << "\n";
-    ss << "    " << "vulkanValidationLayers: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.vulkanValidationLayers.size(); ++i1)
-    {
-      std::string const & src1 = src.vulkanValidationLayers[i1];
-      ss << "    ";
-      ss << (src1) << "\n";
-    }
-    ss << "  " << "]\n";
-    ss << "    " << "vulkanValidationReports: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.vulkanValidationReports.size(); ++i1)
-    {
-      std::string const & src1 = src.vulkanValidationReports[i1];
-      ss << "    ";
-      ss << (src1) << "\n";
-    }
-    ss << "  " << "]\n";
-    ss << "    " << "vulkanExtensions: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.vulkanExtensions.size(); ++i1)
-    {
-      std::string const & src1 = src.vulkanExtensions[i1];
-      ss << "    ";
-      ss << (src1) << "\n";
-    }
-    ss << "  " << "]\n";
-    ss << "    " << "deviceExtensions: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.deviceExtensions.size(); ++i1)
-    {
-      std::string const & src1 = src.deviceExtensions[i1];
-      ss << "    ";
-      ss << (src1) << "\n";
-    }
-    ss << "  " << "]\n";
-    ss << "    " << "minGraphicsQueues: ";
-    ss << (src.minGraphicsQueues) << "\n";
-    ss << "    " << "desiredGraphicsQueues: ";
-    ss << (src.desiredGraphicsQueues) << "\n";
-    ss << "    " << "minComputeQueues: ";
-    ss << (src.minComputeQueues) << "\n";
-    ss << "    " << "desiredComputeQueues: ";
-    ss << (src.desiredComputeQueues) << "\n";
-    ss << "    " << "minTransferQueues: ";
-    ss << (src.minTransferQueues) << "\n";
-    ss << "    " << "desiredTransferQueues: ";
-    ss << (src.desiredTransferQueues) << "\n";
-    ss << "    " << "minDeviceFeatures: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.minDeviceFeatures.size(); ++i1)
-    {
-      std::string const & src1 = src.minDeviceFeatures[i1];
-      ss << "    ";
-      ss << (src1) << "\n";
-    }
-    ss << "  " << "]\n";
-    ss << "    " << "desiredDeviceFeatures: ";
-    ss << "[\n";
-    for (size_t i1 = 0; i1 < src.desiredDeviceFeatures.size(); ++i1)
-    {
-      std::string const & src1 = src.desiredDeviceFeatures[i1];
-      ss << "    ";
-      ss << (src1) << "\n";
-    }
-    ss << "  " << "]\n";
-    ss << "    " << "swapchain: ";
-    ss << print(src.swapchain, 2);
-  ss << "}\n";
+  ss << "{";
+  ss << "\n" << indentIn << "isConfigured: ";
+  ss << (src.isConfigured);
+  ss << "\n" << indentIn << "headless: ";
+  ss << (src.headless);
+  ss << "\n" << indentIn << "fullScreen: ";
+  ss << (src.fullScreen);
+  ss << "\n" << indentIn << "width: ";
+  ss << (src.width);
+  ss << "\n" << indentIn << "height: ";
+  ss << (src.height);
+  ss << "\n" << indentIn << "vulkanValidationEnabled: ";
+  ss << (src.vulkanValidationEnabled);
+  ss << "\n" << indentIn << "vulkanValidationLayers: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.vulkanValidationLayers.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    std::string const & src0 = src.vulkanValidationLayers[i0];
+    ss << "\n" << indentIn;
+    ss << (src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "vulkanValidationReports: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.vulkanValidationReports.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    std::string const & src0 = src.vulkanValidationReports[i0];
+    ss << "\n" << indentIn;
+    ss << (src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "vulkanExtensions: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.vulkanExtensions.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    std::string const & src0 = src.vulkanExtensions[i0];
+    ss << "\n" << indentIn;
+    ss << (src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "deviceExtensions: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.deviceExtensions.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    std::string const & src0 = src.deviceExtensions[i0];
+    ss << "\n" << indentIn;
+    ss << (src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "minGraphicsQueues: ";
+  ss << (src.minGraphicsQueues);
+  ss << "\n" << indentIn << "desiredGraphicsQueues: ";
+  ss << (src.desiredGraphicsQueues);
+  ss << "\n" << indentIn << "minComputeQueues: ";
+  ss << (src.minComputeQueues);
+  ss << "\n" << indentIn << "desiredComputeQueues: ";
+  ss << (src.desiredComputeQueues);
+  ss << "\n" << indentIn << "minTransferQueues: ";
+  ss << (src.minTransferQueues);
+  ss << "\n" << indentIn << "desiredTransferQueues: ";
+  ss << (src.desiredTransferQueues);
+  ss << "\n" << indentIn << "minDeviceFeatures: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.minDeviceFeatures.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    std::string const & src0 = src.minDeviceFeatures[i0];
+    ss << "\n" << indentIn;
+    ss << (src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "desiredDeviceFeatures: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.desiredDeviceFeatures.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    std::string const & src0 = src.desiredDeviceFeatures[i0];
+    ss << "\n" << indentIn;
+    ss << (src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "swapchain: ";
+  ss << print(src.swapchain, depth + 1);
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 
@@ -707,7 +777,6 @@ void overground::importPod(
     dest.graphics = std::move(dst0);
   }
 }
-
 void overground::importPod(
 std::vector<uint8_t> const & src, config_t & dest)
 {
@@ -727,20 +796,24 @@ humon::HuNode & dest, int depth)
 void overground::exportPod(
 config_t const & src, std::vector<uint8_t> & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
 std::string overground::print(
 config_t const & src, int depth)
 {
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
-  ss << "{\n";
-    ss << "    " << "general: ";
-    ss << print(src.general, 2);
-    ss << "    " << "graphics: ";
-    ss << print(src.graphics, 2);
-  ss << "}\n";
+  ss << "{";
+  ss << "\n" << indentIn << "general: ";
+  ss << print(src.general, depth + 1);
+  ss << "\n" << indentIn << "graphics: ";
+  ss << print(src.graphics, depth + 1);
+  ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 
