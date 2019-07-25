@@ -5,15 +5,28 @@ using namespace std;
 using namespace overground;
 
 
+Logger * overground::_logger = nullptr;
+JobManager * overground::jobMan = nullptr;
+Engine * overground::engine = nullptr;
+
+
+void overground::initGlobals()
+{
+  _logger = new Logger();
+  jobMan = new JobManager();
+  engine = new Engine();
+}
+
+
 int main(int argc, char ** argv)
 {
-  Engine engine;
+  initGlobals();
+  
+  engine->registerAssetProvider("config", makeConfig);
 
-  engine.registerAssetProvider("config", makeConfig);
+  engine->init(argc, argv);
 
-  engine.init(argc, argv);
-
-  engine.enterEventLoop();
-  engine.shutDown();
+  engine->enterEventLoop();
+  engine->shutDown();
 }
 

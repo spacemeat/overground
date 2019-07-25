@@ -3,7 +3,6 @@
 
 #include <fstream>
 #include "utils.h"
-//#include "fileReference.h"
 
 namespace overground
 {
@@ -16,7 +15,6 @@ namespace overground
   {
   public:
     Asset(
-      ResourceManager * resMan,
       std::string_view assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
@@ -85,11 +83,7 @@ namespace overground
     virtual void applyToBuffer_impl(void * targetBuffer);
     virtual void applyToEngine_impl();
 
-  protected:
-    ResourceManager * getResMan() { return resMan; }
-
   private:
-    ResourceManager * resMan;
     std::string assetName;
     FileReference * assetDescFile;
     humon::nodePtr_t desc;

@@ -16,12 +16,12 @@ constexpr auto pathSeparator = "/";
 
 
 Engine::Engine()
-: resMan(this, AssetBaseDir, AssetDataBaseDir)
+: resMan(AssetBaseDir, AssetDataBaseDir)
 {
   thId = createLogChannel(
     "main", logTags::dbg, logTags::dev, & cout, & coutMx);
   
-  jobMan.allocateWorkers(JobManager::getNumCores() * 2);
+  jobMan->allocateWorkers(JobManager::getNumCores() * 2);
 }
 
 
@@ -29,7 +29,7 @@ Engine::~Engine()
 {
   try
   {
-    jobMan.stopAndJoin();
+    jobMan->stopAndJoin();
   }
   catch(const std::exception& e)
   {
@@ -85,7 +85,7 @@ void Engine::shutDown()
 
 void Engine::enqueueJob(Job * job)
 {
-  jobMan.enqueueJob(job);
+  jobMan->enqueueJob(job);
 }
 
 
@@ -229,7 +229,7 @@ void Engine::checkForConfigUpdates()
       ));
     }
 
-    jobMan.setNumEmployedWorkers(
+    jobMan->setNumEmployedWorkers(
       config.general.numWorkerThreads);
 
     graphics.reset(& config, configDiffs);
@@ -273,3 +273,4 @@ unique_ptr<Asset> Engine::makeAsset(
   return resMan.makeAsset(
     assetName, assetDescFile, descFromFile, cache, compress, monitor);
 }
+

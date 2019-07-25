@@ -6,8 +6,19 @@ using namespace humon;
 using namespace overground;
 
 
+Logger * overground::_logger = nullptr;
+
+
+void overground::initGlobals()
+{
+  _logger = new Logger();
+}
+
+
 int main(int argc, char* argv[])
 {
+  initGlobals();
+  
   createLogChannel("boiler", logTags::dev, logTags::dev, & cout);
 
   if (argc > 1 && string(argv[1]) == string("assets"))

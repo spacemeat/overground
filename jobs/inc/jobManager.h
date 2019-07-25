@@ -67,7 +67,7 @@ namespace overground
     std::atomic_int_fast32_t numJobsDone = 0;
   };
 
-  extern JobManager jobMan;
+  extern JobManager * jobMan;
 }
 
 #endif // #ifndef JOBMANAGER_H

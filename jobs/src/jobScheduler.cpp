@@ -34,7 +34,7 @@ void JobScheduler::scheduleJob(Job * job)
   else
   {
     if (kind == ScheduleKind::asynchronous)
-      { jobMan.enqueueJob(job); }
+      { jobMan->enqueueJob(job); }
     else
       { job->run(); }
   }
@@ -56,7 +56,7 @@ void JobScheduler::runJobGroup()
     if (kind == ScheduleKind::asynchronous)
     {
       for (auto it = jobGroup.rbegin(); it != jobGroup.rend(); ++it)
-        { jobMan.enqueueJob(*it); }
+        { jobMan->enqueueJob(*it); }
     }
     else
     {

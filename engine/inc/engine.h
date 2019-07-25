@@ -8,13 +8,15 @@
 #include <chrono>
 #include <functional>
 #include "asset.h"
+#include "config.h"
+#include "config-gen.h"
 #include "graphics.h"
 #include "fileReference.h"
 #include "jobManager.h"
 #include "resourceManager.h"
 
 namespace overground
-{  
+{
   enum class ScheduledEvents : size_t
   {
     CheckForFileUpdates = 0,
@@ -37,6 +39,9 @@ namespace overground
 
     Engine();
     ~Engine();
+
+    ResourceManager & getResourceManager() { return resMan; }
+    Graphics & getGraphics() { return graphics; }
 
     void registerAssetProvider(
       std::string_view assetKind,
@@ -104,6 +109,8 @@ namespace overground
     std::vector<engineTimeDuration> eventPeriods;
     std::vector<engineTimePoint> lastEventTimes;
   };
+
+  extern Engine * engine;
 }
 
 #endif // #ifndef ENGINE_H

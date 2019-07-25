@@ -2,20 +2,19 @@
 #include "resourceManager.h"
 #include "fileReference.h"
 #include "jobScheduler.h"
-//#include "engine.h"
+#include "engine.h"
 
 using namespace std;
 using namespace overground;
 
 
 Asset::Asset(
-  ResourceManager * resMan,
   std::string_view assetName,
   FileReference * assetDescFile, 
   humon::HuNode & descFromFile,
   bool cache, bool compile,
   bool monitor)
-: resMan(resMan), assetName(assetName),
+: assetName(assetName),
   assetDescFile(assetDescFile), 
   desc(descFromFile.clone()), thisIsCached(cache),
   thisIsCompiled(compile), thisIsMonitored(monitor)
@@ -23,7 +22,8 @@ Asset::Asset(
   if (*desc % "dataFile")
   {
     string filename = (string) (*desc / "dataFile");
-    auto adf = resMan->addAssetDataFile(filename, false);
+    auto & resMan = engine->getResourceManager();
+    auto adf = resMan.addAssetDataFile(filename, false);
     srcFilePath = adf->getPath();
     adf->setClientAsset(this);
 
@@ -31,7 +31,7 @@ Asset::Asset(
     {
       path_t compiledPath = srcFilePath;
       compiledPath.extension() = getCompiledExtension();
-      auto adfo = resMan->addAssetDataFile(compiledPath.filename().string(), false);
+      auto adfo = resMan.addAssetDataFile(compiledPath.filename().string(), false);
       optFilePath = compiledPath;
       adfo->setClientAsset(this);
     }

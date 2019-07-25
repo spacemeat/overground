@@ -13,6 +13,8 @@
 
 namespace overground
 {
+  void initGlobals();
+
   using version_t = std::array<int, 3>;
   constexpr auto engineName = "overground";
   constexpr version_t engineVersion = { 0, 0, 0 };

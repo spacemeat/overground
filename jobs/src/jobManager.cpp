@@ -202,5 +202,3 @@ Job * JobManager::dequeueJob()
   }
 }
 
-
-JobManager overground::jobMan;

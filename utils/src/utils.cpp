@@ -2,20 +2,10 @@
 #include <queue>
 #include <string>
 #include "utils.h"
+#include "logger.h"
 
 using namespace std;
 using namespace overground;
-
-//mutex sout::mx{};
-
-/*
-string overground::operator << (ostream & lhs, ss::endtoken rhs)
-{
-  ostringstream oss;
-  oss << lhs.rdbuf();
-  return oss.str();
-}
-*/
 
 
 path_t overground::findFile(string_view filename, string_view baseDir)

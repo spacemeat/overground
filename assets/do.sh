@@ -5,7 +5,7 @@ source ../buildDefaults.sh
 
 main() {
   local subProject="assets"
-  local deps=("pools" "jobs" "utils")
+  local deps=("engine" "assetProviders" "graphics" "pools" "jobs" "utils")
   local inc=()
   local libSrc=("asset" "config-gen" "fileReference" "resourceManager")
   local exeSrc=()

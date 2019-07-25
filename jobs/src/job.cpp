@@ -42,7 +42,7 @@ void Job::run()
       ansi::darkBlue, 
       ansi::off));
     if (scheduleKind == ScheduleKind::asynchronous)
-      { jobMan.increaseNumEmployedWorkers(); }
+      { jobMan->increaseNumEmployedWorkers(); }
 
     {
       unique_lock<mutex> lock(mxNumJobsThisIsWaitingForThatAreDone);
@@ -51,7 +51,7 @@ void Job::run()
     }
 
     if (scheduleKind == ScheduleKind::asynchronous)
-    { jobMan.decreaseNumEmployedWorkers(); }
+    { jobMan->decreaseNumEmployedWorkers(); }
   }
 
   log(thId, fmt::format("{}starting {}{}{} (job {}{}{}).{}", 

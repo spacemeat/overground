@@ -17,7 +17,6 @@ namespace overground
 
   using makeAssetFn_t = std::function<
     std::unique_ptr<Asset>(
-      ResourceManager * resMan,
       std::string_view assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
@@ -28,12 +27,10 @@ namespace overground
   class ResourceManager
   {
   public:
-    ResourceManager(Engine * engine, 
+    ResourceManager(
       path_t const & baseAssetDescPath,
       path_t const & baseAssetDataPath);
     
-    Engine * getEngine() { return engine; }
-
     path_t const & getBaseAssetDescDir() const
       { return baseAssetDescDir; }
     path_t const & getBaseAssetDataDir() const
@@ -74,7 +71,6 @@ namespace overground
   private:
     std::map<std::string, makeAssetFn_t, std::less<>> assetProviders;
 
-    Engine * engine;
     path_t baseAssetDescDir;
     path_t baseAssetDataDir;
 

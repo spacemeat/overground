@@ -1,6 +1,10 @@
 rm bin/exe-boiler
 cd utils
 source do.sh buildlib
+cd ../jobs
+source do.sh buildlib
+cd ../engine
+source do.sh buildlib
 cd ../boiler
 source do.sh buildexe
 cd ..

@@ -11,26 +11,25 @@ using namespace overground;
 
 
 unique_ptr<Asset> overground::makeConfig(
-  ResourceManager * resMan,
   string_view assetName,
   FileReference * assetDescFile, 
   HuNode & descFromFile,
   bool cache, bool compress,
   bool monitor)
 {
-  return make_unique<Config>(resMan, assetName, 
+  return make_unique<Config>(assetName, 
     assetDescFile, descFromFile, cache, compress, 
     monitor);
 }
 
 
-Config::Config(ResourceManager * resMan,
+Config::Config(
   std::string_view assetName,
   FileReference * assetDescFile, 
   humon::HuNode & descFromFile,
   bool cache, bool compress,
   bool monitor)
-: Asset(resMan, assetName, assetDescFile,
+: Asset(assetName, assetDescFile,
     descFromFile, cache, compress, monitor)
 {
   logFn();
@@ -54,7 +53,7 @@ void Config::applyToEngine_impl()
 
   clearDidReloadAssetData();
 
-  getResMan()->getEngine()->updateConfig(data);
+  engine->updateConfig(data);
 }
 
 

@@ -115,9 +115,12 @@ namespace overground
     std::mutex channelsMutex;
   };
 
-  // free functions that operate on an internal instance.
 
-  extern int createLogChannel(std::string_view name,
+  extern Logger * _logger;
+
+  // free functions that operate on *_logger.
+
+  int createLogChannel(std::string_view name,
     int defaultTags = logTags::LogTag::info,
     int filters = logTags::LogTag::spam,
     std::ostream * outStream = nullptr,

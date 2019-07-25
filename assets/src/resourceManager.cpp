@@ -20,11 +20,9 @@ namespace fs = experimental::filesystem;
 
 
 ResourceManager::ResourceManager(
-  Engine * engine,
   path_t const & baseAssetDescDir,
   path_t const & baseAssetDataDir)
-: engine(engine),
-  baseAssetDescDir(baseAssetDescDir),
+: baseAssetDescDir(baseAssetDescDir),
   baseAssetDataDir(baseAssetDataDir)
 {
 }
@@ -52,7 +50,7 @@ unique_ptr<Asset> ResourceManager::makeAsset(
     if (auto it = assetProviders.find(kind); 
       it != assetProviders.end())
     {
-      return move(it->second)(this, assetName, assetDescFile, descFromFile, cache, compress, monitor);
+      return move(it->second)(assetName, assetDescFile, descFromFile, cache, compress, monitor);
     }
     else
     {
