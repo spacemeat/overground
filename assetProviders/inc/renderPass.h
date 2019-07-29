@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef RENDERPASS_H
+#define RENDERPASS_H
 
 #include <array>
 #include <string>
@@ -47,4 +47,4 @@ namespace overground
   };
 }
 
-#endif // #ifndef CONFIG_H
+#endif // #ifndef RENDERPASS_H

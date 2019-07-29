@@ -1,5 +1,4 @@
 #include "engine.h"
-#include "config.h"
 
 using namespace std;
 using namespace overground;
@@ -23,6 +22,7 @@ int main(int argc, char ** argv)
   initGlobals();
   
   engine->registerAssetProvider("config", makeConfig);
+  engine->registerAssetProvider("renderPass", makeRenderPass);
 
   engine->init(argc, argv);
 

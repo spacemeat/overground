@@ -53,5 +53,5 @@ void RenderPass::applyToEngine_impl()
 
   clearDidReloadAssetData();
 
-  engine->getGraphics()->updateRenderPass(data);
+  engine->getGraphics().updateRenderPass(data);
 }

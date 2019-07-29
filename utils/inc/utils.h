@@ -241,6 +241,13 @@ namespace overground
     if (res != vk::Result::eSuccess)  \
     { throw std::runtime_error(fmt::format("{} failed", #call)); } \
   }
+
+  enum class DataObjectKindFlags
+  {
+    none =            0,
+    config =          1 <<   0,
+    renderPass =      1 <<   1,
+  };
 }
 
 #endif // #ifndef UTILS_H

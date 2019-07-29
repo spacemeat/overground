@@ -71,7 +71,7 @@ void Engine::init(int argc, char ** argv)
   checkForAssetUpdates(sched);
 
   // initial config
-  checkForConfigUpdates();
+  checkForDataUpdates();
 }
 
 
@@ -127,7 +127,7 @@ void Engine::enterEventLoop()
   while (! glfwWindowShouldClose(window))
   {
     glfwPollEvents();
-    iterateGameLoop();
+    iterateLoop();
   }
 
   log(thId, "End of enterEventLoop");
@@ -136,15 +136,17 @@ void Engine::enterEventLoop()
 }
 
 
-void Engine::iterateGameLoop()
+void Engine::iterateLoop()
 {
   // logFn();
 
   updateTimer();
   graphics.presentFrame();
-  graphics.drawFrame();  
+  graphics.drawFrame();
 
-  checkForConfigUpdates();
+  JobScheduler sched(ScheduleKind::asynchronous);
+  checkForDataUpdates();
+  checkForAssetUpdates(sched);
   performScheduledEvents();
   // animate, do other CPU-intensive stuff here
 }
@@ -188,53 +190,8 @@ void Engine::performScheduledEvents()
         case ScheduledEvents::CheckForFileUpdates:
           checkForFileUpdates(sched);
           break;
-        case ScheduledEvents::CheckForAssetUpdates:
-          checkForAssetUpdates(sched);
-          break;
       }
     }
-  }
-}
-
-
-void Engine::checkForConfigUpdates()
-{
-  if (configDiffs != Config::Deltas::None)
-  {
-    lock_guard<mutex> lock(mx_config);
-
-    {
-      stringstream ss;
-      if ((configDiffs & Config::Deltas::JobManagement) != 0)
-        { ss << " JobManagement"; }
-      if ((configDiffs & Config::Deltas::Window) != 0)
-        { ss << " Window"; }
-      if ((configDiffs & Config::Deltas::WindowExtents) != 0)
-        { ss << " WindowExtents"; }
-      if ((configDiffs & Config::Deltas::VulkanInstance) != 0)
-        { ss << " VulkanInstance"; }
-      if ((configDiffs & Config::Deltas::PhysicalDevice) != 0)
-        { ss << " PhysicalDevice"; }
-      if ((configDiffs & Config::Deltas::LogicalDevice) != 0)
-        { ss << " LogicalDevice"; }
-      if ((configDiffs & Config::Deltas::Swapchain) != 0)
-        { ss << " Swapchain"; }
-
-      log(thId, fmt::format(
-        "Config loaded:\n"
-        "{}\n"
-        "Differences required:\n"
-        "{}\n",
-        print(config), ss.str()
-      ));
-    }
-
-    jobMan->setNumEmployedWorkers(
-      config.general.numWorkerThreads);
-
-    graphics.reset(& config, configDiffs);
-
-    configDiffs = Config::Deltas::None;
   }
 }
 
@@ -255,10 +212,41 @@ void Engine::updateConfig(config_t const & newConfig)
 {
   logFn();
 
-  {
-    lock_guard<mutex> lock(mx_config);
-    configDiffs = integrate(config, newConfig);
-  }
+  log(thId, fmt::format(
+    "new config::\n"
+    "{}\n", print(newConfig)
+  ));
+
+  configDiffs = integrate(config, newConfig);
+  config = move(newConfig);
+  updatedObjectKinds |= DataObjectKindFlags::config;
+}
+
+
+void Engine::checkForDataUpdates()
+{
+  if (updatedObjectKinds == DataObjectKindFlags::none)
+    { return; }
+  
+  log(thId, fmt::format("{}Engine::checkForDataUpdates(){} has updates.", ansi::lightGreen, ansi::off));
+
+  checkForConfigUpdates();
+  graphics.checkForDataUpdates();
+
+  configDiffs = Config::Deltas::None;
+  updatedObjectKinds = DataObjectKindFlags::none;
+}
+
+
+void Engine::checkForConfigUpdates()
+{
+  logFn();
+
+  if (configDiffs == Config::Deltas::None)
+    { return; }
+  
+  jobMan->setNumEmployedWorkers(
+    config.general.numWorkerThreads);
 }
 
 

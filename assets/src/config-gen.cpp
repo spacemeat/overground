@@ -39,7 +39,9 @@ void overground::importPod(
 void overground::importPod(
 std::vector<uint8_t> const & src, general_t & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
@@ -127,18 +129,13 @@ void overground::importPod(
     dst0 = fromString<vk::ImageAspectFlagBits>((std::string) src0); // leaf
     dest.aspectMask = std::move(dst0);
   }
-  if (src % "layerCount")
-  {
-    auto & src0 = src / "layerCount";
-    unsigned int dst0;
-    dst0 = (unsigned int) src0; // leaf
-    dest.layerCount = std::move(dst0);
-  }
 }
 void overground::importPod(
 std::vector<uint8_t> const & src, swapchainImageView_t & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
@@ -184,8 +181,6 @@ swapchainImageView_t const & src, int depth)
   ss << "\n" << indentIn << "]";
   ss << "\n" << indentIn << "aspectMask: ";
   ss << to_string(src.aspectMask);
-  ss << "\n" << indentIn << "layerCount: ";
-  ss << (src.layerCount);
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
@@ -308,7 +303,9 @@ void overground::importPod(
 void overground::importPod(
 std::vector<uint8_t> const & src, swapchain_t & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
@@ -614,7 +611,9 @@ void overground::importPod(
 void overground::importPod(
 std::vector<uint8_t> const & src, graphics_t & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
@@ -780,7 +779,9 @@ void overground::importPod(
 void overground::importPod(
 std::vector<uint8_t> const & src, config_t & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 

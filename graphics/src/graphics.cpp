@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include "config.h"
+#include "engine.h"
 #include <iostream>
 
 using namespace std;
@@ -18,15 +19,43 @@ Graphics::~Graphics()
 }
 
 
-void Graphics::reset(config_t * config, Config::Deltas & diffs)
+void Graphics::reset()
 {
   logFn();
 
-  this->config = config;
+  checkForDataUpdates();
+}
+
+
+void Graphics::checkForDataUpdates()
+{
+  logFn();
+
+  auto & updatedObjectKinds = engine->getUpdatedObjectKinds();
+
+  if (updatedObjectKinds == DataObjectKindFlags::none)
+    { return; }
+
+  if ((updatedObjectKinds & 
+      DataObjectKindFlags::config) != 0)
+    { checkForConfigUpdates(); }
+
+  if ((updatedObjectKinds &
+      DataObjectKindFlags::renderPass) != 0)
+    { checkForRenderPassUpdates(); }
+}
+
+
+void Graphics::checkForConfigUpdates()
+{
+  logFn();
+
+  auto & diffs = engine->getConfigDiffs();
+  
   if (mainWindow == nullptr || 
     (diffs & 
       (Config::Deltas::Window | 
-       Config::Deltas::WindowExtents)) != 0)
+      Config::Deltas::WindowExtents)) != 0)
   {
     if (mainWindow == nullptr)
       { createWindow(); }
@@ -35,33 +64,52 @@ void Graphics::reset(config_t * config, Config::Deltas & diffs)
   }
     
   if ((bool) vulkanInstance == false ||
-    (diffs & 
-     Config::Deltas::VulkanInstance) != 0)
-    { resetVulkanInstance(diffs); }
+    (diffs & Config::Deltas::VulkanInstance) != 0)
+    { resetVulkanInstance(); }
 
-  if ((bool) surface == false ||
-    (diffs & 
-      (Config::Deltas::Window |
-       Config::Deltas::WindowExtents)) != 0)
-    { resetSurface(diffs); }
+  if ((bool) surface == false)
+    { resetSurface(); }
 
   if ((bool) physicalDevice == false ||
-    (diffs & 
-     (Config::Deltas::Window |
-       Config::Deltas::WindowExtents |
-       Config::Deltas::PhysicalDevice)) != 0)
-    { resetPhysicalDevice(diffs); }
+    (diffs & Config::Deltas::PhysicalDevice) != 0)
+    { resetPhysicalDevice(); }
 
   if ((bool) vulkanDevice == false ||
-    (diffs & 
-     Config::Deltas::LogicalDevice) != 0)
-    { resetLogicalDevice(diffs); }
+    (diffs & Config::Deltas::LogicalDevice) != 0)
+    { resetLogicalDevice(); }
 
   if ((bool) swapchain == false ||
-    (diffs & 
-      (Config::Deltas::WindowExtents |
-       Config::Deltas::Swapchain)) != 0)
-    { resetSwapchain(diffs); }
+    (diffs & Config::Deltas::Swapchain) != 0)
+    { resetSwapchain(); }
+}
+
+
+void Graphics::checkForRenderPassUpdates()
+{
+  logFn();
+  
+  for (auto & [_, rpt] : renderPassThings)
+  {
+    for (auto & st : swapchainThings)
+    {
+      if (st.renderPasses.size() <= rpt.idx)
+        { st.renderPasses.resize(
+          rpt.idx + 1, nullptr); }
+    }
+
+    resetRenderPass(rpt);
+
+    for (auto & st : swapchainThings)
+    {
+      if (st.framebuffers.size() <= rpt.idx)
+        { st.framebuffers.resize(
+          rpt.idx + 1, nullptr); }
+    }
+
+    resetFramebuffer(rpt);
+
+    rpt.updated = false;
+  }
 }
 
 

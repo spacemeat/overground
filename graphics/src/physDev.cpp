@@ -1,3 +1,4 @@
+#include "engine.h"
 #include "graphics.h"
 #include <algorithm>
 #include <set>
@@ -6,9 +7,11 @@ using namespace std;
 using namespace overground;
 
 
-void Graphics::resetPhysicalDevice(Config::Deltas & diffs)
+void Graphics::resetPhysicalDevice()
 {
   logFn();
+
+  auto const & config = engine->getConfig();
 
   graphicsQueueFamilyIndex = -1;
   computeQueueFamilyIndex = -1;
@@ -16,9 +19,9 @@ void Graphics::resetPhysicalDevice(Config::Deltas & diffs)
   presentationQueueFamilyIndex = -1;
   
   deviceExtensions = set<string>(
-    config->graphics.deviceExtensions.begin(), 
-    config->graphics.deviceExtensions.end());
-  if (config->graphics.headless == false)
+    config.graphics.deviceExtensions.begin(), 
+    config.graphics.deviceExtensions.end());
+  if (config.graphics.headless == false)
     { deviceExtensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME); }
   
   auto && devices = vulkanInstance.enumeratePhysicalDevices();
@@ -88,13 +91,13 @@ void Graphics::resetPhysicalDevice(Config::Deltas & diffs)
       // graphics
       if (qfp.queueFlags & vk::QueueFlagBits::eGraphics)
       {
-        if (qfp.queueCount >= config->graphics.minGraphicsQueues)
+        if (qfp.queueCount >= config.graphics.minGraphicsQueues)
         {
-          qca.g = min(qfp.queueCount, config->graphics.desiredGraphicsQueues);
+          qca.g = min(qfp.queueCount, config.graphics.desiredGraphicsQueues);
           fit.g = 100;
-          if (qfp.queueCount < config->graphics.desiredGraphicsQueues)
+          if (qfp.queueCount < config.graphics.desiredGraphicsQueues)
           {
-            fit.g -= min(config->graphics.desiredGraphicsQueues - qfp.queueCount, 50u);
+            fit.g -= min(config.graphics.desiredGraphicsQueues - qfp.queueCount, 50u);
           }
         }
 
@@ -105,13 +108,13 @@ void Graphics::resetPhysicalDevice(Config::Deltas & diffs)
       // compute
       if (qfp.queueFlags & vk::QueueFlagBits::eCompute)
       {
-        if (qfp.queueCount >= config->graphics.minComputeQueues)
+        if (qfp.queueCount >= config.graphics.minComputeQueues)
         {
-          qca.c = min(qfp.queueCount, config->graphics.desiredComputeQueues);
+          qca.c = min(qfp.queueCount, config.graphics.desiredComputeQueues);
           fit.c = 100;
-          if (qfp.queueCount < config->graphics.desiredComputeQueues)
+          if (qfp.queueCount < config.graphics.desiredComputeQueues)
           {
-            fit.c -= min(config->graphics.desiredComputeQueues - qfp.queueCount, 50u);
+            fit.c -= min(config.graphics.desiredComputeQueues - qfp.queueCount, 50u);
           }
         }
 
@@ -165,10 +168,10 @@ void Graphics::resetPhysicalDevice(Config::Deltas & diffs)
     dqf.t = bestT->t;
     dqf.p = bestP->p;
 
-    bool usingGraphics = config->graphics.desiredGraphicsQueues > 0;
-    bool usingCompute = config->graphics.desiredComputeQueues > 0;
-    bool usingTransfer = config->graphics.desiredTransferQueues > 0;
-    bool usingPresentation = config->graphics.headless == false;
+    bool usingGraphics = config.graphics.desiredGraphicsQueues > 0;
+    bool usingCompute = config.graphics.desiredComputeQueues > 0;
+    bool usingTransfer = config.graphics.desiredTransferQueues > 0;
+    bool usingPresentation = config.graphics.headless == false;
 
     if (usingGraphics)
       { bqi.g = distance(qff.begin(), bestG); }
@@ -251,6 +254,8 @@ void Graphics::resetPhysicalDevice(Config::Deltas & diffs)
 void Graphics::reportPhysicalDevice(vk::PhysicalDevice device, 
   deviceFitness_t const & fitness)
 {
+  auto const & config = engine->getConfig();
+
   auto const & props = device.getProperties();
 
   auto && qfps = device.getQueueFamilyProperties();
@@ -275,7 +280,7 @@ void Graphics::reportPhysicalDevice(vk::PhysicalDevice device,
       (delim ? " | " : "")); }
 
     auto canPresent = device.getSurfaceSupportKHR(qfIdx, surface) &&
-      config->graphics.headless == false;
+      config.graphics.headless == false;
     auto & fit = fitness.queueFamilyFitness[qfIdx];
 
     families << fmt::format(
@@ -341,10 +346,12 @@ void Graphics::reportPhysicalDevice(vk::PhysicalDevice device,
 */
 bool Graphics::computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFitness_t & pdf)
 {
+  auto const & config = engine->getConfig();
+
   stringstream ss;
   auto supportedFeatures = device.getFeatures();
   ss << "Checking required features:\n";
-  for (auto & feature : config->graphics.minDeviceFeatures)
+  for (auto & feature : config.graphics.minDeviceFeatures)
   {
     ss << "  " << feature << ": ";
 #define FEATURE(feat)                                     \
@@ -369,7 +376,7 @@ bool Graphics::computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFi
   ss = stringstream();
 
   ss << "Checking desired features:\n";
-  for (auto & feature : config->graphics.desiredDeviceFeatures)
+  for (auto & feature : config.graphics.desiredDeviceFeatures)
   {
     ss << "  " << feature << ": ";
 #define FEATURE(feat)                                     \

@@ -1,10 +1,11 @@
+#include "engine.h"
 #include "graphics.h"
 
 using namespace std;
 using namespace overground;
 
 
-void Graphics::resetSurface(Config::Deltas & diffs)
+void Graphics::resetSurface()
 {
   logFn();
 
@@ -30,7 +31,19 @@ void Graphics::resetSurface(Config::Deltas & diffs)
       physicalDevice.getSurfaceFormatsKHR(surface);
     swapchainPresentModes = 
       physicalDevice.getSurfacePresentModesKHR(surface);
+    log(thId, fmt::format("Graphics::resetSurface(): resetting surface duds: {} x {}", 
+      swapchainSurfaceCaps.currentExtent.width,
+      swapchainSurfaceCaps.currentExtent.height));
+
+    // get presentation ability
+    if (physicalDevice.getSurfaceSupportKHR(
+      presentationQueueFamilyIndex, surface) == false)
+      { engine->getConfigDiffs() |= Config::Deltas::PhysicalDevice; log(thId, "DZZZT"); }
   }
+
+  int w, h;
+  glfwGetWindowSize(mainWindow, &w, &h);
+  log(thId, fmt::format("Graphics::resetSurface(): window reports: {} x {}", w, h)); 
 }
 
 
@@ -42,4 +55,5 @@ void Graphics::destroySurface()
   
   log(thId, "Graphics::destroySurface(): actually do that");
   vulkanInstance.destroySurfaceKHR(surface, nullptr);
+  surface = nullptr;
 }

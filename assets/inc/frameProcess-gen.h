@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"

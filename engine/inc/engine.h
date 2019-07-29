@@ -8,19 +8,22 @@
 #include <chrono>
 #include <functional>
 #include "asset.h"
-#include "config.h"
-#include "config-gen.h"
 #include "graphics.h"
 #include "fileReference.h"
 #include "jobManager.h"
 #include "resourceManager.h"
+
+#include "config.h"
+#include "config-gen.h"
+#include "renderPass.h"
+#include "renderPass-gen.h"
+
 
 namespace overground
 {
   enum class ScheduledEvents : size_t
   {
     CheckForFileUpdates = 0,
-    CheckForAssetUpdates = 1,
   };
 
   class JobScheduler;
@@ -43,6 +46,14 @@ namespace overground
     ResourceManager & getResourceManager() { return resMan; }
     Graphics & getGraphics() { return graphics; }
 
+    DataObjectKindFlags & getUpdatedObjectKinds()
+      { return updatedObjectKinds; }
+    
+    config_t const & getConfig()
+      { return config; }
+    Config::Deltas & getConfigDiffs()
+      { return configDiffs; }      
+
     void registerAssetProvider(
       std::string_view assetKind,
       makeAssetFn_t const & fn);
@@ -59,10 +70,11 @@ namespace overground
     void loadScene();
     void latchSceneDelta();
     void enterEventLoop();
-    void iterateGameLoop();
+    void iterateLoop();
 
     void updateTimer();
     void performScheduledEvents();
+    void checkForDataUpdates();
     void checkForConfigUpdates();
 
     // timed events
@@ -108,6 +120,9 @@ namespace overground
 
     std::vector<engineTimeDuration> eventPeriods;
     std::vector<engineTimePoint> lastEventTimes;
+
+    DataObjectKindFlags updatedObjectKinds = 
+      DataObjectKindFlags::none;
   };
 
   extern Engine * engine;

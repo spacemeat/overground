@@ -3,6 +3,7 @@
 
 #include "graphicsUtils.h"
 #include "config.h"
+#include "renderPass.h"
 #include <string>
 #include <set>
 
@@ -31,18 +32,29 @@ namespace overground
     };
 
   public:
+
     Graphics();
     ~Graphics();
 
     GLFWwindow * getMainWindow() { return mainWindow; }
 
-    void reset(config_t * config, Config::Deltas & diffs);
+    void reset();
+
+    void checkForDataUpdates();
+    
+  private:
+    void checkForConfigUpdates();
+    void checkForRenderPassUpdates();
+
+  public:
 //    void waitForGraphicsOps();
     void shutDown();
 
     void presentFrame();
     void drawFrame();
     void waitForGraphicsOps();
+
+    void updateRenderPass(renderPass_t const & newRenderPass);
 
   private:
     bool manageInvalidDevice();
@@ -53,7 +65,7 @@ namespace overground
     void destroyWindow();
 
     // instance.cpp
-    void resetVulkanInstance(Config::Deltas & diffs);
+    void resetVulkanInstance();
     void destroyVulkanInstance();
     void resetVulkanDebugReporter();
     void destroyVulkanDebugReporter();
@@ -61,28 +73,50 @@ namespace overground
     bool checkVulkanValidationLayerSupport();
 
     // surface.cpp
-    void resetSurface(Config::Deltas & diffs);
+    void resetSurface();
     void destroySurface();
 
     // physDev.cpp
-    void resetPhysicalDevice(Config::Deltas & diffs);
+    void resetPhysicalDevice();
     void reportPhysicalDevice(vk::PhysicalDevice device, deviceFitness_t const & fitness);
     bool computePhysicalDeviceFeatures(vk::PhysicalDevice device, deviceFitness_t & pdf);
 
     // device.cpp
-    void resetLogicalDevice(Config::Deltas & diffs);
+    void resetLogicalDevice();
     void destroyLogicalDevice();
     void prepareQueues();
 
     // swapChain.cpp
-    void resetSwapchain(Config::Deltas & diffs);
+    void resetSwapchain();
     void destroySwapchain();
     void chooseSurfaceFormat();
     void choosePresentMode();
     void getExtent();
     void createSwapchainImageViews();
     void destroySwapchainImageViews();
-    
+
+    // renderPass.cpp
+    struct RenderPassThing
+    {
+      renderPass_t data;
+      size_t idx;
+      bool updated;
+    };
+    void resetRenderPass(RenderPassThing & rpt);
+
+    struct SwapchainThing
+    {
+      vk::Image image;
+      vk::ImageView imageView;
+      std::vector<vk::RenderPass> renderPasses;
+      std::vector<vk::Framebuffer> framebuffers;
+    };
+    void destroyRenderPass(size_t renderPassIdx);
+
+    // framebuffer.cpp
+    void resetFramebuffer(RenderPassThing & renderPassThing);
+    void destroyFramebuffer(size_t framebufferIdx);
+
   private:
     config_t * config;
     GLFWwindow * mainWindow = nullptr;
@@ -110,7 +144,7 @@ namespace overground
 
     vk::SurfaceCapabilitiesKHR swapchainSurfaceCaps;
     std::vector<vk::SurfaceFormatKHR> swapchainSurfaceFormats;
-    std::vector<vk::PresentModeKHR> swapchainPresentModes;
+    std::vector<vk::PresentModeKHR> swapchainPresentModes; // TODO: why are you a member?
 
     vk::PhysicalDeviceFeatures usedFeatures;
     std::set<uint32_t> uniqueFamilyIndices;
@@ -132,8 +166,11 @@ namespace overground
     vk::Extent2D swapchainExtent;
 
     vk::SwapchainKHR swapchain = nullptr;
-    std::vector<vk::Image> swapchainImages;
-    std::vector<vk::ImageView> swapchainImageViews;
+
+    std::unordered_map<std::string, 
+      RenderPassThing> renderPassThings;
+
+    std::vector<SwapchainThing> swapchainThings;
   };
 }
 

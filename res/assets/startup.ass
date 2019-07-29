@@ -10,5 +10,12 @@
       cache: false
       monitor: true
     }
+
+    renderPass: {
+      kind: renderPass
+      dataFile: renderPassSamp.hu
+      cache: false
+      monitor: true
+    }
   }
 }

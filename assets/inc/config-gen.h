@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -38,7 +39,6 @@ namespace overground
     vk::ImageViewType viewType;
     std::array<vk::ComponentSwizzle, 4> components;
     vk::ImageAspectFlagBits aspectMask;
-    unsigned int layerCount;
   };
 
   void importPod(
@@ -90,7 +90,7 @@ namespace overground
 
   struct graphics_t
   {
-    bool isConfigured = false;
+    bool isConfigured = (bool)false;
     bool headless;
     bool fullScreen;
     unsigned int width;

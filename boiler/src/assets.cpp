@@ -25,6 +25,7 @@ constexpr auto featurePreamble = "\
 \n\
 #include <string>\n\
 #include <vector>\n\
+#include <optional>\n\
 #include \"utils.h\"\n\
 #include \"graphicsUtils.h\"\n\
 #include \"enumParsers.h\"\n\
@@ -113,6 +114,7 @@ string resolveStdAliases(string_view type)
   if (type == "array") { return "std::array"; }
   if (type == "vector") { return "std::vector"; }
   if (type == "pair") { return "std::pair"; }
+  if (type == "optional") { return "std::optional"; }
   return string(type);
 }
 
@@ -322,7 +324,7 @@ void outputStructDefs(structDef const & stru, ofstream & ofs)
   for (auto & member : stru.memberDefs)
   {
     auto memberType = fmt::format("{}", member.type);
-    auto defaultValue = (member.def == "") ? "" : (" = " + member.def);
+    auto defaultValue = (member.def == "") ? "" : (fmt::format(" = ({}){}", memberType, member.def));
 
     ofs << fmt::format("    {} {}{};\n", memberType, member.name, defaultValue);
   }
@@ -417,29 +419,29 @@ void outputImportFromHumon(structDef const & stru, ofstream & ofs)
 {indent}{{\n\
 {indent}  auto & src{depth} = {src} / i{prevDepth};\n\
 {indent}  {lvalueType} dst{depth};\n",
-              fmt::arg("indent", string(2 + 2 * depth, ' ')),
-              fmt::arg("len", len),
-              fmt::arg("lvalueType", mtda),
-              fmt::arg("depth", depth),
-              fmt::arg("prevDepth", depth - 1),
-              fmt::arg("src", src));
+            fmt::arg("indent", string(2 + 2 * depth, ' ')),
+            fmt::arg("len", len),
+            fmt::arg("lvalueType", mtda),
+            fmt::arg("depth", depth),
+            fmt::arg("prevDepth", depth - 1),
+            fmt::arg("src", src));
 
-            fn_ref(mtd.subTypes[0], depth + 1, fmt::format("dst{}", depth), fmt::format("src{}", depth), fn_ref);
+          fn_ref(mtd.subTypes[0], depth + 1, fmt::format("dst{}", depth), fmt::format("src{}", depth), fn_ref);
 
-            ofs << fmt::format("\
+          ofs << fmt::format("\
 {indent}  {lvalue}[i{prevDepth}] = std::move(dst{depth});\n\
 {indent}}}\n\
 ",
-              fmt::arg("indent", string(2 + 2 * depth, ' ')),
-              fmt::arg("prevDepth", depth - 1),
-              fmt::arg("depth", depth),
-              fmt::arg("lvalue", lvalue));
-          }
+            fmt::arg("indent", string(2 + 2 * depth, ' ')),
+            fmt::arg("prevDepth", depth - 1),
+            fmt::arg("depth", depth),
+            fmt::arg("lvalue", lvalue));
+        }
 
-          else if (mtd.name == "std::pair")
-          {
-            auto & mtda = mtd.subTypes[0];
-            ofs << fmt::format("\
+        else if (mtd.name == "std::pair")
+        {
+          auto & mtda = mtd.subTypes[0];
+          ofs << fmt::format("\
 {indent}{lvalueType} dst{depth}a;\n\
 {indent}{{\n\
 {indent}  auto & src{depth}a = {src} / 0;\n",
@@ -467,14 +469,33 @@ void outputImportFromHumon(structDef const & stru, ofstream & ofs)
 
           fn_ref(mtdb, depth + 1, fmt::format("dst{}b", depth), fmt::format("src{}b", depth), fn_ref);
 
-          ofs << fmt::format("{indent}}}\n",
-            fmt::arg("indent", string(2 + 2 * depth, ' ')));
-          
           ofs << fmt::format("\
+{indent}}}\n\
 {indent}{lvalue} = std::make_pair(\n\
 {indent}  std::move(dst{depth}a), std::move(dst{depth}b));\n",
             fmt::arg("indent", string(2 + 2 * depth, ' ')),
             fmt::arg("prevDepth", depth - 1),
+            fmt::arg("depth", depth),
+            fmt::arg("lvalue", lvalue));
+        }
+
+        else if (mtd.name == "std::optional")
+        {
+          ofs << fmt::format("\
+{indent}{lvalueType} dst{depth};\n\
+{indent}{{\n\
+{indent}  auto & src{depth} = {src} / 0;\n",
+            fmt::arg("indent", string(2 + 2 * depth, ' ')),
+            fmt::arg("lvalueType", mtd.subTypes[0]),
+            fmt::arg("depth", depth),
+            fmt::arg("src", src));
+
+          fn_ref(mtd.subTypes[0], depth + 1, fmt::format("dst{}", depth), fmt::format("src{}", depth), fn_ref);
+
+          ofs << fmt::format("\
+{indent}}}\n\
+{indent}{lvalue}.emplace(std::move(dst{depth}));\n",
+            fmt::arg("indent", string(2 + 2 * depth, ' ')),
             fmt::arg("depth", depth),
             fmt::arg("lvalue", lvalue));
         }
@@ -545,7 +566,9 @@ std::vector<uint8_t> const & src, {structName} & dest)\n\
     fmt::arg("structName", stru.name));
 
   ofs << "\
-  // NOTE: This operation has not been implemented yet.\n";
+  log(0, logTags::warn, \"This operation has not been implemented yet.\");\n\
+\n\
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.\n";
 
   ofs << fmt::format("}}\n\n\n");
 }
@@ -699,6 +722,28 @@ std::string overground::print(\n\
 {indent}}}\n",
             fmt::arg("indent", indent));
         }
+
+        // optional
+        else if (mtd.name == "std::optional")
+        {
+          ofs << fmt::format("\
+{indent}if ((bool){memberName})\n\
+{indent}{{\n\
+{indent}  {subType} const & src{depth} = * {memberName};\n",
+            fmt::arg("indent", indent),
+            fmt::arg("subType", mtd.subTypes[0]),
+            fmt::arg("depth", depth),
+            fmt::arg("memberName", memberName));
+
+          fn_ref(mtd.subTypes[0], (string_view) fmt::format("src{}", depth), (string_view) fmt::format("src{}", depth), depth + 1, fn_ref);
+
+          ofs << fmt::format("\
+{indent}}}\n\
+{indent}else\n\
+{indent}  {{ ss << \"<undefined>\"; }}\n",
+            fmt::arg("indent", indent));
+        }
+
 
         // nested struct
         else if (auto pstru = findStructDef(mtd.name);

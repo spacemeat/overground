@@ -1,3 +1,4 @@
+#include "engine.h"
 #include "graphics.h"
 #include <set>
 #include <numeric>
@@ -6,13 +7,15 @@ using namespace std;
 using namespace overground;
 
 
-void Graphics::resetLogicalDevice(Config::Deltas & diffs)
+void Graphics::resetLogicalDevice()
 {
   logFn();
 
   if (vulkanDevice)
     { destroyLogicalDevice(); }
 
+  auto const & config = engine->getConfig();
+  
   auto & pdf = physicalDeviceFitness[physicalDeviceIndex];
 
   uniqueFamilyIndices = {
@@ -74,7 +77,7 @@ void Graphics::resetLogicalDevice(Config::Deltas & diffs)
   auto dci = vk::DeviceCreateInfo();
   dci.queueCreateInfoCount = queueCreateInfos.size();
   dci.pQueueCreateInfos = queueCreateInfos.data();
-  if (config->graphics.vulkanValidationEnabled)
+  if (config.graphics.vulkanValidationEnabled)
   {
     dci.enabledLayerCount = layersInC.size();
     dci.ppEnabledLayerNames = layersInC.data();

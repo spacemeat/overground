@@ -136,7 +136,5 @@ Config::Deltas overground::integrate(config_t & lhs, config_t const & rhs)
 
   deltas |= setIt(lhs.graphics.swapchain.imageView.aspectMask, rhs.graphics.swapchain.imageView.aspectMask, Config::Deltas::Swapchain);
 
-  deltas |= setIt(lhs.graphics.swapchain.imageView.layerCount, rhs.graphics.swapchain.imageView.layerCount, Config::Deltas::Swapchain);
-
   return deltas;
 }

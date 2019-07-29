@@ -13,7 +13,6 @@
         viewType: { type: "vk::ImageViewType" }
         components: { type: "array<vk::ComponentSwizzle, 4>" }
         aspectMask: { type: "vk::ImageAspectFlagBits" }
-        layerCount: { type: "unsigned int" }   # same as numViews?
       }
 
       swapchain_t: {
@@ -57,19 +56,9 @@
     }
 
     renderPass: {
-      subpassAttachment_t: {
-        attachment: { type: string }
-        layout: { type: "vk::ImageLayout"}
-      }
-
-      subpass_t: {
+      attachment_t: {
         name: { type: string }
-        bindPoint: { type: "vk::PipelineBindPoint" }
-        colorAttachments: { type: "vector<subpassAttachment_t>" }
-      }
-
-      renderPass_t: {
-        name: { type: string }
+        flags: { type: "vk::AttachmentDescriptionFlagBits" def: 0 }
         numSamples: { type: "vk::SampleCountFlagBits" }
         loadOp: { type: "vk::AttachmentLoadOp" }
         storeOp: { type: "vk::AttachmentStoreOp" }
@@ -77,7 +66,44 @@
         stencilStoreOp: { type: "vk::AttachmentStoreOp" }
         initialLayout: { type: "vk::ImageLayout" }
         finalLayout: { type: "vk::ImageLayout" }
+      }
+
+      subpassAttachment_t: {
+        attachment: { type: string }
+        layout: { type: "vk::ImageLayout"}
+      }
+
+      subpass_t: {
+        name: { type: string }
+        flags: { type: "vk::SubpassDescriptionFlagBits" }
+        bindPoint: { type: "vk::PipelineBindPoint" }
+        inputAttachments: { type: "vector<subpassAttachment_t>" }
+        colorAttachments: { type: "vector<subpassAttachment_t>" }
+        resolveAttachments: { type: "vector<subpassAttachment_t>" }
+        depthStencilAttachment: { type: "optional<subpassAttachment_t>" }
+        preserveAttachments: { type: "vector<unsigned int>" }
+      }
+
+      subpassDependency_t: {
+        srcSubpass: { 
+          type: int 
+    #      aliases: [[external, VK_SUBPASS_EXTERNAL]]
+        }
+        dstSubpass: { 
+          type: int 
+    #      aliases: [[external, VK_SUBPASS_EXTERNAL]]
+        }
+        srcStageMask: { type: "vk::PipelineStageFlagBits" }
+        dstStageMask: { type: "vk::PipelineStageFlagBits" }
+        srcAccessMask: { type: "vk::AccessFlagBits" }
+        dstAccessMask: { type: "vk::AccessFlagBits" }
+      }
+
+      renderPass_t: {
+        name: { type: string }
+        attachments: { type: "vector<attachment_t>" }
         subpasses: { type: "vector<subpass_t>" }
+        dependencies: { type: "vector<subpassDependency_t>" }
       }
     }
 
@@ -90,7 +116,7 @@
 
       frameProcess_t: {
         name: { type: string }
-        phases: { type: vector<framePhase_t> }
+        phases: { type: "vector<framePhase_t>" }
       }
     }
   }

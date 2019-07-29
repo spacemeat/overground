@@ -1,0 +1,49 @@
+{
+  framePlan: {
+    name: samp
+    phases: [ {
+        kind: jobQueue
+        name: start
+        occurance: everyTime
+      }, {
+        kind: jobQueue
+        name: startOnce
+        occurance: oneTime
+      }, {
+        kind: renderPassBegin
+        renderPassName: sampRenderPass
+      }, {
+        kind: jobQueue
+        name: preDraw
+        occurance: everyTime
+      }, {
+        kind: renderSubpassBegin
+        subpass: 0
+      }, {
+        kind: jobQueue
+        name: drawColorDepthOpaque
+        occurance: everyTime
+      }, {
+        kind: jobQueue
+        name: drawColorDepthOpaqueOnce
+        occurance: oneTime
+      }, {
+        kind: jobQueue
+        name: drawColorDepthAlpha
+        occurance: everyTime
+      }, {
+        kind: jobQueue
+        name: drawColorDepthOpaqueOnce
+        occurance: oneTime
+      }, {
+        kind: renderPassEnd
+      }, {
+        kind: jobQueue
+        name: justBeforePresent
+        kind: recurring
+      }, {
+        kind: present
+      }
+    ]
+  }
+}

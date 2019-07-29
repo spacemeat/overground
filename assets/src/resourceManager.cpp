@@ -178,8 +178,6 @@ void ResourceManager::checkForAnyFileUpdates(JobScheduler & sched)
 
 void ResourceManager::checkForAssetDescFileUpdate(FileReference * file)
 {
-//  log(thId, "ResourceManager::checkForAssetDescFileUpdate()");
-
   file->checkFileModTime();
   if (file->isModified())
   {

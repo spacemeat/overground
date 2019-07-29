@@ -33,7 +33,9 @@ void overground::importPod(
 void overground::importPod(
 std::vector<uint8_t> const & src, framePhase_t & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
@@ -107,7 +109,9 @@ void overground::importPod(
 void overground::importPod(
 std::vector<uint8_t> const & src, frameProcess_t & dest)
 {
-  // NOTE: This operation has not been implemented yet.
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
 
