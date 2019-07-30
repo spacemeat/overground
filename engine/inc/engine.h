@@ -13,10 +13,13 @@
 #include "jobManager.h"
 #include "resourceManager.h"
 
-#include "config.h"
+#include "configAsset.h"
 #include "config-gen.h"
-#include "renderPass.h"
+#include "renderPassAsset.h"
 #include "renderPass-gen.h"
+#include "framePlanAsset.h"
+#include "framePlan-gen.h"
+#include "framePlan.h"
 
 
 namespace overground
@@ -76,13 +79,15 @@ namespace overground
     void performScheduledEvents();
     void checkForDataUpdates();
     void checkForConfigUpdates();
+    void checkForFramePlanUpdates();
 
     // timed events
     void checkForFileUpdates(JobScheduler & sched);
     void checkForAssetUpdates(JobScheduler & sched);
 
     // external updates (say from file changes)
-    void updateConfig(config_t const & newConfig);
+    void updateConfig(config_t newConfig);
+    void updateFramePlan(framePlan_t newFramePlan);
 
     // assets
     std::string getBaseAssetDir()
@@ -105,11 +110,13 @@ namespace overground
 
     config_t config;
     Config::Deltas configDiffs;
-    std::mutex mx_config;
+    std::mutex mx_config;       // TODO: Need?
+
+    framePlan_t framePlanDesc;
+    bool framePlanUpdated = true;
+    FramePlan framePlan;
 
     Graphics graphics;
-
-    //JobManager jobManager;
 
     systemTimePoint systemTime;
     systemTimePoint previousSystemTime;

@@ -1,7 +1,8 @@
 #include "engine.h"
 #include "utils.h"
-#include "config.h"
+#include "configAsset.h"
 #include "jobScheduler.h"
+#include "framePlan.h"
 
 #include <iostream>
 
@@ -208,7 +209,7 @@ void Engine::checkForAssetUpdates(JobScheduler & sched)
 }
 
 
-void Engine::updateConfig(config_t const & newConfig)
+void Engine::updateConfig(config_t newConfig)
 {
   logFn();
 
@@ -223,6 +224,21 @@ void Engine::updateConfig(config_t const & newConfig)
 }
 
 
+void Engine::updateFramePlan(framePlan_t newFramePlan)
+{
+  logFn();
+
+  log(thId, fmt::format(
+    "new framePlan::\n"
+    "{}\n", print(newFramePlan)
+  ));
+
+  framePlanDesc = move(newFramePlan);
+  framePlanUpdated = true;
+  updatedObjectKinds |= DataObjectKindFlags::framePlan;
+}
+
+
 void Engine::checkForDataUpdates()
 {
   if (updatedObjectKinds == DataObjectKindFlags::none)
@@ -232,6 +248,7 @@ void Engine::checkForDataUpdates()
 
   checkForConfigUpdates();
   graphics.checkForDataUpdates();
+  checkForFramePlanUpdates();
 
   configDiffs = Config::Deltas::None;
   updatedObjectKinds = DataObjectKindFlags::none;
@@ -242,13 +259,29 @@ void Engine::checkForConfigUpdates()
 {
   logFn();
 
+  if ((updatedObjectKinds & 
+       DataObjectKindFlags::config) == 0)
+    { return; }
+
   if (configDiffs == Config::Deltas::None)
     { return; }
   
+  // TODO: Run this at top of frame. Otherwise we're jamming a bureaucratic fixed value into the subtle play of worker activations and pink slips.
   jobMan->setNumEmployedWorkers(
     config.general.numWorkerThreads);
 }
 
+
+void Engine::checkForFramePlanUpdates()
+{
+  logFn();
+
+  if ((updatedObjectKinds & 
+       DataObjectKindFlags::framePlan) == 0)
+    { return; }
+  
+  framePlan.update(framePlanDesc);
+}
 
 unique_ptr<Asset> Engine::makeAsset(
   std::string_view assetName,

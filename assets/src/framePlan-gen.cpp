@@ -1,4 +1,4 @@
-#include "frameProcess-gen.h"
+#include "framePlan-gen.h"
 
 using namespace overground;
 using namespace humon;
@@ -8,6 +8,13 @@ using namespace std;
 void overground::importPod(
   humon::HuNode const & src, framePhase_t & dest)
 {
+  if (src % "kind")
+  {
+    auto & src0 = src / "kind";
+    FramePhaseKinds dst0;
+    dst0 = fromString<FramePhaseKinds>((std::string) src0); // leaf
+    dest.kind = std::move(dst0);
+  }
   if (src % "name")
   {
     auto & src0 = src / "name";
@@ -15,19 +22,41 @@ void overground::importPod(
     dst0 = (std::string) src0; // leaf
     dest.name = std::move(dst0);
   }
-  if (src % "kind")
+  if (src % "computePassName")
   {
-    auto & src0 = src / "kind";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.kind = std::move(dst0);
+    auto & src0 = src / "computePassName";
+    std::optional<std::string> dst0;
+    std::string dst1;
+    {
+      auto & src1 = src0;
+      dst1 = (std::string) src1; // leaf
+    }
+    dst0.emplace(std::move(dst1));
+    dest.computePassName = std::move(dst0);
   }
-  if (src % "ref")
+  if (src % "renderPassName")
   {
-    auto & src0 = src / "ref";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.ref = std::move(dst0);
+    auto & src0 = src / "renderPassName";
+    std::optional<std::string> dst0;
+    std::string dst1;
+    {
+      auto & src1 = src0;
+      dst1 = (std::string) src1; // leaf
+    }
+    dst0.emplace(std::move(dst1));
+    dest.renderPassName = std::move(dst0);
+  }
+  if (src % "subpass")
+  {
+    auto & src0 = src / "subpass";
+    std::optional<int> dst0;
+    int dst1;
+    {
+      auto & src1 = src0;
+      dst1 = (int) src1; // leaf
+    }
+    dst0.emplace(std::move(dst1));
+    dest.subpass = std::move(dst0);
   }
 }
 void overground::importPod(
@@ -64,12 +93,34 @@ framePhase_t const & src, int depth)
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "kind: ";
+  ss << to_string(src.kind);
   ss << "\n" << indentIn << "name: ";
   ss << (src.name);
-  ss << "\n" << indentIn << "kind: ";
-  ss << (src.kind);
-  ss << "\n" << indentIn << "ref: ";
-  ss << (src.ref);
+  ss << "\n" << indentIn << "computePassName: ";
+  if ((bool)src.computePassName)
+  {
+    std::string const & src0 = * src.computePassName;
+    ss << (src0);
+  }
+  else
+    { ss << "<undefined>"; }
+  ss << "\n" << indentIn << "renderPassName: ";
+  if ((bool)src.renderPassName)
+  {
+    std::string const & src0 = * src.renderPassName;
+    ss << (src0);
+  }
+  else
+    { ss << "<undefined>"; }
+  ss << "\n" << indentIn << "subpass: ";
+  if ((bool)src.subpass)
+  {
+    int const & src0 = * src.subpass;
+    ss << (src0);
+  }
+  else
+    { ss << "<undefined>"; }
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
@@ -83,7 +134,7 @@ ostream & overground::operator << (ostream & stream, framePhase_t const & rhs)
 
 
 void overground::importPod(
-  humon::HuNode const & src, frameProcess_t & dest)
+  humon::HuNode const & src, framePlan_t & dest)
 {
   if (src % "name")
   {
@@ -107,7 +158,7 @@ void overground::importPod(
   }
 }
 void overground::importPod(
-std::vector<uint8_t> const & src, frameProcess_t & dest)
+std::vector<uint8_t> const & src, framePlan_t & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
@@ -115,7 +166,7 @@ std::vector<uint8_t> const & src, frameProcess_t & dest)
 }
 
 
-void overground::exportPod(frameProcess_t const & src, 
+void overground::exportPod(framePlan_t const & src, 
 humon::HuNode & dest, int depth)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
@@ -125,7 +176,7 @@ humon::HuNode & dest, int depth)
 
 
 void overground::exportPod(
-frameProcess_t const & src, std::vector<uint8_t> & dest)
+framePlan_t const & src, std::vector<uint8_t> & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
@@ -134,7 +185,7 @@ frameProcess_t const & src, std::vector<uint8_t> & dest)
 
 
 std::string overground::print(
-frameProcess_t const & src, int depth)
+framePlan_t const & src, int depth)
 {
   string prevIndentIn(depth * 2, ' ');
   string indentIn(2 + depth * 2, ' ');
@@ -160,7 +211,7 @@ frameProcess_t const & src, int depth)
 }
 
 
-ostream & overground::operator << (ostream & stream, frameProcess_t const & rhs)
+ostream & overground::operator << (ostream & stream, framePlan_t const & rhs)
 {
   stream << print(rhs);
   return stream;

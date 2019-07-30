@@ -54,7 +54,7 @@ void Graphics::updateWindow()
       log(thId, fmt::format("Graphics::updaetWindow(): setting window size: {} x {}", config.graphics.width, config.graphics.height));
       glfwSetWindowSize(mainWindow, config.graphics.width, config.graphics.height);
     
-      this_thread::sleep_for(.1s);
+      this_thread::sleep_for(.1s); // TODO: GROSS
       int w, h;
       glfwGetWindowSize(mainWindow, &w, &h);
       log(thId, fmt::format("Graphics::updaetWindow(): window reports: {} x {}", w, h)); 

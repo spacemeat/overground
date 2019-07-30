@@ -7,7 +7,7 @@ main() {
   local subProject="engine"
   local deps=("graphics" "assetProviders" "assets" "pools" "jobs" "utils")
   local inc=()
-  local libSrc=("engine")
+  local libSrc=("engine" "jobBoard" "framePlan")
   local exeSrc=("test")
   local libDirs=()
   local libs=()

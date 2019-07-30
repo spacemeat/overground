@@ -26,6 +26,26 @@ namespace overground
   using path_t = std::experimental::filesystem::path;
 
 
+  enum class FramePhaseKinds
+  {
+    maintenance,  // internal
+
+    top,
+
+    beginComputePass,
+    endComputePass,
+
+    beginRenderPass,
+    beginSubpass,
+    endRenderPass,
+
+    submitCommands,
+    present,
+
+    jobQueue
+  };
+
+
   /**/
   // Enum class bitwise ops
   // ~
@@ -247,6 +267,7 @@ namespace overground
     none =            0,
     config =          1 <<   0,
     renderPass =      1 <<   1,
+    framePlan =       1 <<   2,
   };
 }
 

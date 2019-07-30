@@ -29,7 +29,6 @@ constexpr auto enumParserHeaderPreamble = "\
 #define GLFW_INCLUDE_VULKAN\n\
 #include <GLFW/glfw3.h>\n\
 #include <vulkan/vulkan.hpp>\n\
-#include \"enumParsers.h\"\n\
 \n\
 namespace overground\n\
 {{\n\
@@ -155,7 +154,7 @@ static void openFiles(path_t const & dir)
   logFn();
 
   // header
-  auto featureFile = "enumParsers.h";
+  auto featureFile = "enumParsers-gen.h";
   auto featurePath = path_t(dir).append("inc").append(featureFile);
   log(0, fmt::format("Generating {}{}.{}",
     ansi::lightBlue, featurePath, ansi::off));
@@ -166,7 +165,7 @@ static void openFiles(path_t const & dir)
     fmt::arg("featureName", "ENUMPARSERS"));
 
   // srcs
-  auto featureCppFile = "enumParsers.cpp";
+  auto featureCppFile = "enumParsers-gen.cpp";
   auto featureCppPath = path_t(dir).append("src").append(featureCppFile);
   log(0, fmt::format("Generating {}{}.{}",
     ansi::lightBlue, featureCppPath, ansi::off));

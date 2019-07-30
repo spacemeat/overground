@@ -1,6 +1,7 @@
 {
   defs: {
     @loadFromString: [
+      FramePhaseKinds
     ]
     config: {
       general_t: {
@@ -107,14 +108,16 @@
       }
     }
 
-    frameProcess: {
+    framePlan: {
       framePhase_t: {
+        kind: { type: FramePhaseKinds }  # TODO: enum
         name: { type: string }
-        kind: { type: string }  # TODO: enum
-        ref: { type: string }
+        computePassName: { type: "optional<string>" }
+        renderPassName: { type: "optional<string>" }
+        subpass: { type: "optional<int>" }
       }
 
-      frameProcess_t: {
+      framePlan_t: {
         name: { type: string }
         phases: { type: "vector<framePhase_t>" }
       }

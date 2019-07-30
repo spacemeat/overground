@@ -17,5 +17,12 @@
       cache: false
       monitor: true
     }
+
+    framePlan: {
+      kind: framePlan
+      dataFile: framePlan.hu
+      cache: false
+      monitor: true
+    }
   }
 }

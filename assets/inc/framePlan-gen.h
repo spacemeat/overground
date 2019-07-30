@@ -1,5 +1,5 @@
-#ifndef frameProcess_GEN_H
-#define frameProcess_GEN_H
+#ifndef framePlan_GEN_H
+#define framePlan_GEN_H
 
 #include <string>
 #include <vector>
@@ -12,9 +12,11 @@ namespace overground
 {
   struct framePhase_t
   {
+    FramePhaseKinds kind;
     std::string name;
-    std::string kind;
-    std::string ref;
+    std::optional<std::string> computePassName;
+    std::optional<std::string> renderPassName;
+    std::optional<int> subpass;
   };
 
   void importPod(
@@ -34,29 +36,29 @@ namespace overground
   std::ostream & operator << (std::ostream & stream, framePhase_t const & src);
 
 
-  struct frameProcess_t
+  struct framePlan_t
   {
     std::string name;
     std::vector<framePhase_t> phases;
   };
 
   void importPod(
-    humon::HuNode const & src, frameProcess_t & dest);
+    humon::HuNode const & src, framePlan_t & dest);
 
   void importPod(
-    std::vector<uint8_t> const & src, frameProcess_t & dest);
+    std::vector<uint8_t> const & src, framePlan_t & dest);
 
-  void exportPod(frameProcess_t const & src, 
+  void exportPod(framePlan_t const & src, 
     humon::HuNode & dest, int depth);
 
   void exportPod(
-    frameProcess_t const & src, std::vector<uint8_t> & dest);
+    framePlan_t const & src, std::vector<uint8_t> & dest);
 
-  std::string print(frameProcess_t const & src, int depth = 0);
+  std::string print(framePlan_t const & src, int depth = 0);
 
-  std::ostream & operator << (std::ostream & stream, frameProcess_t const & src);
+  std::ostream & operator << (std::ostream & stream, framePlan_t const & src);
 
 
 }
 
-#endif // #ifndef frameProcess_GEN_H
+#endif // #ifndef framePlan_GEN_H

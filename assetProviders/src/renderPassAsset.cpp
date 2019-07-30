@@ -1,5 +1,5 @@
 #include <memory>
-#include "renderPass.h"
+#include "renderPassAsset.h"
 #include "engine.h"
 #include "resourceManager.h"
 #include "fileReference.h"

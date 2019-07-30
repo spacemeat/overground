@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef RENDERPASS_AP_H
+#define RENDERPASS_AP_H
 
 #include <array>
 #include <string>
@@ -7,14 +7,14 @@
 #include "humon.h"
 #include "utils.h"
 #include "asset.h"
-#include "config-gen.h"
+#include "renderPass-gen.h"
 
 namespace overground
 {
   class ResourceManager;
   class FileReference;
 
-  extern std::unique_ptr<Asset> makeConfig(
+  extern std::unique_ptr<Asset> makeRenderPass(
     std::string_view assetName,
     FileReference * assetDescFile, 
     humon::HuNode & descFromFile,
@@ -22,26 +22,10 @@ namespace overground
     bool monitor);
 
 
-  class Config : public Asset
+  class RenderPass : public Asset
   {
   public:
-    enum class Deltas : int
-    {
-      None                = 0,
-      JobManagement       = 1 << 0,
-      Window              = 1 << 1,
-      WindowExtents       = 1 << 2,
-      VulkanInstance      = 1 << 3,
-      PhysicalDevice      = 1 << 4,
-      LogicalDevice       = 1 << 5,
-      Swapchain           = 1 << 6,
-
-      RenderPasses        = 1 << 7,
-      NumConcurrentFrames = 1 << 8,
-      GraphicsPipelines   = 1 << 9,
-    };
-
-    Config(
+    RenderPass(
       std::string_view assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
@@ -59,11 +43,8 @@ namespace overground
     virtual void applyToEngine_impl() override;
 
   public:
-    config_t data;
+    renderPass_t data;
   };
-
-
-  Config::Deltas integrate(config_t & lhs, config_t const & rhs);
 }
 
-#endif // #ifndef CONFIG_H
+#endif // #ifndef RENDERPASS_AP_H

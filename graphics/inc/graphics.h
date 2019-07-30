@@ -2,8 +2,8 @@
 #define GRAPHICS_H
 
 #include "graphicsUtils.h"
-#include "config.h"
-#include "renderPass.h"
+#include "configAsset.h"
+#include "renderPassAsset.h"
 #include <string>
 #include <set>
 
@@ -54,7 +54,7 @@ namespace overground
     void drawFrame();
     void waitForGraphicsOps();
 
-    void updateRenderPass(renderPass_t const & newRenderPass);
+    void updateRenderPass(renderPass_t newRenderPass);
 
   private:
     bool manageInvalidDevice();

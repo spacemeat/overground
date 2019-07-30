@@ -484,7 +484,7 @@ void outputImportFromHumon(structDef const & stru, ofstream & ofs)
           ofs << fmt::format("\
 {indent}{lvalueType} dst{depth};\n\
 {indent}{{\n\
-{indent}  auto & src{depth} = {src} / 0;\n",
+{indent}  auto & src{depth} = {src};\n",
             fmt::arg("indent", string(2 + 2 * depth, ' ')),
             fmt::arg("lvalueType", mtd.subTypes[0]),
             fmt::arg("depth", depth),
@@ -635,9 +635,9 @@ std::string overground::print(\n\
     auto & memberName = member.name;
 
     // recursive lambda
-    const auto fn = [&](memberTypeDef const & mtd, string_view memberName, string_view srcName, int depth)->void
+    const auto fn = [&](memberTypeDef const & mtd, string_view memberName, string_view memberParentType, string_view srcName, int depth)->void
     {
-      auto fn_int = [&](memberTypeDef const & mtd, string_view memberName, string_view srcName, int depth, auto & fn_ref)->void
+      auto fn_int = [&](memberTypeDef const & mtd, string_view memberName, string_view memberParentType, string_view srcName, int depth, auto & fn_ref)->void
       {
         string indentIn = "\"" + string(2 + 2 * depth, ' ') + "\"";
         string prevIndentIn = "\"" + string(0 + 2 * depth, ' ') + "\"";
@@ -650,7 +650,8 @@ std::string overground::print(\n\
             fmt::arg("indent", indent),
             fmt::arg("srcName", srcName));
         }
-        else if(mtd.subTypes.size() == 0)
+        else if(mtd.subTypes.size() == 0 &&
+          memberParentType != "std::optional")
         {
           ofs << fmt::format("\
 {indent}ss << \"\\n\" << indentIn;\n", 
@@ -674,7 +675,13 @@ std::string overground::print(\n\
             fmt::arg("subType", mtd.subTypes[0]),
             fmt::arg("memberName", memberName));
 
-          fn_ref(mtd.subTypes[0], (string_view) fmt::format("src{}", depth), (string_view) fmt::format("src{}", depth), depth + 1, fn_ref);
+          fn_ref(
+            mtd.subTypes[0],
+            (string_view) fmt::format("src{}", depth), 
+            mtd.name,
+            (string_view) fmt::format("src{}", depth), 
+            depth + 1, 
+            fn_ref);
 
           ofs << fmt::format("\
 {indent}  depth -= 1;\n\
@@ -698,7 +705,13 @@ std::string overground::print(\n\
             fmt::arg("depth", depth),
             fmt::arg("memberName", memberName));
 
-          fn_ref(mtd.subTypes[0], (string_view) fmt::format("src{}", depth), (string_view) fmt::format("src{}", depth), depth + 1, fn_ref);
+          fn_ref(
+            mtd.subTypes[0], 
+            (string_view) fmt::format("src{}", depth), 
+            mtd.name,
+            (string_view) fmt::format("src{}", depth), 
+            depth + 1,
+            fn_ref);
 
           ofs << fmt::format("\
 {indent}  ss << indentIn;\n\
@@ -714,7 +727,13 @@ std::string overground::print(\n\
             fmt::arg("depth", depth),
             fmt::arg("memberName", memberName));
 
-          fn_ref(mtd.subTypes[1], (string_view) fmt::format("src{}", depth), (string_view) fmt::format("src{}", depth), depth + 1, fn_ref);
+          fn_ref(
+            mtd.subTypes[1], 
+            (string_view) fmt::format("src{}", depth), 
+            mtd.name,
+            (string_view) fmt::format("src{}", depth), 
+            depth + 1, 
+            fn_ref);
 
           ofs << fmt::format("\
 {indent}depth -= 1;\n\
@@ -735,7 +754,13 @@ std::string overground::print(\n\
             fmt::arg("depth", depth),
             fmt::arg("memberName", memberName));
 
-          fn_ref(mtd.subTypes[0], (string_view) fmt::format("src{}", depth), (string_view) fmt::format("src{}", depth), depth + 1, fn_ref);
+          fn_ref(
+            mtd.subTypes[0], 
+            (string_view) fmt::format("src{}", depth), 
+            mtd.name,
+            (string_view) fmt::format("src{}", depth), 
+            depth + 1, 
+            fn_ref);
 
           ofs << fmt::format("\
 {indent}}}\n\
@@ -774,10 +799,10 @@ std::string overground::print(\n\
         }
       };
 
-      fn_int(mtd, memberName, srcName, depth, fn_int);
+      fn_int(mtd, memberName, memberParentType, srcName, depth, fn_int);
     };
 
-    fn(member.type, "src." + memberName, memberName, 0);
+    fn(member.type, "src." + memberName, "", memberName, 0);
   }
 
   ofs << fmt::format("\

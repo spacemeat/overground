@@ -8,7 +8,7 @@ using namespace std;
 using namespace overground;
 
 
-void Graphics::updateRenderPass(renderPass_t const & newRenderPass)
+void Graphics::updateRenderPass(renderPass_t newRenderPass)
 {
   logFn();
 

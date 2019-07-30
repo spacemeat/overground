@@ -273,7 +273,7 @@ void overground::importPod(
     std::optional<subpassAttachment_t> dst0;
     subpassAttachment_t dst1;
     {
-      auto & src1 = src0 / 0;
+      auto & src1 = src0;
       importPod(src1, dst1);
     }
     dst0.emplace(std::move(dst1));
@@ -376,7 +376,6 @@ subpass_t const & src, int depth)
   if ((bool)src.depthStencilAttachment)
   {
     subpassAttachment_t const & src0 = * src.depthStencilAttachment;
-    ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
   else

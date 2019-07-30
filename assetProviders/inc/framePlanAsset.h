@@ -1,5 +1,5 @@
-#ifndef RENDERPASS_H
-#define RENDERPASS_H
+#ifndef FRAMEPLAN_AP_H
+#define FRAMEPLAN_AP_H
 
 #include <array>
 #include <string>
@@ -7,14 +7,14 @@
 #include "humon.h"
 #include "utils.h"
 #include "asset.h"
-#include "renderPass-gen.h"
+#include "framePlan-gen.h"
 
 namespace overground
 {
   class ResourceManager;
   class FileReference;
 
-  extern std::unique_ptr<Asset> makeRenderPass(
+  extern std::unique_ptr<Asset> makeFramePlan(
     std::string_view assetName,
     FileReference * assetDescFile, 
     humon::HuNode & descFromFile,
@@ -22,10 +22,10 @@ namespace overground
     bool monitor);
 
 
-  class RenderPass : public Asset
+  class FramePlanAsset : public Asset
   {
   public:
-    RenderPass(
+    FramePlanAsset(
       std::string_view assetName,
       FileReference * assetDescFile, 
       humon::HuNode & descFromFile,
@@ -43,8 +43,8 @@ namespace overground
     virtual void applyToEngine_impl() override;
 
   public:
-    renderPass_t data;
+    framePlan_t data;
   };
 }
 
-#endif // #ifndef RENDERPASS_H
+#endif // #ifndef FRAMEPLAN_AP_H

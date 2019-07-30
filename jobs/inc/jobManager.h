@@ -51,6 +51,7 @@ namespace overground
     void jobDone() { ++ numJobsDone; }
     void workerDying(int workerId);
     Job * dequeueJob();
+    void setNewPhase(std::string_view newPhase);
 
   private:
     std::vector<Worker *> workers;
@@ -65,6 +66,8 @@ namespace overground
     unsigned int numCores;
     std::atomic_int_fast32_t numJobsStarted = 0;
     std::atomic_int_fast32_t numJobsDone = 0;
+
+    std::string currentPhase;
   };
 
   extern JobManager * jobMan;
