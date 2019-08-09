@@ -7,8 +7,9 @@ template<>
 FramePhaseKinds overground::fromString<FramePhaseKinds>(std::string_view rhs)
 {
   static initializer_list<FramePhaseKinds> il = {
-    FramePhaseKinds::maintenance,
-    FramePhaseKinds::top,
+    FramePhaseKinds::frameMaintenance,
+    FramePhaseKinds::graphicsStructure,
+    FramePhaseKinds::acquireImage,
     FramePhaseKinds::beginComputePass,
     FramePhaseKinds::endComputePass,
     FramePhaseKinds::beginRenderPass,
@@ -16,7 +17,8 @@ FramePhaseKinds overground::fromString<FramePhaseKinds>(std::string_view rhs)
     FramePhaseKinds::endRenderPass,
     FramePhaseKinds::submitCommands,
     FramePhaseKinds::present,
-    FramePhaseKinds::jobQueue
+    FramePhaseKinds::nonBarrierJobQueue,
+    FramePhaseKinds::barrierJobQueue
   };
 
   for (auto val : il)

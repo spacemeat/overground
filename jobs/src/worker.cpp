@@ -40,6 +40,7 @@ void Worker::start()
     log(thId, fmt::format("start() worker {}", id));
   
     employed = true;
+    gettingAJob = true;
     cv_start.notify_one();
   }
 }
@@ -52,7 +53,8 @@ bool Worker::nudge()
 {
   if (employed && tasked == false)
   {
-    log(thId, fmt::format("nudge() worker {}", id));
+    log(thId, logTags::verb, fmt::format("nudge() worker {}", id));
+    gettingAJob = true;
     cv_start.notify_one();
     return true;
   }
@@ -92,29 +94,27 @@ void Worker::join()
 void Worker::threadFn()
 {
   thId = createLogChannel(
-    fmt::format("wk {}", id), logTags::dbg, logTags::dev,
+    fmt::format("wk {}", id), logTags::dbg, logTags::micro,
     & cout, & coutMx);
 
   log(thId, "thread start");
 
   while (dying == false)
   {
-    /*
-      wait_for(dur, abit, [&}{ employed || dying }])
-      if employed:
-        while(getAJob()):
-          doAJob(job)
-    */
-
-    unique_lock<mutex> lock(mx_start);
-    cv_start.wait_for(lock, 
-      jobReadyWaitDuration, [&]
-      { return employed || dying; });
+    {
+      unique_lock<mutex> lock(mx_start);
+      log(thId, logTags::verb, "waiting for work.");
+      cv_start.wait_for(lock, 
+        jobReadyWaitDuration, [&]
+        { return (employed && gettingAJob) || dying; });
+    }
+    gettingAJob = false;
     
-    if (employed && dying == false)
+    while (employed && dying == false)
     {
       log(thId, logTags::verb, "getting next job.");
-      auto jayobee = jobManager->dequeueJob();
+
+      auto jayobee = jobManager->dequeueJob(this);
       if (jayobee != nullptr)
       {
         tasked = true;
@@ -130,6 +130,7 @@ void Worker::threadFn()
       {
         log(thId, logTags::verb, "bored now.");
         tasked = false;
+        break;
       }
     }
   }

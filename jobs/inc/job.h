@@ -14,17 +14,25 @@ namespace overground
 
   class Job
   {
-    enum class JobState { idle = 0, pending, started };
+    enum class JobState { larval = 0, available, posted, pending, started };
 
   public:
     Job(std::string_view jobTitle);
-    virtual ~Job() { }
+    virtual ~Job();
 
-    bool isIdle() { return state == JobState::idle; }
-    bool isPending() { return state == JobState::pending; }
-    bool isStarted() { return state == JobState::started; }
+    bool isAvailable()
+      { return state == JobState::available; }
+    bool isPosted()
+      { return state == JobState::posted; }
+    bool isPending()
+      { return state == JobState::pending; }
+    bool isStarted()
+      { return state == JobState::started; }
 
-    void setPending() { state = JobState::pending; }
+    void setPosted()
+      { state = JobState::posted; }
+    void setPending()
+      { state = JobState::pending; }
 
     void waitFor(Job * dependency);
 
@@ -32,6 +40,7 @@ namespace overground
       { return scheduleKind; }
     void setScheduleKind(ScheduleKind kind);
     void run();
+    void skip();
 
   protected:
     virtual void run_impl() = 0;
@@ -44,7 +53,7 @@ namespace overground
     std::string jobTitle;
     ScheduleKind scheduleKind;
 
-    JobState state = JobState::idle;
+    JobState state = JobState::larval;
 
     // dependents -- things what have to be told that I'm done
     std::vector<Job *> jobsWaitingForThis;

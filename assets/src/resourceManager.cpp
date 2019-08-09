@@ -128,6 +128,8 @@ void ResourceManager::removeAssetOptFile(string_view file)
 
 void ResourceManager::checkForAnyFileUpdates(JobScheduler & sched)
 {
+  logFn();
+  
   // Check asset description (.ass) files.
   for (auto & [_, assetFile] : assetDescFiles)
   {
@@ -178,6 +180,8 @@ void ResourceManager::checkForAnyFileUpdates(JobScheduler & sched)
 
 void ResourceManager::checkForAssetDescFileUpdate(FileReference * file)
 {
+  logFn();
+
   file->checkFileModTime();
   if (file->isModified())
   {
@@ -195,6 +199,8 @@ void ResourceManager::checkForAssetDescFileUpdate(FileReference * file)
     {
       auto & assetName = n.keyAt(i);
       auto & assetBlock = n / assetName;
+
+      // TODO: lock on assets. n of these jobs may run at a time.
 
       // if no asset by that name, or if the asset definition has changed,
       if (auto it = assets.find(assetName);
@@ -219,6 +225,7 @@ void ResourceManager::checkForAssetDescFileUpdate(FileReference * file)
         auto newAsset = makeAsset(
             assetName, file, assetBlock,
             cache, compress, monitor);
+        // TODO: lock on assets. n of these jobs may run at a time.
         assets.insert_or_assign(assetName, move(newAsset));
 
         assetsChanged = true;
@@ -230,10 +237,12 @@ void ResourceManager::checkForAssetDescFileUpdate(FileReference * file)
 
 void ResourceManager::checkForAssetUpdates(JobScheduler & sched)
 {
+  logFn();
+  
   if (assetsChanged == false)
     { return; }
 
-  log(thId, "assetcChanged == true");
+  log(thId, "checkForAssetUpdates: assetcChanged == true");
 
   // we're handling it, y0
   // TODO: Does any of this need mutexing? Should only be one check job running, right..?

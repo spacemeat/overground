@@ -20,9 +20,10 @@ Engine::Engine()
 : resMan(AssetBaseDir, AssetDataBaseDir)
 {
   thId = createLogChannel(
-    "main", logTags::dbg, logTags::dev, & cout, & coutMx);
+    "main", logTags::dbg, logTags::micro, & cout, & coutMx);
   
   jobMan->allocateWorkers(JobManager::getNumCores() * 2);
+  jobMan->setFramePlan(& framePlan);
 }
 
 
@@ -70,7 +71,6 @@ void Engine::init(int argc, char ** argv)
   checkForFileUpdates(sched);
   // latch the config to engine; creates the window, etc.
   checkForAssetUpdates(sched);
-
   // initial config
   checkForDataUpdates();
 }
@@ -124,32 +124,45 @@ void Engine::enterEventLoop()
     log(thId, logTags::err, "No window was created. Was graphics.reset() called?");
     return;
   }
-
+  
   while (! glfwWindowShouldClose(window))
   {
     glfwPollEvents();
-    iterateLoop();
+    // TODO: Check window size updates and inform graphics
   }
 
   log(thId, "End of enterEventLoop");
 
+  // just straight-up stop working. All workers will finish their jobs though, so this just tells them not to start new ones (and does not block).
+//  jobMan->setNumEmployedWorkers(0);
+  jobMan->stopAndJoin();
+
+  // wait for the GPU to finish everything.
   graphics.waitForGraphicsOps();
 }
 
 
-void Engine::iterateLoop()
+// Phase job for frameMaintenance phases
+void Engine::runFrameMaintenance()
 {
-  // logFn();
+  logFn();
+
+  log(thId, logTags::phase, fmt::format("{}FMP{}", ansi::lightRed, ansi::off));
 
   updateTimer();
-  graphics.presentFrame();
-  graphics.drawFrame();
 
   JobScheduler sched(ScheduleKind::asynchronous);
-  checkForDataUpdates();
+
+  performScheduledEvents(sched);
   checkForAssetUpdates(sched);
-  performScheduledEvents();
-  // animate, do other CPU-intensive stuff here
+
+  if (updatedObjectKinds != DataObjectKindFlags::none)
+  { 
+    framePlan.postJob("graphicsStructure", 
+      makeFnJob("checkForDataUpdates", [&]
+        { checkForDataUpdates(); }
+      ), false);
+  }
 }
 
 
@@ -161,12 +174,10 @@ void Engine::updateTimer()
   frameTime_us = systemTime - previousSystemTime;
   currentTime_us += frameTime_us;
 
-  log(thId, logTags::verb, fmt::format(
-    "previousSystemTime:  {}\n"
+  log(thId, logTags::dbg, fmt::format("\n"
     "systemTime:          {}\n"
     "frameTime_us:        {}\n"
     "currentTime:         {}",
-    previousSystemTime.time_since_epoch().count(),
     systemTime.time_since_epoch().count(),
     frameTime_us.count(),
     currentTime_us.time_since_epoch().count()
@@ -174,10 +185,8 @@ void Engine::updateTimer()
 }
 
 
-void Engine::performScheduledEvents()
+void Engine::performScheduledEvents(JobScheduler & sched)
 {
-  JobScheduler sched(ScheduleKind::asynchronous);
-
   // perform scheduled actions if any
   for (size_t i = 0; i < eventPeriods.size(); ++i)
   {
@@ -209,36 +218,6 @@ void Engine::checkForAssetUpdates(JobScheduler & sched)
 }
 
 
-void Engine::updateConfig(config_t newConfig)
-{
-  logFn();
-
-  log(thId, fmt::format(
-    "new config::\n"
-    "{}\n", print(newConfig)
-  ));
-
-  configDiffs = integrate(config, newConfig);
-  config = move(newConfig);
-  updatedObjectKinds |= DataObjectKindFlags::config;
-}
-
-
-void Engine::updateFramePlan(framePlan_t newFramePlan)
-{
-  logFn();
-
-  log(thId, fmt::format(
-    "new framePlan::\n"
-    "{}\n", print(newFramePlan)
-  ));
-
-  framePlanDesc = move(newFramePlan);
-  framePlanUpdated = true;
-  updatedObjectKinds |= DataObjectKindFlags::framePlan;
-}
-
-
 void Engine::checkForDataUpdates()
 {
   if (updatedObjectKinds == DataObjectKindFlags::none)
@@ -249,6 +228,10 @@ void Engine::checkForDataUpdates()
   checkForConfigUpdates();
   graphics.checkForDataUpdates();
   checkForFramePlanUpdates();
+
+  jobMan->setNumEmployedWorkers(
+    config.general.numWorkerThreads);
+
 
   configDiffs = Config::Deltas::None;
   updatedObjectKinds = DataObjectKindFlags::none;
@@ -265,10 +248,6 @@ void Engine::checkForConfigUpdates()
 
   if (configDiffs == Config::Deltas::None)
     { return; }
-  
-  // TODO: Run this at top of frame. Otherwise we're jamming a bureaucratic fixed value into the subtle play of worker activations and pink slips.
-  jobMan->setNumEmployedWorkers(
-    config.general.numWorkerThreads);
 }
 
 
@@ -281,7 +260,80 @@ void Engine::checkForFramePlanUpdates()
     { return; }
   
   framePlan.update(framePlanDesc);
+
+  // assign initial jobs to each phase
+  framePlan.forEachPhase([&](FramePhase & phase)
+  {
+    switch(phase.getKind())
+    {
+    case FramePhaseKinds::frameMaintenance:
+      assignSpecialPhaseJobs(phase);
+      break;
+    case FramePhaseKinds::graphicsStructure:
+    case FramePhaseKinds::acquireImage:
+    case FramePhaseKinds::beginComputePass:
+    case FramePhaseKinds::beginRenderPass:
+    case FramePhaseKinds::beginSubpass:
+    case FramePhaseKinds::endComputePass:
+    case FramePhaseKinds::endRenderPass:
+    case FramePhaseKinds::submitCommands:
+    case FramePhaseKinds::present:
+      graphics.assignSpecialPhaseJobs(phase);
+      break;
+    case FramePhaseKinds::barrierJobQueue:
+    case FramePhaseKinds::nonBarrierJobQueue:
+    default:
+      break;
+    }
+  });
+
+  jobMan->setNextPhaseIdx(0);
 }
+
+
+void Engine::assignSpecialPhaseJobs(FramePhase & phase)
+{
+  switch(phase.getKind())
+  {
+  case FramePhaseKinds::frameMaintenance:
+    phase.setBarrierJob(makeFnJob("frameMaintenancePhase", [this]
+      { runFrameMaintenance(); }));
+    break;
+  default:
+    break;
+  }
+}
+
+
+void Engine::updateConfig(config_t newConfig)
+{
+  logFn();
+
+  log(thId, logTags::asset, fmt::format(
+    "new config:\n"
+    "{}\n", print(newConfig)
+  ));
+
+  configDiffs = integrate(config, newConfig);
+  config = move(newConfig);
+  updatedObjectKinds |= DataObjectKindFlags::config;
+}
+
+
+void Engine::updateFramePlan(framePlan_t newFramePlan)
+{
+  logFn();
+
+  log(thId, logTags::asset, fmt::format(
+    "new framePlan:\n"
+    "{}\n", print(newFramePlan)
+  ));
+
+  framePlanDesc = move(newFramePlan);
+  framePlanUpdated = true;
+  updatedObjectKinds |= DataObjectKindFlags::framePlan;
+}
+
 
 unique_ptr<Asset> Engine::makeAsset(
   std::string_view assetName,

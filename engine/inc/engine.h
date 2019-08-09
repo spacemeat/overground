@@ -47,6 +47,7 @@ namespace overground
     ~Engine();
 
     ResourceManager & getResourceManager() { return resMan; }
+    FramePlan & getFramePlan() { return framePlan; }
     Graphics & getGraphics() { return graphics; }
 
     DataObjectKindFlags & getUpdatedObjectKinds()
@@ -73,17 +74,21 @@ namespace overground
     void loadScene();
     void latchSceneDelta();
     void enterEventLoop();
+
+    // On death's door:
     void iterateLoop();
 
+    void runFrameMaintenance();
     void updateTimer();
-    void performScheduledEvents();
-    void checkForDataUpdates();
-    void checkForConfigUpdates();
-    void checkForFramePlanUpdates();
-
+    void performScheduledEvents(JobScheduler & sched);
     // timed events
     void checkForFileUpdates(JobScheduler & sched);
     void checkForAssetUpdates(JobScheduler & sched);
+
+    void checkForDataUpdates();
+    void checkForConfigUpdates();
+    void checkForFramePlanUpdates();
+    void assignSpecialPhaseJobs(FramePhase & phase);
 
     // external updates (say from file changes)
     void updateConfig(config_t newConfig);
@@ -100,7 +105,8 @@ namespace overground
       bool cache, bool compress,
       bool monitor
     );
-
+  
+  private:
     std::thread * limiter;
 
     std::string workingDir = "res";

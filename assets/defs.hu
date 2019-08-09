@@ -115,6 +115,7 @@
         computePassName: { type: "optional<string>" }
         renderPassName: { type: "optional<string>" }
         subpass: { type: "optional<int>" }
+        arg: { type: "optional<string>" }
       }
 
       framePlan_t: {

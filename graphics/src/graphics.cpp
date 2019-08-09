@@ -1,6 +1,7 @@
 #include "graphics.h"
 #include "configAsset.h"
 #include "engine.h"
+#include "framePlan.h"
 #include <iostream>
 
 using namespace std;
@@ -109,6 +110,54 @@ void Graphics::checkForRenderPassUpdates()
     resetFramebuffer(rpt);
 
     rpt.updated = false;
+  }
+}
+
+
+void Graphics::assignSpecialPhaseJobs(FramePhase & phase)
+{
+  switch(phase.getKind())
+  {
+  case FramePhaseKinds::graphicsStructure:
+    phase.setBarrierJob(makeFnJob("graphicsStructurePhase", [this]
+      { log(thId, logTags::phase, fmt::format("{}GSP{}", ansi::lightRed, ansi::off)); }));
+    break;
+  case FramePhaseKinds::acquireImage:
+    phase.setBarrierJob(makeFnJob("acquireImagePhase", [this]
+      { log(thId, logTags::phase, fmt::format("{}AIP{}", ansi::lightRed, ansi::off)); }));
+    break;
+  case FramePhaseKinds::beginComputePass:
+    phase.setBarrierJob(makeFnJob("beginComputePassPhase", [this]
+      { log(thId, logTags::phase, fmt::format("{}BCPP{}", ansi::lightRed, ansi::off)); }));
+    break;
+  case FramePhaseKinds::endComputePass:
+    phase.setBarrierJob(makeFnJob("endComputePhase", [this]
+      { log(thId, logTags::phase, fmt::format("{}ECP{}", ansi::lightRed, ansi::off)); }));
+    break;
+  case FramePhaseKinds::beginRenderPass:
+    phase.setBarrierJob(makeFnJob("beginRenderPassPhase", [this]
+      { log(thId, logTags::phase, fmt::format("{}BRPP{}", ansi::lightRed, ansi::off)); }));
+    break;
+  case FramePhaseKinds::beginSubpass:
+    phase.setBarrierJob(makeFnJob("beginSubpassPhase", [this]
+      { log(thId, logTags::phase, fmt::format("{}BSP{}", ansi::lightRed, ansi::off)); }));
+    break;
+  case FramePhaseKinds::endRenderPass:
+    phase.setBarrierJob(makeFnJob("endRenderPassPhase", [this]
+      { log(thId, logTags::phase, fmt::format("{}ERPP{}", ansi::lightRed, ansi::off)); }));
+    break;
+  case FramePhaseKinds::submitCommands:
+    phase.setBarrierJob(makeFnJob("submitCommandsPhase", [this]
+      { log(thId, logTags::phase, fmt::format("{}SCP{}", ansi::lightRed, ansi::off)); }));
+    break;
+  case FramePhaseKinds::present:
+    phase.setBarrierJob(makeFnJob("presentPhase", [this]
+      { log(thId, logTags::phase, fmt::format("{}PP{}", ansi::lightRed, ansi::off)); }));
+    break;
+  case FramePhaseKinds::barrierJobQueue:
+  case FramePhaseKinds::nonBarrierJobQueue:
+  default:
+    break;
   }
 }
 

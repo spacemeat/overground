@@ -17,6 +17,7 @@ namespace overground
     std::optional<std::string> computePassName;
     std::optional<std::string> renderPassName;
     std::optional<int> subpass;
+    std::optional<std::string> arg;
   };
 
   void importPod(

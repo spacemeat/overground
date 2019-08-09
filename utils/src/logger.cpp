@@ -2,6 +2,7 @@
 #include <ctime>
 #include <fmt/chrono.h>
 #include "logger.h"
+#include "ansiTerm.h"
 
 
 using namespace std;
@@ -18,6 +19,7 @@ Channel::Channel(loggerTimePoint_t startTime,
   int defaultTags, int filters,
   ostream * outStream, mutex * outStreamMutex,
   bool prefixWithName, bool prefixWithTime, 
+  bool colorChannelBackgrounds,
   size_t initialSize, bool canGrow)
 : startTime(startTime),
   id(id), name(name), defaultTags(defaultTags),
@@ -25,6 +27,7 @@ Channel::Channel(loggerTimePoint_t startTime,
   outStream(outStream), outStreamMutex(outStreamMutex), 
   prefixWithName(prefixWithName),
   prefixWithTime(prefixWithTime),
+  colorChannelBackgrounds(colorChannelBackgrounds),
   canGrow(canGrow)
 {
   buffer.reserve(initialSize);
@@ -43,6 +46,14 @@ Channel & Channel::setFilters(int filters)
   this->filters = filters;
   return *this;
 }
+
+
+constexpr char const * channelBackgrounds[] {
+  ansi::blackBg, ansi::darkDarkRedBg, ansi::darkDarkGreenBg,
+  ansi::darkDarkYellowBg, ansi::darkDarkBlueBg, 
+  ansi::darkDarkMagentaBg, ansi::darkDarkOrangeBg,
+  ansi::darkDarkCyanBg, ansi::darkDarkGrayBg
+};
 
 
 Channel & Channel::log(int tags, std::string_view message)
@@ -67,15 +78,23 @@ Channel & Channel::log(int tags, std::string_view message)
   {
     auto && doIt = [this]
     {
+      if (colorChannelBackgrounds)
+      {
+        *outStream << 
+          channelBackgrounds[id % (sizeof(channelBackgrounds) /
+            sizeof(channelBackgrounds[0]))];
+      }
       if (prefixWithTime)
       {
         auto nowTime = chrono::high_resolution_clock::now();
-        auto ms = chrono::duration_cast<std::chrono::milliseconds>(nowTime - startTime);
+        auto ms = chrono::duration_cast<chrono::milliseconds>(nowTime - startTime);
         *outStream << fmt::format("{:=6d}> ", ms.count());
       }
+      
       if (prefixWithName)
         { *outStream << fmt::format("{}: ", name); }
-      *outStream << str() << endl;  // flushing is fine
+
+      *outStream << ansi::off << str() << endl;
     };
 
     if (outStreamMutex != nullptr)
@@ -142,6 +161,7 @@ int Logger::createChannel(
   ostream * outStream,
   std::mutex * outStreamMutex,
   bool prefixWithName, bool prefixWithTime, 
+  bool colorChannelBackgrounds,
   size_t initialSize, bool canGrow)
 {
   auto id = channels.size();
@@ -152,6 +172,7 @@ int Logger::createChannel(
     defaultTags, filters, 
     outStream, outStreamMutex,
     prefixWithName, prefixWithTime,
+    colorChannelBackgrounds,
     initialSize, canGrow);
   
   channelMap.emplace(name, id);
@@ -220,12 +241,14 @@ int overground::createLogChannel(
   ostream * outStream, 
   std::mutex * outStreamMutex,
   bool prefixWithName, bool prefixWithTime,
+  bool colorChannelBackgrounds,
   size_t initialSize, bool canGrow)
 {
   return _logger->createChannel(name, 
     defaultTags, filters, 
     outStream, outStreamMutex, 
     prefixWithName, prefixWithTime,
+    colorChannelBackgrounds,
     initialSize, canGrow);
 }
 

@@ -28,10 +28,11 @@ namespace overground
 
   enum class FramePhaseKinds
   {
-    maintenance,  // internal
+    frameMaintenance,
+    graphicsStructure,  // joins on all GPU ops - for when we hae to change vulkan objects, for instance.
 
-    top,
-
+    acquireImage,
+    
     beginComputePass,
     endComputePass,
 
@@ -42,7 +43,8 @@ namespace overground
     submitCommands,
     present,
 
-    jobQueue
+    nonBarrierJobQueue,
+    barrierJobQueue
   };
 
 
@@ -251,7 +253,7 @@ namespace overground
     return st.str();
   }
 
-#define logFn() { log(thId, logTags::dbg, fmt::format("{}{}{}:", ansi::darkYellow, __PRETTY_FUNCTION__, ansi::off)); }
+#define logFn() { log(thId, logTags::fn, fmt::format("{}{}{}:", ansi::darkYellow, __PRETTY_FUNCTION__, ansi::off)); }
 
 
 

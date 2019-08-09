@@ -5,7 +5,7 @@ source ../buildDefaults.sh
 
 main() {
   local subProject="jobs"
-  local deps=("pools" "utils")
+  local deps=("pools" "utils" "assets" "engine")
   local inc=()
   local libSrc=("job" "jobManager" "worker" "jobScheduler")
   local exeSrc=()
@@ -13,9 +13,9 @@ main() {
   local libs=()
   local packages=()
 
-  inc+=" ${defaultInc[@]}"
-  libDirs+=" ${defaultLibDirs[@]}"
-  libs+=" ${defaultLibs[@]}"
+  inc+=" ${defaultIncWithVk[@]}"
+  libDirs+=" ${defaultLibDirsWithVk[@]}"
+  libs+=" ${defaultLibsWithVk[@]}"
 
   doTheThing $1 $subProject deps inc libSrc exeSrc libDirs libs packages
 

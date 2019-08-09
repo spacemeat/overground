@@ -1,6 +1,7 @@
 #include <unordered_set>
 #include "framePlan.h"
 #include "jobBoard.h"
+#include "job.h"
 
 
 using namespace std;
@@ -20,6 +21,11 @@ void FramePhase::update(framePhase_t const & desc)
   kind = desc.kind;
   switch(kind)
   {
+  case FramePhaseKinds::frameMaintenance:
+  case FramePhaseKinds::graphicsStructure:
+  case FramePhaseKinds::acquireImage:
+    break;
+
   case FramePhaseKinds::beginComputePass:
     if (desc.computePassName) 
       { phaseArg = * desc.computePassName; }
@@ -35,13 +41,18 @@ void FramePhase::update(framePhase_t const & desc)
       { phaseArg = * desc.subpass; }
     break;
 
-  case FramePhaseKinds::maintenance:
-  case FramePhaseKinds::top:
   case FramePhaseKinds::endComputePass:
   case FramePhaseKinds::endRenderPass:
   case FramePhaseKinds::submitCommands:
   case FramePhaseKinds::present:
-  case FramePhaseKinds::jobQueue:
+  case FramePhaseKinds::nonBarrierJobQueue:
+    if (desc.arg)
+      { phaseArg = * desc.arg; }
+    break;
+  case FramePhaseKinds::barrierJobQueue:
+    if (desc.arg)
+      { phaseArg = * desc.arg; }
+    break;
   default:
     break;
   }
@@ -69,8 +80,8 @@ void FramePlan::update(framePlan_t const & desc)
 
   vector<bool> visiteds(phases.size());
 
-  std::unordered_map<std::string, size_t> newPhaseIdxs;
-  std::vector<FramePhase> newPhases;
+  unordered_map<string, size_t> newPhaseIdxs;
+  vector<FramePhase> newPhases;
 
   name = desc.name;
   for (auto & phaseDesc : desc.phases)
@@ -105,4 +116,11 @@ void FramePlan::postJob(string_view phase, Job * job, bool recurring)
     auto & phase = phases[it->second];
     phase.postJob(job, recurring);
   }
+}
+
+
+bool FramePlan::hasBarrierJob(size_t phaseIdx) const
+{
+  return phaseIdx < phases.size() &&
+         phases[phaseIdx].hasBarrierJob();
 }

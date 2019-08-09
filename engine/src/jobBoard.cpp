@@ -25,12 +25,10 @@ void JobBoard::postJob(Job * job, bool recurring)
   static unsigned int jobPostingId = 1;
   unsigned int thisJobPostingId = jobPostingId ++;
   if (recurring)
-  {
-    recurringJobs.emplace_back(thisJobPostingId, job);
-  }
+    { recurringJobs.emplace_back(thisJobPostingId, job); }
   else
-  {
-    oneTimeJobs.push({thisJobPostingId, job});
-  }  
+    { oneTimeJobs.push({thisJobPostingId, job}); }
+  
+  job->setPosted();
 }
 

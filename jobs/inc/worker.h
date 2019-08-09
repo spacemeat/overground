@@ -38,6 +38,7 @@ namespace overground
     int id;
     std::atomic<bool> employed = false;
     std::atomic<bool> tasked = false;
+    std::atomic<bool> gettingAJob = true;
     std::atomic<bool> running = false;
     std::atomic<bool> dying = false;
 

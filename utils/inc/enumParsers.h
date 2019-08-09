@@ -14,8 +14,9 @@ namespace overground
   {
     switch (value)
     {
-    case FramePhaseKinds::maintenance: return "maintenance";
-    case FramePhaseKinds::top: return "top";
+    case FramePhaseKinds::frameMaintenance: return "frameMaintenance";
+    case FramePhaseKinds::graphicsStructure: return "graphicsStructure";
+    case FramePhaseKinds::acquireImage: return "acquireImage";
     case FramePhaseKinds::beginComputePass: return "beginComputePass";
     case FramePhaseKinds::endComputePass: return "beginComputePass";
     case FramePhaseKinds::beginRenderPass: return "beginRenderPass";
@@ -23,7 +24,8 @@ namespace overground
     case FramePhaseKinds::endRenderPass: return "endRenderPass";
     case FramePhaseKinds::submitCommands: return "submitCommands";
     case FramePhaseKinds::present: return "present";
-    case FramePhaseKinds::jobQueue: return "jobQueue";
+    case FramePhaseKinds::nonBarrierJobQueue: return "nonBarrierJobQueue";
+    case FramePhaseKinds::barrierJobQueue: return "barrierJobQueue";
     default: return "invalid";
     }
   }

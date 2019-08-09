@@ -63,6 +63,7 @@ void JobScheduler::runJobGroup()
       for (auto it = jobGroup.begin(); 
         it != jobGroup.end(); ++it)
         { (*it)->run(); }
+        // TODO: Not callig things like JobManager::jobDone()
     }
   }
   jobGroup.clear();

@@ -21,8 +21,19 @@ namespace overground
       err       = 1 << 4,
       warn      = 1 << 5,
 
-      dev       = sys | info | dbg | err | warn,
-      spam      = sys | info | verb | dbg | err | warn
+      fn        = 1 << 6,
+      job       = 1 << 7,
+      barrier   = 1 << 8,
+      phase     = 1 << 9,
+
+      asset     = 1 << 10,
+
+
+      micro     = sys | info | dbg | err | warn | fn | job | barrier | phase | asset,  
+      
+      macro     = sys | info | dbg | err | warn | asset,
+      
+      spam      = sys | info | verb | dbg | err | warn | fn | job | barrier | phase | asset
     };
   }
 
@@ -46,6 +57,7 @@ namespace overground
       std::mutex * outStreamMutex = nullptr,
       bool prefixWithName = true, 
       bool prefixWithTime = true,
+      bool colorChannelBackgrounds = true,
       size_t initialSize = (1 << 20), bool canGrow = true);
     
     int getDefaultTags() { return defaultTags; }
@@ -72,6 +84,7 @@ namespace overground
     std::mutex * outStreamMutex = nullptr;
     bool prefixWithName;
     bool prefixWithTime;
+    bool colorChannelBackgrounds;
     bool canGrow;
 
     size_t sizeAtLastStr;
@@ -91,6 +104,7 @@ namespace overground
       std::mutex * outStreamMutex = nullptr,
       bool prefixWithName = true, 
       bool prefixWithTime = true,
+      bool colorChannelBackgrounds = true,
       size_t initialSize = (1 << 20), bool canGrow = true);
 
     Channel & log(int channel);
@@ -127,6 +141,7 @@ namespace overground
     std::mutex * outStreamMutex = nullptr,
     bool prefixWithName = true, 
     bool prefixWithTime = true,
+    bool colorChannelBackgrounds = true,
     size_t initialSize = (1 << 20), bool canGrow = true);
 
   extern Channel & log(int channel);

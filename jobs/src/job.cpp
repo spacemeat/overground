@@ -15,6 +15,10 @@ Job::Job(string_view jobTitle)
 { }
 
 
+Job::~Job()
+{ }
+
+
 // only useful if *this hasn't started the job yet; TODO: assert(state == JobState::idle)?
 void Job::waitFor(Job * jobThisWaitsFor)
 {
@@ -31,10 +35,11 @@ void Job::setScheduleKind(ScheduleKind kind)
 
 void Job::run()
 {
+  bool wasPosted = isPosted();
   state = JobState::started;
   if (numJobsThisIsWaitingFor > 0)
   {
-    log(thId, fmt::format("{}delaying {}{}{} (job {}{}{}).{}", 
+    log(thId, logTags::job, fmt::format("{}delaying {}{}{} (job {}{}{}).{}", 
       ansi::darkBlue, 
       ansi::lightBlue, jobTitle, 
       ansi::darkBlue, 
@@ -54,7 +59,7 @@ void Job::run()
     { jobMan->decreaseNumEmployedWorkers(); }
   }
 
-  log(thId, fmt::format("{}starting {}{}{} (job {}{}{}).{}", 
+  log(thId, logTags::job, fmt::format("{}starting {}{}{} (job {}{}{}).{}", 
     ansi::darkMagenta, 
     ansi::lightMagenta, jobTitle, 
     ansi::darkMagenta, 
@@ -64,7 +69,7 @@ void Job::run()
 
   run_impl();
 
-  log(thId, fmt::format("{}Job done {}{}{} (job {}{}{}).{}", 
+  log(thId, logTags::job, fmt::format("{}Job done {}{}{} (job {}{}{}).{}", 
     ansi::darkMagenta, 
     ansi::lightMagenta, jobTitle, 
     ansi::darkMagenta, 
@@ -72,18 +77,41 @@ void Job::run()
     ansi::darkMagenta, 
     ansi::off));
 
+  for (auto job : jobsWaitingForThis)
+    { job->onJobThisIsWaitingForIsDone(); }
+
+  state = wasPosted ? 
+    JobState::posted : 
+    JobState::available;
+}
+
+
+void Job::skip()
+{
+  bool wasPosted = isPosted();
+  state = JobState::started;
+
+  log(thId, logTags::job, fmt::format("{}skipping {}{}{} (job {}{}{}).{}", 
+    ansi::lightYellow, 
+    ansi::lightMagenta, jobTitle, 
+    ansi::darkMagenta, 
+    ansi::lightMagenta, id,
+    ansi::darkMagenta, 
+    ansi::off));
 
   for (auto job : jobsWaitingForThis)
-  {
-    job->onJobThisIsWaitingForIsDone();
-  }
-  state = JobState::idle;
+    { job->onJobThisIsWaitingForIsDone(); }
+
+  state = wasPosted ? 
+    JobState::posted : 
+    JobState::available;
 }
 
 
 void Job::notifyWhenDone(Job * waitingJob)
 {
-  assert(state == JobState::idle);
+  assert(state == JobState::larval ||
+         state == JobState::pending);
   jobsWaitingForThis.push_back(waitingJob);
 }
 

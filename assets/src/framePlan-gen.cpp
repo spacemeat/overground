@@ -58,6 +58,18 @@ void overground::importPod(
     dst0.emplace(std::move(dst1));
     dest.subpass = std::move(dst0);
   }
+  if (src % "arg")
+  {
+    auto & src0 = src / "arg";
+    std::optional<std::string> dst0;
+    std::string dst1;
+    {
+      auto & src1 = src0;
+      dst1 = (std::string) src1; // leaf
+    }
+    dst0.emplace(std::move(dst1));
+    dest.arg = std::move(dst0);
+  }
 }
 void overground::importPod(
 std::vector<uint8_t> const & src, framePhase_t & dest)
@@ -117,6 +129,14 @@ framePhase_t const & src, int depth)
   if ((bool)src.subpass)
   {
     int const & src0 = * src.subpass;
+    ss << (src0);
+  }
+  else
+    { ss << "<undefined>"; }
+  ss << "\n" << indentIn << "arg: ";
+  if ((bool)src.arg)
+  {
+    std::string const & src0 = * src.arg;
     ss << (src0);
   }
   else

@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <new>
+#include "logger.h"
 
 
 namespace overground
@@ -16,46 +17,16 @@ namespace overground
   public:
     JobPool() { }
     size_t size() { return data.size(); }
-    //JobType * next();
 
     template <class ...Args>
     JobType * next(std::string_view jobTitle, Args && ...args);
 
   private:
-    std::vector<JobType *> data;
+    std::vector<std::unique_ptr<JobType>> data;
     size_t cursor = 0;
     std::mutex mx;
   };
 
-
-  /*
-  template <class JobType>
-  JobType * JobPool<JobType>::next()
-  {
-    std::lock_guard<std::mutex> lock(mx);
-    JobType * obj = nullptr;
-
-    for (size_t i = 0; i < data.size(); ++i)
-    {
-      size_t j = (cursor + i) % data.size();
-      cursor += 1;
-      cursor %= data.size();
-      if (data[j]->isIdle())
-      {
-        obj = data[j];
-        break;
-      }
-    }
-
-    if (obj == nullptr)
-    {
-      obj = new JobType();
-      data.emplace_back(obj);
-    }
-
-    return obj;
-  }
-   */
 
   template <class JobType>
   template <class ...Args>
@@ -63,28 +34,30 @@ namespace overground
   {
     std::lock_guard<std::mutex> lock(mx);
 
-    auto job = new JobType(
+    auto job = std::make_unique<JobType>(
       jobTitle,
       std::forward<Args>(args)...);
-
+    
     for (size_t i = 0; i < data.size(); ++i)
     {
-      size_t j = (cursor + i) % data.size();
+      auto j = (i + cursor) % data.size();      
+      if (data[j]->isAvailable())
+      {
+        log(thId, fmt::format("REUSING {}", jobTitle));
+        data[j].release();
+        data[j] = std::move(job);
+        return data[j].get();
+      }
+
       cursor += 1;
       cursor %= data.size();
-      if (data[j]->isIdle())
-      {
-        data[j] = job;
-        return job;
-      }
     }
 
-    data.emplace_back(job);
-    return job;
+    data.push_back(std::move(job));
+    return data.back().get();
   }
-
-
 }
+
 
 #endif // #ifdef POOL_H
 

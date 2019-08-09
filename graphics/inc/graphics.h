@@ -4,6 +4,7 @@
 #include "graphicsUtils.h"
 #include "configAsset.h"
 #include "renderPassAsset.h"
+#include "framePlan.h"
 #include <string>
 #include <set>
 
@@ -49,6 +50,8 @@ namespace overground
   public:
 //    void waitForGraphicsOps();
     void shutDown();
+
+    void assignSpecialPhaseJobs(FramePhase & phase);
 
     void presentFrame();
     void drawFrame();
@@ -171,6 +174,10 @@ namespace overground
       RenderPassThing> renderPassThings;
 
     std::vector<SwapchainThing> swapchainThings;
+
+    bool hasWaitedForGpuIdleThisFrame = false;
+    bool hasWaitedForFrameFenceThisFrame = false;
+
   };
 }
 

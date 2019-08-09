@@ -17,6 +17,10 @@ namespace overground
     void clear();
     void postJob(Job * job, bool recurring);
 
+    size_t getNumJobs() const
+      { return recurringJobs.size() + 
+        oneTimeJobs.size(); }
+
     template <typename T>
     void forEachJob(T fn);
 
@@ -29,23 +33,23 @@ namespace overground
   template <typename T>
   void JobBoard::forEachJob(T fn)
   {
-    auto jobPostingId = std::min(
-      recurringJobs.front().first,
-      oneTimeJobs.front().first) - 1;
-    
-    auto lastJobPostingId = std::max(
-      recurringJobs.back().first,
-      oneTimeJobs.back().first);
-    
     size_t idx = 0;
     
-    while (idx < recurringJobs.size() &&
+    while (idx < recurringJobs.size() ||
           oneTimeJobs.size() > 0)
     {
-      auto recurrer = recurringJobs[idx].first;
-      auto oneTimer = oneTimeJobs.front().first;
       Job * job;
-      if (oneTimer < recurrer)
+      if (recurringJobs.size() == 0)
+      {
+        job = oneTimeJobs.front().second;
+        oneTimeJobs.pop();
+      }
+      else if (oneTimeJobs.size() == 0)
+      {
+        job = recurringJobs[idx].second;
+        idx += 1;
+      }
+      else if (oneTimeJobs.front().first < recurringJobs[idx].first)
       {
         job = oneTimeJobs.front().second;
         oneTimeJobs.pop();
@@ -55,7 +59,7 @@ namespace overground
         job = recurringJobs[idx].second;
         idx += 1;
       }
-      fn(job);    
+      fn(job);
     }
   }
 }

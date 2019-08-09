@@ -12,7 +12,7 @@ void Graphics::updateRenderPass(renderPass_t newRenderPass)
 {
   logFn();
 
-  log(thId, fmt::format(
+  log(thId, logTags::asset, fmt::format(
     "new render pass::\n"
     "{}\n", print(newRenderPass)));
 
