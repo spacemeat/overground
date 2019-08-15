@@ -12,6 +12,7 @@
 #include "fileReference.h"
 #include "jobManager.h"
 #include "resourceManager.h"
+#include "framePlan.h"
 
 #include "configAsset.h"
 #include "config-gen.h"
@@ -19,7 +20,8 @@
 #include "renderPass-gen.h"
 #include "framePlanAsset.h"
 #include "framePlan-gen.h"
-#include "framePlan.h"
+#include "commandListAsset.h"
+#include "commandList-gen.h"
 
 
 namespace overground

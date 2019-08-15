@@ -114,6 +114,13 @@ void Graphics::checkForRenderPassUpdates()
 }
 
 
+void Graphics::checkForCommandListUpdates() //?
+{
+  logFn();
+
+}
+
+
 void Graphics::assignSpecialPhaseJobs(FramePhase & phase)
 {
   switch(phase.getKind())

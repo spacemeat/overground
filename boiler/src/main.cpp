@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 {
   initGlobals();
   
-  createLogChannel("boiler", logTags::macro, logTags::macro, & cout);
+  createLogChannel("boiler", logTags::info, logTags::macro, & cout);
 
   if (argc > 1 && string(argv[1]) == string("assets"))
   {

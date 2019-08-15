@@ -24,6 +24,7 @@ int main(int argc, char ** argv)
   engine->registerAssetProvider("config", makeConfig);
   engine->registerAssetProvider("renderPass", makeRenderPass);
   engine->registerAssetProvider("framePlan", makeFramePlan);
+  engine->registerAssetProvider("commandList", makeCommandList);
 
   engine->init(argc, argv);
 

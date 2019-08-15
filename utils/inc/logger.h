@@ -26,10 +26,11 @@ namespace overground
       barrier   = 1 << 8,
       phase     = 1 << 9,
 
-      asset     = 1 << 10,
+      time      = 1 << 10,
+      asset     = 1 << 11,
 
 
-      micro     = sys | info | dbg | err | warn | fn | job | barrier | phase | asset,  
+      micro     = sys | info | dbg | err | warn | fn | job | barrier | phase | time | asset,  
       
       macro     = sys | info | dbg | err | warn | asset,
       

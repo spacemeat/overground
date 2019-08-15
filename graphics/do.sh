@@ -7,7 +7,7 @@ main() {
   local subProject="graphics"
   local deps=("engine" "assets" "assetProviders" "pools" "jobs" "utils")
   local inc=()
-  local libSrc=("graphics" "instance" "window" "physDev" "device" "surface" "swapchain" "renderPass" "framebuffer")
+  local libSrc=("graphics" "instance" "window" "physDev" "device" "surface" "swapchain" "renderPass" "framebuffer" "commandList")
   local exeSrc=()
   local libDirs=()
   local libs=("engine-d")

@@ -20,7 +20,7 @@ Engine::Engine()
 : resMan(AssetBaseDir, AssetDataBaseDir)
 {
   thId = createLogChannel(
-    "main", logTags::dbg, logTags::micro, & cout, & coutMx);
+    "main", logTags::dbg, logTags::macro, & cout, & coutMx);
   
   jobMan->allocateWorkers(JobManager::getNumCores() * 2);
   jobMan->setFramePlan(& framePlan);
@@ -133,8 +133,7 @@ void Engine::enterEventLoop()
 
   log(thId, "End of enterEventLoop");
 
-  // just straight-up stop working. All workers will finish their jobs though, so this just tells them not to start new ones (and does not block).
-//  jobMan->setNumEmployedWorkers(0);
+  // shut it down!
   jobMan->stopAndJoin();
 
   // wait for the GPU to finish everything.
@@ -174,7 +173,7 @@ void Engine::updateTimer()
   frameTime_us = systemTime - previousSystemTime;
   currentTime_us += frameTime_us;
 
-  log(thId, logTags::dbg, fmt::format("\n"
+  log(thId, logTags::time, fmt::format("\n"
     "systemTime:          {}\n"
     "frameTime_us:        {}\n"
     "currentTime:         {}",

@@ -94,7 +94,7 @@ void Worker::join()
 void Worker::threadFn()
 {
   thId = createLogChannel(
-    fmt::format("wk {}", id), logTags::dbg, logTags::micro,
+    fmt::format("wk {}", id), logTags::dbg, logTags::macro,
     & cout, & coutMx);
 
   log(thId, "thread start");

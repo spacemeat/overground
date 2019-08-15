@@ -26,6 +26,7 @@ constexpr auto featurePreamble = "\
 #include <string>\n\
 #include <vector>\n\
 #include <optional>\n\
+#include <variant>\n\
 #include \"utils.h\"\n\
 #include \"graphicsUtils.h\"\n\
 #include \"enumParsers.h\"\n\
@@ -115,6 +116,7 @@ string resolveStdAliases(string_view type)
   if (type == "vector") { return "std::vector"; }
   if (type == "pair") { return "std::pair"; }
   if (type == "optional") { return "std::optional"; }
+  if (type == "variant") { return "std::variant"; }
   return string(type);
 }
 
@@ -500,6 +502,51 @@ void outputImportFromHumon(structDef const & stru, ofstream & ofs)
             fmt::arg("lvalue", lvalue));
         }
 
+        else if (mtd.name == "std::variant")
+        {
+          ofs << fmt::format("\
+{indent}{{\n\
+{indent}  auto & src{depth} = {src};\n\
+{indent}  if (src{depth} % \"type\")\n\
+{indent}  {{\n\
+{indent}    std::string const & typ = src{depth} / \"type\";\n\
+{indent}    if (typ == \"\") {{ throw std::runtime_error(\"objects of variant type require a \\\"type\\\" key.\"); }}\n",
+            fmt::arg("indent", string(2 + 2 * depth, ' ')),
+            fmt::arg("depth", depth),
+            fmt::arg("src", src));
+          
+          // foreach subtype in mtd.subTypes
+          //   ofs << "if (typ == \"cmdBindPipeline_t\") {"
+          //   fn_ref("cmdBindPipeline_t", ....);
+          //   ofs << "}"
+          for (auto & subType : mtd.subTypes)
+          {
+            ofs << fmt::format("\
+{indent}    else if (typ == \"{subType}\")\n\
+{indent}    {{\n\
+{indent}      {subType} dst{depth};\n",
+              fmt::arg("indent", string(2 + 2 * depth, ' ')),
+              fmt::arg("depth", depth),
+              fmt::arg("subType", subType));
+
+            fn_ref(subType, depth + 1, fmt::format("dst{}", depth), 
+              fmt::format("src{}", depth), fn_ref);
+
+          ofs << fmt::format("\
+{indent}      {lvalue}.emplace<{subType}>(std::move(dst{depth}));\n\
+{indent}    }}\n",
+            fmt::arg("indent", string(2 + 2 * depth, ' ')),
+            fmt::arg("depth", depth),
+            fmt::arg("subType", subType),
+            fmt::arg("lvalue", lvalue));
+          }
+
+          ofs << fmt::format("\
+{indent}  }}\n\
+{indent}  else {{ throw std::runtime_error(\"objects of variant type require a \\\"kind\\\" key.\"); }}\n\
+{indent}}}\n",
+            fmt::arg("indent", string(2 + 2 * depth, ' ')));
+        }
         // if it's not a container type, is it a
         // struct type that is defined in here?
         else if (auto psd = findStructDef(mtd.name);
@@ -746,7 +793,7 @@ std::string overground::print(\n\
         else if (mtd.name == "std::optional")
         {
           ofs << fmt::format("\
-{indent}if ((bool){memberName})\n\
+{indent}if ((bool) {memberName})\n\
 {indent}{{\n\
 {indent}  {subType} const & src{depth} = * {memberName};\n",
             fmt::arg("indent", indent),
@@ -769,6 +816,43 @@ std::string overground::print(\n\
             fmt::arg("indent", indent));
         }
 
+        // variant
+        else if (mtd.name == "std::variant")
+        {
+          ofs << fmt::format("\
+{indent}if ({memberName}.valueless_by_exception())\n\
+{indent}  {{ ss << \"bad state\\n\"; }}\n",
+            fmt::arg("indent", indent),
+            fmt::arg("memberName", memberName));
+
+          for (auto & subType : mtd.subTypes)
+          {
+            ofs << fmt::format("\
+{indent}else if (std::holds_alternative<{subType}>({memberName}))\n\
+{indent}{{\n\
+{indent}  {subType} const & src{depth} = std::get<{subType}>({memberName});\n",
+            fmt::arg("indent", indent),
+            fmt::arg("subType", subType),
+            fmt::arg("depth", depth),
+            fmt::arg("memberName", memberName));
+
+          fn_ref(
+            subType, 
+            (string_view) fmt::format("src{}", depth), 
+            mtd.name,
+            (string_view) fmt::format("src{}", depth), 
+            depth + 1, 
+            fn_ref);
+
+            ofs << fmt::format("\
+{indent}}}\n",
+              fmt::arg("indent", indent));
+          }
+
+          ofs << fmt::format("\
+{indent}else {{ ss << \"(unknown variant)\\n\"; }}\n",
+            fmt::arg("indent", indent));
+        }
 
         // nested struct
         else if (auto pstru = findStructDef(mtd.name);

@@ -5,6 +5,7 @@
 #include "configAsset.h"
 #include "renderPassAsset.h"
 #include "framePlan.h"
+#include "commandList-gen.h"
 #include <string>
 #include <set>
 
@@ -46,6 +47,7 @@ namespace overground
   private:
     void checkForConfigUpdates();
     void checkForRenderPassUpdates();
+    void checkForCommandListUpdates(); //?
 
   public:
 //    void waitForGraphicsOps();
@@ -58,6 +60,8 @@ namespace overground
     void waitForGraphicsOps();
 
     void updateRenderPass(renderPass_t newRenderPass);
+    void updateCommandList(commandList_t newCommandList);
+
 
   private:
     bool manageInvalidDevice();
@@ -178,6 +182,7 @@ namespace overground
     bool hasWaitedForGpuIdleThisFrame = false;
     bool hasWaitedForFrameFenceThisFrame = false;
 
+    std::unordered_map<std::string, commandList_t> commandLists;
   };
 }
 

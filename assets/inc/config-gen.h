@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <variant>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"

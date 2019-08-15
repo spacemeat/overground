@@ -24,5 +24,12 @@
       cache: false
       monitor: true
     }
+
+    commands: {
+      kind: commandList
+      dataFile: commandList.hu
+      cache: false
+      monitor: true
+    }
   }
 }

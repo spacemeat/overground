@@ -110,7 +110,7 @@ framePhase_t const & src, int depth)
   ss << "\n" << indentIn << "name: ";
   ss << (src.name);
   ss << "\n" << indentIn << "computePassName: ";
-  if ((bool)src.computePassName)
+  if ((bool) src.computePassName)
   {
     std::string const & src0 = * src.computePassName;
     ss << (src0);
@@ -118,7 +118,7 @@ framePhase_t const & src, int depth)
   else
     { ss << "<undefined>"; }
   ss << "\n" << indentIn << "renderPassName: ";
-  if ((bool)src.renderPassName)
+  if ((bool) src.renderPassName)
   {
     std::string const & src0 = * src.renderPassName;
     ss << (src0);
@@ -126,7 +126,7 @@ framePhase_t const & src, int depth)
   else
     { ss << "<undefined>"; }
   ss << "\n" << indentIn << "subpass: ";
-  if ((bool)src.subpass)
+  if ((bool) src.subpass)
   {
     int const & src0 = * src.subpass;
     ss << (src0);
@@ -134,7 +134,7 @@ framePhase_t const & src, int depth)
   else
     { ss << "<undefined>"; }
   ss << "\n" << indentIn << "arg: ";
-  if ((bool)src.arg)
+  if ((bool) src.arg)
   {
     std::string const & src0 = * src.arg;
     ss << (src0);

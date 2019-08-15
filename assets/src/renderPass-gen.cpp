@@ -373,7 +373,7 @@ subpass_t const & src, int depth)
   }
   ss << "\n" << indentIn << "]";
   ss << "\n" << indentIn << "depthStencilAttachment: ";
-  if ((bool)src.depthStencilAttachment)
+  if ((bool) src.depthStencilAttachment)
   {
     subpassAttachment_t const & src0 = * src.depthStencilAttachment;
     ss << print(src0, depth + 1);

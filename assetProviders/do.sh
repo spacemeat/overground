@@ -7,7 +7,7 @@ main() {
   local subProject="assetProviders"
   local deps=("graphics" "engine" "assets" "pools" "jobs" "utils")
   local inc=()
-  local libSrc=("configAsset" "renderPassAsset" "framePlanAsset")
+  local libSrc=("configAsset" "renderPassAsset" "framePlanAsset" "commandListAsset")
   local exeSrc=()
   local libDirs=()
   local libs=()

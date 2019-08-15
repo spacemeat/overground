@@ -96,7 +96,7 @@ void loadEnumDefinitions(path_t const & path)
           endsWith(enumName, "FlagsEXT", nameSize) == false &&
           endsWith(enumName, "FlagsKHR", nameSize) == false)
         {
-          log(0, fmt::format("{}Reading enum {}{}{}",
+          log(0, logTags::verb, fmt::format("{}Reading enum {}{}{}",
             ansi::darkBlue, ansi::lightBlue, enumName, ansi::off));
 
           vector<pair<string, string>> defs;
