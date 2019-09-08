@@ -77,8 +77,7 @@ namespace overground
     void latchSceneDelta();
     void enterEventLoop();
 
-    // On death's door:
-    void iterateLoop();
+    void runLoopIteration();
 
     void runFrameMaintenance();
     void updateTimer();

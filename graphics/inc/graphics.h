@@ -62,7 +62,6 @@ namespace overground
     void updateRenderPass(renderPass_t newRenderPass);
     void updateCommandList(commandList_t newCommandList);
 
-
   private:
     bool manageInvalidDevice();
     

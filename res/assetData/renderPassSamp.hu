@@ -1,24 +1,67 @@
 {
-  name: sampRenderPass
-  attachments: [ {
-      name: colorTarget
-      # format is derived from swapchain
-      numSamples: 1
-      loadOp: Clear
-      storeOp: Store
-      stencilLoadOp: DontCare
-      stencilStoreOp: DontCare
-      initialLayout: Undefined
-      finalLayout: PresentSrcKHR
+  name: sampRenderPlan
+  renderPasses: [{
+      name: sampRenderPass
+      attachments: [ {
+          name: colorTarget
+          # format is derived from swapchain
+          numSamples: 1
+          loadOp: Clear
+          storeOp: Store
+          stencilLoadOp: DontCare
+          stencilStoreOp: DontCare
+          initialLayout: Undefined
+          finalLayout: PresentSrcKHR
+        }
+      ]
+      subpasses: [ {
+          name: sampSubpass
+          bindPoint: Graphics
+          colorAttachments: [ {
+              attachment: colorTarget
+              layout: ColorAttachmentOptimal
+            }
+          ]
+        }
+      ]
     }
   ]
-  subpasses: [ {
-      name: sampSubpass
-      bindPoint: Graphics
-      colorAttachments: [ {
-          attachment: colorTarget
-          layout: ColorAttachmentOptimal
+
+  operations: [ {
+      name: drawCameraView
+      ops: [
+        { type: identifyVisibleThings
+          tags: [opaqueMesh transparentMesh imposter] 
         }
+        { type: drawRecursiveCameraViews }
+        { type: computeShadows 
+          tags: [opaqueMesh transparentMesh] 
+        }
+        { type: updateUbos }
+        { type: setRenderPass
+          renderPassName: sampRenderPass }
+        { type: computeDepth 
+          tags: [opaqueUi opaqueMesh imposter] 
+        }
+        { type: nextSubpass }
+        { type: draw tags: [opaqueUi] }
+        { type: draw tags: [transparentUi] 
+          order: backToFront }
+        { type: draw tags: [opaqueMesh] }
+        { type: draw tags: [transparentMesh] 
+          order: backToFront }
+        { type: draw tags: [imposter] 
+          order: backToFront }
+        { type: draw tags: [skybox] }
+        { type: nextSubpass }
+        { type: runPostEffects }
+        { type: endRenderPass }
+      ]
+    } {
+      name: computeShadows
+      requires: [feature, etc]
+      ops: [
+
       ]
     }
   ]

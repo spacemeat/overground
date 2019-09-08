@@ -106,11 +106,69 @@
         subpasses: { type: "vector<subpass_t>" }
         dependencies: { type: "vector<subpassDependency_t>" }
       }
+
+      # render operations
+
+      identifyVisibleThings_t: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      drawRecursiveCameras_t: { 
+        type: { type: string }
+      }
+
+      computeShadows_t: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      updateUbos_t: {
+        type: { type: string }
+      }
+
+      setRenderPass_t: {
+        type: { type: string }
+        renderPassName: { type: string }
+      }
+
+      nextSubpass_t: { 
+        type: { type: string }
+      }
+
+      endRenderPass_t: { 
+        type: { type: string }
+      }
+
+      computeDepth_t: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      draw: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      runPostEffects_t: { 
+        type: { type: string }
+      }
+
+      operationList_t: {
+        name: { type: string }
+        ops: { type: "vector<variant<identifyVisibleThings_t, rebuildSecondaryCommandBuffers_t, computeShadows_t, setRenderPass_t, nextSubpass_t, endRenderPass_t, computeDepth_t, drawUi_t, drawOpaque_t, drawTransparent_t, drawImposters_t, drawSkybox_t, runPostEffects_t>>" }
+      }
+
+      renderPlan_t: {
+        name: { type: string }
+        renderPasses: { type: "vector<renderPass_t>" }
+        operations: { type: "vector<operationList_t>" }
+      }
     }
 
     framePlan: {
       framePhase_t: {
-        kind: { type: FramePhaseKinds }  # TODO: enum
+        kind: { type: FramePhaseKinds }
         name: { type: string }
         computePassName: { type: "optional<string>" }
         renderPassName: { type: "optional<string>" }
@@ -304,5 +362,173 @@
         cmds: { type: "vector<variant<cmdBindPipeline_t, cmdSetViewport_t, cmdSetScissor_t, cmdSetLineWidth_t, cmdSetDepthBias_t, cmdSetBlendConstants_t, cmdSetDepthBounds_t, cmdSetStencilCompareMask_t, cmdSetStencilWriteMask_t, cmdSetStencilReference_t, cmdBindDescriptorSets_t, cmdBindIndexBuffer_t, cmdBindIndexBuffers_t, cmdDraw_t, cmdDrawIndexed_t, cmdDrawIndirect_t, cmdDrawIndexedIndirect_t, cmdDispatch_t, cmdDispatchIndirect_t, cmdCopyBuffer_t, cmdCopyImage_t, cmdBlitImage_t, cmdCopyBufferToImage_t, cmdCopyImageToBuffer_t, cmdUpdateBuffer_t, cmdFillBuffer_t, cmdClearColorImage_t, cmdClearDepthStencilImage_t, cmdClearAttachments_t, cmdResolveImage_t, cmdSetEvent_t, cmdWaitEvents_t, cmdPipelineBarrier_t, cmdPushConstants_t, cmdBeginRenderPass_t, cmdNextSubpass_t, cmdEndRenderPass_t, cmdExecuteCommands_t>>" }
       }
     }
+
+    mesh: {
+
+    }
+
+    material: {
+
+    }
+
+    model: {
+
+    }
+
+    objects: {
+      feature_t: {
+        name: { type: string }  
+      }
+
+      matrixTransform_t: {
+        basedOn: feature_t
+        transform: { type: "array<float, 16>" }
+      }
+
+      srtTransform_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        scale: { type: "arrat<float, 3>" }
+        rotation: { type: "array<float, 3>" }
+        translate: { type: "array<float, 3>" }
+      }
+
+      drawableSubmodel_t: {
+        subset: { type: string }
+        material: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      drawableModel_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        mesh: { type: string }
+        subModels: { type: "vector<drawableSubmodel_t>" }
+      }
+
+      directionalLight_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        color: { type: "array<float, 3>" }
+      }
+
+      pointLight_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        attenuation: { type: "array<float, 3>" }
+        color: { type: "array<float, 3>" }
+      }
+
+      spotlight_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        attenuation: { type: "array<float, 3>" }
+        hotspot: { type: float }
+        falloff: { type: float }
+        color: { type: "array<float, 3>" }
+      }
+
+      camera_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        fovAroundYAxis: { type: float }
+        minDepth: { type: float }
+        maxDepth: { type: float }
+        renderPlan: { type: string }
+      }
+
+      object_t: {
+        name: { type: string }
+        children: { type: "vector<object_t>" }
+        features: { type: "vector<variant<...>>" }
+      }
+
+      tableau_t: {
+        name: { type: string }
+        objects: { type: "vector<object_t>" }
+      }
+    }
+  }
+}
+
+
+{
+  name: aCubeInTwoViews
+  tvCube: {
+    # name implied from key
+    features: [{
+        type: matrixTransform_t
+    }{
+        type: srtTransform_t
+        scale: [1 1 1]
+        rotation: [0 0 0]
+        translate: [0 0 0]
+    }{
+        type: drawableModel_t
+        mesh: tvCubeMesh
+        subModels: [{
+            subset: opaqueBits
+            material: brushedSteel
+            tags: [opaqueMesh]
+          } {
+            subset: playbackBits
+            material: cameraPlayback
+            tags: [opaqueMesh]
+          } {
+            subset: transparentBits
+            material: glass
+            tags: [transparentMesh]
+          }
+        ]
+      }
+    ]
+  }
+  camera0: {
+    features: [{
+        type: matrixTransform_t
+      } {
+        type: srtTransform_t
+        scale: [1 1 1]
+        rotation: ["tau/6" "tau/4" 0]
+        translate: [3 -6 2]
+      } {
+        type: camera_t
+        fovAroundYAxis: "tau/5.5"
+        minDepth: 0.01
+        maxDepth: 1000
+        renderPlan: sampRenderPlan
+      }
+    ]
+  }
+
+  camera1: {
+    features: [{
+        type: matrixTransform_t
+      } {
+        type: srtTransform_t
+        scale: [1 1 1]
+        rotation: ["tau/6" "4*tau/5" 0]
+        translate: [3 6 2]
+      } {
+        type: camera_t
+        fovAroundYAxis: "tau/5.5"
+        minDepth: 0.01
+        maxDepth: 1000
+        renderPlan: sampRenderPlan
+      }
+    ]
+  }
+
+  lightness: {
+    features: [{
+        type: matrixTransform_t
+      } {
+        type: srtTransform_t
+        rotation: ["-tau/8" "2*tau/3" 0]
+      } {
+        type: directionalLight_t
+        color: [1, .8, 1]
+      }
+    ]
   }
 }

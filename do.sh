@@ -10,6 +10,8 @@ cd ../graphics
 source do.sh buildlib
 cd ../assetProviders
 source do.sh buildlib
+cd ../featureProviders
+source do.sh buildlib
 cd ../engine
 source do.sh buildexe
 cd ..

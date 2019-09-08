@@ -10,6 +10,7 @@
 #include "ansiTerm.h"
 #include "humon.h"
 #include "logger.h"
+#include "objRef.h"
 
 namespace overground
 {

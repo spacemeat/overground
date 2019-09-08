@@ -124,11 +124,14 @@ void Engine::enterEventLoop()
     log(thId, logTags::err, "No window was created. Was graphics.reset() called?");
     return;
   }
-  
+
   while (! glfwWindowShouldClose(window))
   {
     glfwPollEvents();
+
     // TODO: Check window size updates and inform graphics
+
+    runLoopIteration();
   }
 
   log(thId, "End of enterEventLoop");
@@ -138,6 +141,18 @@ void Engine::enterEventLoop()
 
   // wait for the GPU to finish everything.
   graphics.waitForGraphicsOps();
+}
+
+
+void Engine::runLoopIteration()
+{
+  runFrameMaintenance();
+
+  auto & phases = framePlan.getPhases;
+  for (auto & phase : phases)
+  {
+    // do some phrasing. oy
+  }
 }
 
 
