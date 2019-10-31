@@ -29,3 +29,22 @@ FramePhaseKinds overground::fromString<FramePhaseKinds>(std::string_view rhs)
 
   throw runtime_error(fmt::format("Invalid value {}{}{} for {}FramePhaseKinds{}", ansi::darkBlue, rhs, ansi::off, ansi::lightCyan, ansi::off));
 }
+
+
+template<>
+BufferStrategy overground::fromString<BufferStrategy>(std::string_view rhs)
+{
+  static initializer_list<BufferStrategy> il = {
+    BufferStrategy::randomTableaux,
+    BufferStrategy::lifoTableaux,
+    BufferStrategy::randomGroup
+  };
+
+  for (auto val : il)
+  {
+    if (to_string(val) == rhs)
+      { return val; }
+  }
+
+  throw runtime_error(fmt::format("Invalid value {}{}{} for {}BufferStrategy{}", ansi::darkBlue, rhs, ansi::off, ansi::lightCyan, ansi::off));
+}

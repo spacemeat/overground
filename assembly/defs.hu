@@ -1,0 +1,608 @@
+{
+  enumFromString: [BufferStrategy]
+  topNamespace: overground
+  features: {
+    config: {
+      general: {
+        programName: { type: string }
+        version: { type: "array<int, 3>" }
+        numWorkerThreads: { type: int }
+      }
+
+      swapchainImageView: {
+        viewType: { type: "vk::ImageViewType" }
+        components: { type: "array<vk::ComponentSwizzle, 4>" }
+        aspectMask: { type: "vk::ImageAspectFlagBits" }
+      }
+
+      swapchain: {
+        formatPriorities: { type: "vector<pair<vk::Format, vk::ColorSpaceKHR>>" }
+        numViews: { type: "unsigned int" }
+        imageUsages: { type: "vector<string>" }
+        imageSharing: { type: bool }
+        pretransform: { type: "vk::SurfaceTransformFlagBitsKHR" }
+        windowAlpha: { type: "vk::CompositeAlphaFlagBitsKHR" }
+        presentModePriorities: { type: "vector<pair<vk::PresentModeKHR, std::uint32_t>>" }
+        clipped: { type: bool }
+        imageView: { type: swapchainImageView }
+      }
+
+      graphics: {
+        isConfigured: { type: bool def: false }
+        headless: { type: bool }
+        fullScreen: { type: bool }
+        width: { type: "unsigned int" }
+        height: { type: "unsigned int" }
+        vulkanValidationEnabled: { type: bool }
+        vulkanValidationLayers: { type: "vector<string>" }
+        vulkanValidationReports: { type: "vector<string>" }
+        vulkanExtensions: { type: "vector<string>" }
+        deviceExtensions: { type: "vector<string>" }
+        minGraphicsQueues: { type: "unsigned int" }
+        desiredGraphicsQueues: { type: "unsigned int" }
+        minComputeQueues: { type: "unsigned int" }
+        desiredComputeQueues: { type: "unsigned int" }
+        minTransferQueues: { type: "unsigned int" }
+        desiredTransferQueues: { type: "unsigned int" }
+        minDeviceFeatures: { type: "vector<string>" }
+        desiredDeviceFeatures: { type: "vector<string>" }
+        swapchain: { type: swapchain }
+        bufferStrategy: { type: BufferStrategy }
+      }
+
+      config: {
+        general: { type: general }
+        graphics: { type: graphics }
+      }
+    }
+
+    renderPlan: {
+      attachment: {
+        name: { type: string }
+        flags: { type: "vk::AttachmentDescriptionFlagBits" default: 0 }
+        numSamples: { type: "vk::SampleCountFlagBits" }
+        loadOp: { type: "vk::AttachmentLoadOp" }
+        storeOp: { type: "vk::AttachmentStoreOp" }
+        stencilLoadOp: { type: "vk::AttachmentLoadOp" }
+        stencilStoreOp: { type: "vk::AttachmentStoreOp" }
+        initialLayout: { type: "vk::ImageLayout" }
+        finalLayout: { type: "vk::ImageLayout" }
+      }
+
+      subpassAttachment: {
+        attachment: { type: string }
+        layout: { type: "vk::ImageLayout"}
+      }
+
+      subpass: {
+        name: { type: string }
+        flags: { type: "vk::SubpassDescriptionFlagBits" }
+        bindPoint: { type: "vk::PipelineBindPoint" }
+        inputAttachments: { type: "vector<subpassAttachment>" }
+        colorAttachments: { type: "vector<subpassAttachment>" }
+        resolveAttachments: { type: "vector<subpassAttachment>" }
+        depthStencilAttachment: { type: "optional<subpassAttachment>" }
+        preserveAttachments: { type: "vector<unsigned int>" }
+      }
+
+      subpassDependency: {
+        srcSubpass: { 
+          type: int
+    #      aliases: [[external, VK_SUBPASS_EXTERNAL]]
+        }
+        dstSubpass: { 
+          type: int
+    #      aliases: [[external, VK_SUBPASS_EXTERNAL]]
+        }
+        srcStageMask: { type: "vk::PipelineStageFlagBits" }
+        dstStageMask: { type: "vk::PipelineStageFlagBits" }
+        srcAccessMask: { type: "vk::AccessFlagBits" }
+        dstAccessMask: { type: "vk::AccessFlagBits" }
+      }
+
+      renderPass: {
+        name: { type: string }
+        attachments: { type: "vector<attachment>" }
+        subpasses: { type: "vector<subpass>" }
+        dependencies: { type: "vector<subpassDependency>" }
+      }
+
+      # render operations
+
+      identifyVisibleThings: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      drawRecursiveCameras: { 
+        type: { type: string }
+      }
+
+      computeShadows: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      updateUbos: {
+        type: { type: string }
+      }
+
+      setRenderPass: {
+        type: { type: string }
+        renderPassName: { type: string }
+      }
+
+      nextSubpass: { 
+        type: { type: string }
+      }
+
+      endRenderPass: { 
+        type: { type: string }
+      }
+
+      computeDepth: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      drawUi: { 
+        type: { type: string }
+      }
+
+      drawOpaque: { 
+        type: { type: string }
+      }
+
+      drawTransparent: { 
+        type: { type: string }
+      }
+
+      drawImposters: { 
+        type: { type: string }
+      }
+
+      drawSkybox: { 
+        type: { type: string }
+      }
+
+      runPostEffects: { 
+        type: { type: string }
+      }
+
+      operationList: {
+        name: { type: string }
+        ops: { type: "vector<variant<identifyVisibleThings, drawRecursiveCameras, computeShadows, updateUbos, setRenderPass, nextSubpass, endRenderPass, computeDepth, drawUi, drawOpaque, drawTransparent, drawImposters, drawSkybox, runPostEffects>>" }
+      }
+
+      renderPlan: {
+        name: { type: string }
+        renderPasses: { type: "vector<renderPass>" }
+        operations: { type: "vector<operationList>" }
+      }
+    }
+
+    # framePlan: {
+    #   framePhase: {
+    #     kind: { type: FramePhaseKinds }
+    #     name: { type: string }
+    #     computePassName: { type: "optional<string>" }
+    #     renderPassName: { type: "optional<string>" }
+    #     subpass: { type: "optional<int>" }
+    #     arg: { type: "optional<string>" }
+    #   }
+
+    #   framePlan: {
+    #     name: { type: string }
+    #     phases: { type: "vector<framePhase>" }
+    #   }
+    # }
+
+    commandList: {
+      cmdBindPipeline: {
+        type: { type: string }
+        bindPoint: { type: "vk::PipelineBindPoint" }
+        pipelineName: { type: string }
+      }
+      cmdSetViewport: { 
+        type: { type: string }
+      }
+      cmdSetScissor: {
+        type: { type: string }
+      }
+      cmdSetLineWidth:
+      { 
+        type: { type: string }
+        width: { type: float }
+      }
+      cmdSetDepthBias: {
+        type: { type: string }
+        constantFactor: { type: float }
+        clamp: { type: float }
+        slopeFactor: { type: float }
+      }
+      cmdSetBlendConstants: { 
+        type: { type: string }
+        constants: { type: "array<float, 4>" }
+      }
+      cmdSetDepthBounds: {
+        type: { type: string }
+        min: { type: float }
+        max: { type: float }
+      }
+      cmdSetStencilCompareMask: {
+        type: { type: string }
+        faceMask: { type: "vk::StencilFaceFlagBits" }
+        compareMask: { type: "uint32_t" }
+      }
+      cmdSetStencilWriteMask: {
+        type: { type: string }
+        faceMask: { type: "vk::StencilFaceFlagBits" }
+        writeMask: { type: "uint32_t" }
+      }
+      cmdSetStencilReference: {
+        type: { type: string }
+        faceMask: { type: "vk::StencilFaceFlagBits" }
+        reference: { type: "uint32_t" }
+      }
+      cmdBindDescriptorSets: {
+        type: { type: string }
+      }
+      cmdBindIndexBuffer: {
+        type: { type: string }
+      }
+      cmdBindIndexBuffers: {
+        type: { type: string }
+      }
+      cmdDraw: {
+        type: { type: string }
+      }
+      cmdDrawIndexed: {
+        type: { type: string }
+      }
+      cmdDrawIndirect: {
+        type: { type: string }
+      }
+      cmdDrawIndexedIndirect: {
+        type: { type: string }
+      }
+      cmdDispatch: {
+        type: { type: string }
+      }
+      cmdDispatchIndirect: {
+        type: { type: string }
+      }
+      cmdCopyBuffer: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdCopyImage: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdBlitImage: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+        filter: { type: "vk::Filter" }
+      }
+      cmdCopyBufferToImage: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdCopyImageToBuffer: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdUpdateBuffer: {
+        type: { type: string }
+        dst: { type: string }
+      }
+      cmdFillBuffer: {
+        type: { type: string }
+        dst: { type: string }
+        data: { type: uint32_t }
+      }
+      cmdClearColorImage: {
+        type: { type: string }
+        dst: { type: string }
+        color: { type: "array<float, 4>" }
+      }
+      cmdClearDepthStencilImage: {
+        type: { type: string }
+        dst: { type: string }
+        depth: { type: float }
+        stencil: { type: uint32_t }
+      }
+      cmdClearAttachments: {
+        type: { type: string }
+        attachments: { type: "vector<string>" }
+      }
+      cmdResolveImage: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdSetEvent: {
+        type: { type: string }
+        event: { type: string }
+        stageMask: { type: "vk::PipelineStageFlagBits" }
+      }
+      cmdWaitEvents: {
+        type: { type: string }
+      }
+      cmdPipelineBarrier: {
+        type: { type: string }
+      }
+      cmdBeginQuery: {
+        type: { type: string }
+      }
+      cmdEndQuery: {
+        type: { type: string }
+      }
+      cmdResetQueryPool: {
+        type: { type: string }
+      }
+      cmdWriteTimestamp: {
+        type: { type: string }
+      }
+      cmdCopyQueryPoolResults: {
+        type: { type: string }
+      }
+      cmdPushConstants: {
+        type: { type: string }
+        # TODO: Specific fields
+      }
+      cmdBeginRenderPass: {
+        type: { type: string }
+       # ...
+      }
+      cmdNextSubpass: {
+        type: { type: string }
+       # ...
+      }
+      cmdEndRenderPass: {
+        type: { type: string }
+      }
+      cmdExecuteCommands: {
+        type: { type: string }
+        commandBuffers: { type: "vector<string>" }
+      }
+      commandList: {
+        name: { type: string }
+        queue: { type: string } # TODO: enum for COMPUTE, GRAPHICS, etc
+        cmds: { type: "vector<variant<cmdBindPipeline, cmdSetViewport, cmdSetScissor, cmdSetLineWidth, cmdSetDepthBias, cmdSetBlendConstants, cmdSetDepthBounds, cmdSetStencilCompareMask, cmdSetStencilWriteMask, cmdSetStencilReference, cmdBindDescriptorSets, cmdBindIndexBuffer, cmdBindIndexBuffers, cmdDraw, cmdDrawIndexed, cmdDrawIndirect, cmdDrawIndexedIndirect, cmdDispatch, cmdDispatchIndirect, cmdCopyBuffer, cmdCopyImage, cmdBlitImage, cmdCopyBufferToImage, cmdCopyImageToBuffer, cmdUpdateBuffer, cmdFillBuffer, cmdClearColorImage, cmdClearDepthStencilImage, cmdClearAttachments, cmdResolveImage, cmdSetEvent, cmdWaitEvents, cmdPipelineBarrier, cmdPushConstants, cmdBeginRenderPass, cmdNextSubpass, cmdEndRenderPass, cmdExecuteCommands>>" }
+      }
+    }
+
+    material: {
+      shaderModule: {
+        name: { type: string }
+        shaderName: { type: string }
+      }
+
+      vertexDeclEntry: {
+        offset: { type: int }
+        format: { type: "vk::Format" }
+      }
+
+      stage: {
+        stage: { type: "vk::ShaderStage" }
+        module: { type: string }
+        entry: { type: string }
+      }
+
+      rasterizationState: {
+        depthClampEnable: { type: bool }
+        rasterizerDiscardEnable: { type: bool }
+        polygonFillMode: { type: "vk::FillMode" }
+        cullMode: { type: "vk::CullMode" }
+        frontFace: { type: "vk::FaceOrientation" }
+        depthBiasEnable: { type: bool }
+        lineWidth: { type: float }
+      }
+
+      multisampleState: {
+        rasterizationSamples: { type: int }
+        sampleShadingEnable: { type: bool }
+        sampleMask: { type: "vk::SampleMask" }
+        alphaToCoverageEnable: { type: bool }
+        alphaToOneEnable: { type: bool }
+      }
+
+      blendStateAttachment: {
+        srcColorFactor: { type: "vk::BlendFactor" }
+        dstColorFactor: { type: "vk::BlendFactor" }
+        colorOp: { type: "vk::BlendOp" }
+        srcAlphaFactor: { type: "vk::BlendFactor" }
+        dstAlphaFactor: { type: "vk::BlendFactor" }
+        alphaOp: { type: "vk::BlendOp" }
+        colorWriteMask: { type: "vector<char>" }
+      }
+
+      blendState: {
+        logicOpEnable: { type: bool }
+        attachments: { type: "vector<blendStateAttachment>" }
+      }
+
+      tesselationState: {
+      }
+
+      stencilOp: {
+        failOp: { type: "vk::DepthStencilFailOp" }
+        passOp: { type: "vk::DepthStencilPassOp" }
+        depthFailOp: { type: "vk::DepthStencilPassOp" }
+        compareOp: { type: "vk::DepthStencilPassOp" }
+        compareMask: { type: "vk::SomeKindOfMask" }
+        writeMask: { type: "vk::SomeKindOfMask" }
+        reference: { type: int }
+      }
+
+      depthStencilState: {
+        depthTestEnable: { type: bool }
+        depthWriteEnable: { type: bool }
+        depthCompareOp: { type: "vk::DepthCompareOp" }
+        depthBoundsTestEnable: { type: bool }
+        stencilTestEnable: { type: bool }
+        frontStencioOpo: { type: stencilOp }
+        backStencioOpo: { type: stencilOp }
+        minDepthBounds: { type: float }
+        maxDepthBounds: { type: float }
+      }
+
+      material: {
+        vertexDecl: { 
+          type: "vector<vertexDeclEntry>"
+          serialized: false # This should be set by the material/mesh combination
+        }
+        stages: { type: "vector<stage>" }
+        rasterizationState: { type: rasterizationState }
+        multisampleState: { type: multisampleState }
+        blendState: { type: blendState }
+        tesselationState: { type: tesselationState }
+        depthStencilState: { type: depthStencilState }
+        dynamicStates: { type: "vector<vk::DynamicStateFlagBits>" }
+        # Need: Sampler state? Maybe?
+        # Need: A way to parameterize materials. They'll get set in the UBO or push costants or shader constants. But do I spec them here? Command buffers set the values. Something has to know that they need settin'. Are there standard bits for materials like MVP matrices? Should be able to design custom paramterizations for things like specialized skinning, or whatever. Not to be painting ourselves in, yes. OR: Should I not bother, making a separate material for each variant, and the material knows how to set constants? Nothing wrong with having hundreds of pipeline objects, so might be worth it.
+      }
+    }
+
+    model: {
+      model: {
+        name: { type: string }
+        mesh: { type: string }
+        materials: { type: "vector<optional<string>>" } # material per submesh -- optional because not all meshes need a default material. Some will always be set by the user. I, uh, think.
+      }
+    }
+
+    asset: {
+      meshAsset: {
+        type: { type: string deserialized: false }
+      }
+
+      imageAsset: {
+        type: { type: string deserialized: false }
+        format: { type: "vk::Format" }
+        compression: { type: "optional<string>" }
+      }
+
+      shaderAsset: {
+        type: { type: string deserialized: false }
+        entryPoint: { type: string }
+        #...
+      }
+
+      asset: {
+        name: { type: string fromKey: true }
+        srcFile: { type: "optional<string>" }
+        assFile: { type: "string" serialized: false }
+        monitorFile: { type: bool default: true }
+        data: { type: "variant<meshAsset, imageAsset, shaderAsset>" }
+      }
+    }
+
+    tableau: {
+      matrixTransform: {
+        feature: true
+        type: { type: string deserialize: false }
+        transform: { type: "array<float, 16>" }
+      }
+
+      srtTransform: {
+        feature: true
+        type: { type: string deserialize: false }
+        requires: [matrixTransform]
+        scale: { type: "array<float, 3>" }
+        rotation: { type: "array<float, 3>" }
+        translate: { type: "array<float, 3>" }
+      }
+
+      drawableSubmodel: {
+        feature: true
+        type: { type: string deserialize: false }
+        submesh: { type: string }
+        material: { type: "optional<string>" }  # optional since submesh may define its own material.
+        tags: { type: "vector<string>" }
+      }
+
+      drawableModel: {
+        feature: true
+        type: { type: string deserialize: false }
+        requires: [matrixTransform]
+        mesh: { type: string }
+        subModels: { type: "vector<drawableSubmodel>" }
+      }
+
+      directionalLight: {
+        feature: true
+        type: { type: string deserialize: false }
+        requires: [matrixTransform]
+        color: { type: "array<float, 3>" }
+      }
+
+      pointLight: {
+        feature: true
+        type: { type: string deserialize: false }
+        requires: [matrixTransform]
+        attenuation: { type: "array<float, 3>" }
+        color: { type: "array<float, 3>" }
+      }
+
+      spotLight: {
+        feature: true
+        type: { type: string deserialize: false }
+        requires: [matrixTransform]
+        attenuation: { type: "array<float, 3>" }
+        hotspot: { type: float }
+        falloff: { type: float }
+        color: { type: "array<float, 3>" }
+      }
+
+      camera: {
+        feature: true
+        type: { type: string deserialize: false }
+        requires: [matrixTransform]
+        fovAroundYAxis: { type: float }
+        minDepth: { type: float }
+        maxDepth: { type: float }
+        renderPlan: { type: string }
+      }
+
+      feature: {
+        data: { "variant<matrixTransform, srtTransform, drawableSubmodel, drawableModel, directionalLight, pointLight, spotLight, camera>" }
+      }
+
+      object: {
+        name: { type: string fromKey: true }
+        children: { type: "vector<object>" }
+        features: { type: "vector<feature>" }
+      }
+
+      tableau: {
+        name: { type: string fromKey: true }
+        objects: { type: "stringDict<object>" }
+      }
+    }
+
+    assembly: {
+      uses: [
+        config, renderPlan, asset, material, model, tableau
+      ]
+      # Every file in the assemblies dir -is- an assembly. They merge into the following superset:
+      assembly: {
+        configs: { type: "stringDict<config::config>" }
+        renderPlans: { type: "stringDict<renderPlan::renderPlan>" }
+        assets: { type: "stringDict<asset::asset>" }
+        materials: { type: "stringDict<material::material>" }
+        models: { type: "stringDict<model::model>" }
+        tableaux: { type: "stringDict<tableau::tableau>" }
+        tableauGroups: { type: "stringDict<vector<string>>" }
+        usingConfig: { type: string }
+        usingTableauGroup: { type: "string" }
+      }
+    }
+  }
+}

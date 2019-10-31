@@ -233,7 +233,7 @@ Channel & Logger::log(std::string_view channel, int tags,
 
 // ----- free fns
 
-// Logger * _logger is defined elsewhere! Make one.
+// Logger * logger is defined elsewhere! Make one.
 
 int overground::createLogChannel(
   std::string_view name,
@@ -244,7 +244,7 @@ int overground::createLogChannel(
   bool colorChannelBackgrounds,
   size_t initialSize, bool canGrow)
 {
-  return _logger->createChannel(name, 
+  return logger->createChannel(name, 
     defaultTags, filters, 
     outStream, outStreamMutex, 
     prefixWithName, prefixWithTime,
@@ -255,39 +255,39 @@ int overground::createLogChannel(
 
 Channel & overground::log(int channel)
 {
-  return _logger->log(channel);
+  return logger->log(channel);
 }
 
 
 Channel & overground::log(std::string_view channel)
 {
-  return _logger->log(channel);
+  return logger->log(channel);
 }
 
 
 Channel & overground::log(int channel,
   std::string_view message)
 {
-  return _logger->log(channel, message);
+  return logger->log(channel, message);
 }
 
 
 Channel & overground::log(std::string_view channel, 
   std::string_view message)
 {
-  return _logger->log(channel, message);
+  return logger->log(channel, message);
 }
 
 
 Channel & overground::log(int channel, int tags, 
   std::string_view message)
 {
-  return _logger->log(channel, tags, message);
+  return logger->log(channel, tags, message);
 }
 
 
 Channel & overground::log(std::string_view channel, 
   int tags, std::string_view message)
 {
-  return _logger->log(channel, tags, message);
+  return logger->log(channel, tags, message);
 }

@@ -87,7 +87,8 @@ namespace overground
     size_t nextPhaseIdx = 0;
   };
 
-  extern JobManager * jobMan;
+  //extern JobManager * jobMan;
+  static inline std::optional<JobManager> jobMan;
 }
 
 #endif // #ifndef JOBMANAGER_H

@@ -1,0 +1,900 @@
+#ifndef tableau_GEN_H
+#define tableau_GEN_H
+
+#include <string>
+#include <vector>
+#include <optional>
+#include <variant>
+#include "utils.h"
+#include "graphicsUtils.h"
+#include "enumParsers.h"
+
+namespace overground
+{
+  namespace tableau
+  {
+    // matrixTransform things
+
+    struct matrixTransform_t
+    {
+      std::array<float, 16> transform;
+    };
+
+    void importPod(
+      humon::HuNode const & src, matrixTransform_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, matrixTransform_t & dest);
+
+    void exportPod(matrixTransform_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      matrixTransform_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(matrixTransform_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, matrixTransform_t const & src);
+
+    enum class matrixTransformMembers_e : int 
+    {
+      none = 0,
+      transform = 1 << 0,
+      all = transform
+    };
+
+    inline bool operator == (matrixTransform_t const & lhs, matrixTransform_t const & rhs) noexcept
+    {
+      return
+        lhs.transform == rhs.transform;
+    };
+
+    inline bool operator != (matrixTransform_t const & lhs, matrixTransform_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct matrixTransformDiffs_t
+    {
+      matrixTransformMembers_e diffs;
+      std::vector<size_t> transformDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      matrixTransform_t const & lhs,
+      matrixTransform_t const & rhs,
+      matrixTransformDiffs_t & matrixTransform) noexcept
+    {
+      // diff member 'transform':
+      for (size_t i = 0; i < lhs.transform.size(); ++i)
+      {
+        if (lhs.transform[i] != rhs.transform[i])
+        {
+          matrixTransform.diffs |= matrixTransformMembers_e::transform;
+          matrixTransform.transformDiffs.push_back(i);
+        }
+      }
+
+      return matrixTransform.diffs != matrixTransformMembers_e::none;
+    };
+
+    // srtTransform things
+
+    struct srtTransform_t
+    {
+      std::array<float, 3> scale;
+      std::array<float, 3> rotation;
+      std::array<float, 3> translate;
+    };
+
+    void importPod(
+      humon::HuNode const & src, srtTransform_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, srtTransform_t & dest);
+
+    void exportPod(srtTransform_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      srtTransform_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(srtTransform_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, srtTransform_t const & src);
+
+    enum class srtTransformMembers_e : int 
+    {
+      none = 0,
+      scale = 1 << 0,
+      rotation = 1 << 1,
+      translate = 1 << 2,
+      all = scale | rotation | translate
+    };
+
+    inline bool operator == (srtTransform_t const & lhs, srtTransform_t const & rhs) noexcept
+    {
+      return
+        lhs.scale == rhs.scale &&
+        lhs.rotation == rhs.rotation &&
+        lhs.translate == rhs.translate;
+    };
+
+    inline bool operator != (srtTransform_t const & lhs, srtTransform_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct srtTransformDiffs_t
+    {
+      srtTransformMembers_e diffs;
+      std::vector<size_t> scaleDiffs;
+      std::vector<size_t> rotationDiffs;
+      std::vector<size_t> translateDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      srtTransform_t const & lhs,
+      srtTransform_t const & rhs,
+      srtTransformDiffs_t & srtTransform) noexcept
+    {
+      // diff member 'scale':
+      for (size_t i = 0; i < lhs.scale.size(); ++i)
+      {
+        if (lhs.scale[i] != rhs.scale[i])
+        {
+          srtTransform.diffs |= srtTransformMembers_e::scale;
+          srtTransform.scaleDiffs.push_back(i);
+        }
+      }
+      // diff member 'rotation':
+      for (size_t i = 0; i < lhs.rotation.size(); ++i)
+      {
+        if (lhs.rotation[i] != rhs.rotation[i])
+        {
+          srtTransform.diffs |= srtTransformMembers_e::rotation;
+          srtTransform.rotationDiffs.push_back(i);
+        }
+      }
+      // diff member 'translate':
+      for (size_t i = 0; i < lhs.translate.size(); ++i)
+      {
+        if (lhs.translate[i] != rhs.translate[i])
+        {
+          srtTransform.diffs |= srtTransformMembers_e::translate;
+          srtTransform.translateDiffs.push_back(i);
+        }
+      }
+
+      return srtTransform.diffs != srtTransformMembers_e::none;
+    };
+
+    // drawableSubmodel things
+
+    struct drawableSubmodel_t
+    {
+      std::string submesh;
+      std::optional<std::string> material;
+      std::vector<std::string> tags;
+    };
+
+    void importPod(
+      humon::HuNode const & src, drawableSubmodel_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, drawableSubmodel_t & dest);
+
+    void exportPod(drawableSubmodel_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      drawableSubmodel_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(drawableSubmodel_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, drawableSubmodel_t const & src);
+
+    enum class drawableSubmodelMembers_e : int 
+    {
+      none = 0,
+      submesh = 1 << 0,
+      material = 1 << 1,
+      tags = 1 << 2,
+      all = submesh | material | tags
+    };
+
+    inline bool operator == (drawableSubmodel_t const & lhs, drawableSubmodel_t const & rhs) noexcept
+    {
+      return
+        lhs.submesh == rhs.submesh &&
+        lhs.material == rhs.material &&
+        lhs.tags == rhs.tags;
+    };
+
+    inline bool operator != (drawableSubmodel_t const & lhs, drawableSubmodel_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct drawableSubmodelDiffs_t
+    {
+      drawableSubmodelMembers_e diffs;
+      std::vector<size_t> tagsDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      drawableSubmodel_t const & lhs,
+      drawableSubmodel_t const & rhs,
+      drawableSubmodelDiffs_t & drawableSubmodel) noexcept
+    {
+      // diff member 'submesh':
+      if (lhs.submesh != rhs.submesh)
+        { drawableSubmodel.diffs |= drawableSubmodelMembers_e::submesh; }
+      // diff member 'material':
+      if (lhs.material != rhs.material)
+        { drawableSubmodel.diffs |= drawableSubmodelMembers_e::material; }
+      // diff member 'tags':
+      {
+        auto [mn, mx] = std::minmax(lhs.tags.size(), rhs.tags.size());
+        for (size_t i = 0; i < mn; ++i)
+        {
+          if (lhs.tags[i] != rhs.tags[i])
+          {
+            drawableSubmodel.diffs |= drawableSubmodelMembers_e::tags;
+            drawableSubmodel.tagsDiffs.push_back(i);
+          }
+        }
+        for (size_t i = mn; i < mx; ++i)
+        {
+          drawableSubmodel.tagsDiffs.push_back(i);
+        }
+      }
+
+      return drawableSubmodel.diffs != drawableSubmodelMembers_e::none;
+    };
+
+    // drawableModel things
+
+    struct drawableModel_t
+    {
+      std::string mesh;
+      std::vector<drawableSubmodel_t> subModels;
+    };
+
+    void importPod(
+      humon::HuNode const & src, drawableModel_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, drawableModel_t & dest);
+
+    void exportPod(drawableModel_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      drawableModel_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(drawableModel_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, drawableModel_t const & src);
+
+    enum class drawableModelMembers_e : int 
+    {
+      none = 0,
+      mesh = 1 << 0,
+      subModels = 1 << 1,
+      all = mesh | subModels
+    };
+
+    inline bool operator == (drawableModel_t const & lhs, drawableModel_t const & rhs) noexcept
+    {
+      return
+        lhs.mesh == rhs.mesh &&
+        lhs.subModels == rhs.subModels;
+    };
+
+    inline bool operator != (drawableModel_t const & lhs, drawableModel_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct drawableModelDiffs_t
+    {
+      drawableModelMembers_e diffs;
+      std::vector<std::pair<size_t, drawableSubmodelDiffs_t>> subModelsDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      drawableModel_t const & lhs,
+      drawableModel_t const & rhs,
+      drawableModelDiffs_t & drawableModel) noexcept
+    {
+      // diff member 'mesh':
+      if (lhs.mesh != rhs.mesh)
+        { drawableModel.diffs |= drawableModelMembers_e::mesh; }
+      // diff member 'subModels':
+      {
+        auto [mn, mx] = std::minmax(lhs.subModels.size(), rhs.subModels.size());
+        for (size_t i = 0; i < mn; ++i)
+        {
+          drawableSubmodelDiffs_t diffsEntry;
+          if (doPodsDiffer(lhs.subModels[i], rhs.subModels[i], diffsEntry))
+          {
+            drawableModel.diffs |= drawableModelMembers_e::subModels;
+            drawableModel.subModelsDiffs.push_back({i, diffsEntry});
+          }
+        }
+        for (size_t i = mn; i < mx; ++i)
+        {
+          drawableSubmodelDiffs_t diffsEntry = { .diffs = drawableSubmodelMembers_e::all };
+          drawableModel.subModelsDiffs.push_back({i, diffsEntry});
+        }
+      }
+
+      return drawableModel.diffs != drawableModelMembers_e::none;
+    };
+
+    // directionalLight things
+
+    struct directionalLight_t
+    {
+      std::array<float, 3> color;
+    };
+
+    void importPod(
+      humon::HuNode const & src, directionalLight_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, directionalLight_t & dest);
+
+    void exportPod(directionalLight_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      directionalLight_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(directionalLight_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, directionalLight_t const & src);
+
+    enum class directionalLightMembers_e : int 
+    {
+      none = 0,
+      color = 1 << 0,
+      all = color
+    };
+
+    inline bool operator == (directionalLight_t const & lhs, directionalLight_t const & rhs) noexcept
+    {
+      return
+        lhs.color == rhs.color;
+    };
+
+    inline bool operator != (directionalLight_t const & lhs, directionalLight_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct directionalLightDiffs_t
+    {
+      directionalLightMembers_e diffs;
+      std::vector<size_t> colorDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      directionalLight_t const & lhs,
+      directionalLight_t const & rhs,
+      directionalLightDiffs_t & directionalLight) noexcept
+    {
+      // diff member 'color':
+      for (size_t i = 0; i < lhs.color.size(); ++i)
+      {
+        if (lhs.color[i] != rhs.color[i])
+        {
+          directionalLight.diffs |= directionalLightMembers_e::color;
+          directionalLight.colorDiffs.push_back(i);
+        }
+      }
+
+      return directionalLight.diffs != directionalLightMembers_e::none;
+    };
+
+    // pointLight things
+
+    struct pointLight_t
+    {
+      std::array<float, 3> attenuation;
+      std::array<float, 3> color;
+    };
+
+    void importPod(
+      humon::HuNode const & src, pointLight_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, pointLight_t & dest);
+
+    void exportPod(pointLight_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      pointLight_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(pointLight_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, pointLight_t const & src);
+
+    enum class pointLightMembers_e : int 
+    {
+      none = 0,
+      attenuation = 1 << 0,
+      color = 1 << 1,
+      all = attenuation | color
+    };
+
+    inline bool operator == (pointLight_t const & lhs, pointLight_t const & rhs) noexcept
+    {
+      return
+        lhs.attenuation == rhs.attenuation &&
+        lhs.color == rhs.color;
+    };
+
+    inline bool operator != (pointLight_t const & lhs, pointLight_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct pointLightDiffs_t
+    {
+      pointLightMembers_e diffs;
+      std::vector<size_t> attenuationDiffs;
+      std::vector<size_t> colorDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      pointLight_t const & lhs,
+      pointLight_t const & rhs,
+      pointLightDiffs_t & pointLight) noexcept
+    {
+      // diff member 'attenuation':
+      for (size_t i = 0; i < lhs.attenuation.size(); ++i)
+      {
+        if (lhs.attenuation[i] != rhs.attenuation[i])
+        {
+          pointLight.diffs |= pointLightMembers_e::attenuation;
+          pointLight.attenuationDiffs.push_back(i);
+        }
+      }
+      // diff member 'color':
+      for (size_t i = 0; i < lhs.color.size(); ++i)
+      {
+        if (lhs.color[i] != rhs.color[i])
+        {
+          pointLight.diffs |= pointLightMembers_e::color;
+          pointLight.colorDiffs.push_back(i);
+        }
+      }
+
+      return pointLight.diffs != pointLightMembers_e::none;
+    };
+
+    // spotLight things
+
+    struct spotLight_t
+    {
+      std::array<float, 3> attenuation;
+      float hotspot;
+      float falloff;
+      std::array<float, 3> color;
+    };
+
+    void importPod(
+      humon::HuNode const & src, spotLight_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, spotLight_t & dest);
+
+    void exportPod(spotLight_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      spotLight_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(spotLight_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, spotLight_t const & src);
+
+    enum class spotLightMembers_e : int 
+    {
+      none = 0,
+      attenuation = 1 << 0,
+      hotspot = 1 << 1,
+      falloff = 1 << 2,
+      color = 1 << 3,
+      all = attenuation | hotspot | falloff | color
+    };
+
+    inline bool operator == (spotLight_t const & lhs, spotLight_t const & rhs) noexcept
+    {
+      return
+        lhs.attenuation == rhs.attenuation &&
+        lhs.hotspot == rhs.hotspot &&
+        lhs.falloff == rhs.falloff &&
+        lhs.color == rhs.color;
+    };
+
+    inline bool operator != (spotLight_t const & lhs, spotLight_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct spotLightDiffs_t
+    {
+      spotLightMembers_e diffs;
+      std::vector<size_t> attenuationDiffs;
+      std::vector<size_t> colorDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      spotLight_t const & lhs,
+      spotLight_t const & rhs,
+      spotLightDiffs_t & spotLight) noexcept
+    {
+      // diff member 'attenuation':
+      for (size_t i = 0; i < lhs.attenuation.size(); ++i)
+      {
+        if (lhs.attenuation[i] != rhs.attenuation[i])
+        {
+          spotLight.diffs |= spotLightMembers_e::attenuation;
+          spotLight.attenuationDiffs.push_back(i);
+        }
+      }
+      // diff member 'hotspot':
+      if (lhs.hotspot != rhs.hotspot)
+        { spotLight.diffs |= spotLightMembers_e::hotspot; }
+      // diff member 'falloff':
+      if (lhs.falloff != rhs.falloff)
+        { spotLight.diffs |= spotLightMembers_e::falloff; }
+      // diff member 'color':
+      for (size_t i = 0; i < lhs.color.size(); ++i)
+      {
+        if (lhs.color[i] != rhs.color[i])
+        {
+          spotLight.diffs |= spotLightMembers_e::color;
+          spotLight.colorDiffs.push_back(i);
+        }
+      }
+
+      return spotLight.diffs != spotLightMembers_e::none;
+    };
+
+    // camera things
+
+    struct camera_t
+    {
+      float fovAroundYAxis;
+      float minDepth;
+      float maxDepth;
+      std::string renderPlan;
+    };
+
+    void importPod(
+      humon::HuNode const & src, camera_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, camera_t & dest);
+
+    void exportPod(camera_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      camera_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(camera_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, camera_t const & src);
+
+    enum class cameraMembers_e : int 
+    {
+      none = 0,
+      fovAroundYAxis = 1 << 0,
+      minDepth = 1 << 1,
+      maxDepth = 1 << 2,
+      renderPlan = 1 << 3,
+      all = fovAroundYAxis | minDepth | maxDepth | renderPlan
+    };
+
+    inline bool operator == (camera_t const & lhs, camera_t const & rhs) noexcept
+    {
+      return
+        lhs.fovAroundYAxis == rhs.fovAroundYAxis &&
+        lhs.minDepth == rhs.minDepth &&
+        lhs.maxDepth == rhs.maxDepth &&
+        lhs.renderPlan == rhs.renderPlan;
+    };
+
+    inline bool operator != (camera_t const & lhs, camera_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct cameraDiffs_t
+    {
+      cameraMembers_e diffs;
+    };
+
+    inline bool doPodsDiffer(
+      camera_t const & lhs,
+      camera_t const & rhs,
+      cameraDiffs_t & camera) noexcept
+    {
+      // diff member 'fovAroundYAxis':
+      if (lhs.fovAroundYAxis != rhs.fovAroundYAxis)
+        { camera.diffs |= cameraMembers_e::fovAroundYAxis; }
+      // diff member 'minDepth':
+      if (lhs.minDepth != rhs.minDepth)
+        { camera.diffs |= cameraMembers_e::minDepth; }
+      // diff member 'maxDepth':
+      if (lhs.maxDepth != rhs.maxDepth)
+        { camera.diffs |= cameraMembers_e::maxDepth; }
+      // diff member 'renderPlan':
+      if (lhs.renderPlan != rhs.renderPlan)
+        { camera.diffs |= cameraMembers_e::renderPlan; }
+
+      return camera.diffs != cameraMembers_e::none;
+    };
+
+    // feature things
+
+    struct feature_t
+    {
+      std::string name;
+      std::string type;
+      std::variant<matrixTransform_t, srtTransform_t, drawableModel_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> data;
+    };
+
+    void importPod(
+      humon::HuNode const & src, feature_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, feature_t & dest);
+
+    void exportPod(feature_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      feature_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(feature_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, feature_t const & src);
+
+    enum class featureMembers_e : int 
+    {
+      none = 0,
+      name = 1 << 0,
+      type = 1 << 1,
+      data = 1 << 2,
+      all = name | type | data
+    };
+
+    inline bool operator == (feature_t const & lhs, feature_t const & rhs) noexcept
+    {
+      return
+        lhs.name == rhs.name &&
+        lhs.type == rhs.type &&
+        lhs.data == rhs.data;
+    };
+
+    inline bool operator != (feature_t const & lhs, feature_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct featureDiffs_t
+    {
+      featureMembers_e diffs;
+    };
+
+    inline bool doPodsDiffer(
+      feature_t const & lhs,
+      feature_t const & rhs,
+      featureDiffs_t & feature) noexcept
+    {
+      // diff member 'name':
+      if (lhs.name != rhs.name)
+        { feature.diffs |= featureMembers_e::name; }
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { feature.diffs |= featureMembers_e::type; }
+      // diff member 'data':
+      if (lhs.data != rhs.data)
+        { feature.diffs |= featureMembers_e::data; }
+
+      return feature.diffs != featureMembers_e::none;
+    };
+
+    // object things
+
+    struct object_t
+    {
+      std::string name;
+      std::vector<object_t> children;
+      std::vector<feature_t> features;
+    };
+
+    void importPod(
+      humon::HuNode const & src, object_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, object_t & dest);
+
+    void exportPod(object_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      object_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(object_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, object_t const & src);
+
+    enum class objectMembers_e : int 
+    {
+      none = 0,
+      name = 1 << 0,
+      children = 1 << 1,
+      features = 1 << 2,
+      all = name | children | features
+    };
+
+    inline bool operator == (object_t const & lhs, object_t const & rhs) noexcept
+    {
+      return
+        lhs.name == rhs.name &&
+        lhs.children == rhs.children &&
+        lhs.features == rhs.features;
+    };
+
+    inline bool operator != (object_t const & lhs, object_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct objectDiffs_t
+    {
+      objectMembers_e diffs;
+      std::vector<std::pair<size_t, objectDiffs_t>> childrenDiffs;
+      std::vector<std::pair<size_t, featureDiffs_t>> featuresDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      object_t const & lhs,
+      object_t const & rhs,
+      objectDiffs_t & object) noexcept
+    {
+      // diff member 'name':
+      if (lhs.name != rhs.name)
+        { object.diffs |= objectMembers_e::name; }
+      // diff member 'children':
+      {
+        auto [mn, mx] = std::minmax(lhs.children.size(), rhs.children.size());
+        for (size_t i = 0; i < mn; ++i)
+        {
+          objectDiffs_t diffsEntry;
+          if (doPodsDiffer(lhs.children[i], rhs.children[i], diffsEntry))
+          {
+            object.diffs |= objectMembers_e::children;
+            object.childrenDiffs.push_back({i, diffsEntry});
+          }
+        }
+        for (size_t i = mn; i < mx; ++i)
+        {
+          objectDiffs_t diffsEntry = { .diffs = objectMembers_e::all };
+          object.childrenDiffs.push_back({i, diffsEntry});
+        }
+      }
+      // diff member 'features':
+      {
+        auto [mn, mx] = std::minmax(lhs.features.size(), rhs.features.size());
+        for (size_t i = 0; i < mn; ++i)
+        {
+          featureDiffs_t diffsEntry;
+          if (doPodsDiffer(lhs.features[i], rhs.features[i], diffsEntry))
+          {
+            object.diffs |= objectMembers_e::features;
+            object.featuresDiffs.push_back({i, diffsEntry});
+          }
+        }
+        for (size_t i = mn; i < mx; ++i)
+        {
+          featureDiffs_t diffsEntry = { .diffs = featureMembers_e::all };
+          object.featuresDiffs.push_back({i, diffsEntry});
+        }
+      }
+
+      return object.diffs != objectMembers_e::none;
+    };
+
+    // tableau things
+
+    struct tableau_t
+    {
+      std::string name;
+      std::vector<object_t> objects;
+    };
+
+    void importPod(
+      humon::HuNode const & src, tableau_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, tableau_t & dest);
+
+    void exportPod(tableau_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      tableau_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(tableau_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, tableau_t const & src);
+
+    enum class tableauMembers_e : int 
+    {
+      none = 0,
+      name = 1 << 0,
+      objects = 1 << 1,
+      all = name | objects
+    };
+
+    inline bool operator == (tableau_t const & lhs, tableau_t const & rhs) noexcept
+    {
+      return
+        lhs.name == rhs.name &&
+        lhs.objects == rhs.objects;
+    };
+
+    inline bool operator != (tableau_t const & lhs, tableau_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct tableauDiffs_t
+    {
+      tableauMembers_e diffs;
+      std::vector<std::pair<size_t, objectDiffs_t>> objectsDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      tableau_t const & lhs,
+      tableau_t const & rhs,
+      tableauDiffs_t & tableau) noexcept
+    {
+      // diff member 'name':
+      if (lhs.name != rhs.name)
+        { tableau.diffs |= tableauMembers_e::name; }
+      // diff member 'objects':
+      {
+        auto [mn, mx] = std::minmax(lhs.objects.size(), rhs.objects.size());
+        for (size_t i = 0; i < mn; ++i)
+        {
+          objectDiffs_t diffsEntry;
+          if (doPodsDiffer(lhs.objects[i], rhs.objects[i], diffsEntry))
+          {
+            tableau.diffs |= tableauMembers_e::objects;
+            tableau.objectsDiffs.push_back({i, diffsEntry});
+          }
+        }
+        for (size_t i = mn; i < mx; ++i)
+        {
+          objectDiffs_t diffsEntry = { .diffs = objectMembers_e::all };
+          tableau.objectsDiffs.push_back({i, diffsEntry});
+        }
+      }
+
+      return tableau.diffs != tableauMembers_e::none;
+    };
+
+  }
+}
+
+#endif // #ifndef tableau_GEN_H

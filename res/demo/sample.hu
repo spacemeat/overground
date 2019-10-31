@@ -1,0 +1,15 @@
+{
+  configs: { }
+
+  renderPlans: { }
+
+  meshes: { }
+
+  materials: { }
+
+  models: { }
+
+  tableaux: { }
+
+  assemblies: { }
+}

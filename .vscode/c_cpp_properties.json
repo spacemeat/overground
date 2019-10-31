@@ -16,7 +16,12 @@
                 "${workspaceFolder}/engine/inc",
                 "${workspaceFolder}/assetProviders/inc",
                 "${workspaceFolder}/boiler/inc",
-                "${workspaceFolder}/featureProviders/inc"
+                "${workspaceFolder}/featureProviders/inc",
+                "${workspaceFolder}/assembly/inc",
+                "${workspaceFolder}/assembly-gen/inc",
+                "${workspaceFolder}/features/inc",
+                "${workspaceFolder}/object/inc",
+                "${workspaceFolder}/tableau/inc"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

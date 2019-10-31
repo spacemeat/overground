@@ -1,13 +1,10 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#include "graphicsUtils.h"
-#include "configAsset.h"
-#include "renderPassAsset.h"
-#include "framePlan.h"
-#include "commandList-gen.h"
 #include <string>
 #include <set>
+
+#include "graphicsUtils.h"
 
 namespace overground
 {

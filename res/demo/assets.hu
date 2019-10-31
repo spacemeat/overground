@@ -1,0 +1,36 @@
+{
+  assets: {
+    "cube-mesh": {
+      type: meshAsset
+      srcFile: "cube.hu"
+      data: {
+      }
+    }
+
+    "cube-texture": {
+      type: imageAsset
+      srcFile: "mathFace.png"
+      data: {
+        format: R8G8B8A8Unorm # there should be a way to say "whatever we're using, man" Maybe Unknown.
+      }
+    }
+
+    "diffuse-vshader": {
+      type: shaderAsset
+      srcFile: "diffuse.vert"
+      data: {
+        stage: Vertex # There's a shader stage enum that is appropriate
+        entryPoint: vin
+      }
+    }
+
+    "diffuse-fshader": {
+      type: shaderAsset
+      srcFile: "diffuse.frag"
+      data: {
+        stage: Fragment # There's a shader stage enum that is appropriate
+        entryPoint: fin
+      }
+    }
+  }
+}

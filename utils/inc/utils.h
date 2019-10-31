@@ -10,7 +10,8 @@
 #include "ansiTerm.h"
 #include "humon.h"
 #include "logger.h"
-#include "objRef.h"
+//#include "objRef.h"
+#include "stringDict.h"
 
 namespace overground
 {
@@ -26,6 +27,20 @@ namespace overground
   using fileTime_t = std::experimental::filesystem::file_time_type;
   using path_t = std::experimental::filesystem::path;
 
+  /*
+  template <class RetObj>
+  struct RetVal
+  {
+    std::optional<RetObj> obj_;
+
+    operator bool() { return obj_.has_value(); }
+    std::optional<RetObj> & obj() const & noexcept { return obj_; }
+    std::optional<RetObj> && obj() const && noexcept { return obj_; }
+  };
+  */
+
+
+  class Asset;
 
   enum class FramePhaseKinds
   {
@@ -46,6 +61,25 @@ namespace overground
 
     nonBarrierJobQueue,
     barrierJobQueue
+  };
+
+
+  enum class BufferStrategy
+  {
+    /*  randomTableaux - 
+          One buffer per tableau, each storing all of that tableau's assets, with no consideration given to resource overlap between buffers.
+    */
+    randomTableaux,
+
+    /*  lifoTableaux - 
+          One buffer per tableau, but anywhere we can use the asset in a previous tableau in any group, we will do so. This implies a stack-based tableau progression, where the newest tableau added is the first removed. Minimal buffer usage on disk, no buffer swapping in vram, but rigid tableau progression.
+    */
+    lifoTableaux,
+
+    /*  randomGroup -
+          One buffer per group, with no consideration given to resource overlap between groups. Changing groups means blowing out the buffer and slam-homing the new one.
+    */
+    randomGroup
   };
 
 

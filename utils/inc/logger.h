@@ -2,7 +2,6 @@
 #define LOGGER_H
 
 #include <string>
-#include <string_view>
 #include <map>
 #include <vector>
 #include <fmt/core.h>
@@ -131,9 +130,10 @@ namespace overground
   };
 
 
-  extern Logger * _logger;
+//  extern Logger * logger;
+  static inline std::optional<Logger> logger;
 
-  // free functions that operate on *_logger.
+  // free functions that operate on *logger.
 
   int createLogChannel(std::string_view name,
     int defaultTags = logTags::LogTag::info,

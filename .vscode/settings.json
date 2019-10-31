@@ -53,7 +53,17 @@
     "codecvt": "cpp",
     "queue": "cpp",
     "functional": "cpp",
-    "list": "cpp"
+    "list": "cpp",
+    "string": "cpp",
+    "unordered_set": "cpp",
+    "algorithm": "cpp",
+    "iterator": "cpp",
+    "map": "cpp",
+    "memory_resource": "cpp",
+    "random": "cpp",
+    "set": "cpp",
+    "variant": "cpp",
+    "bit": "cpp"
   },
   "files.useExperimentalFileWatcher": true
 }

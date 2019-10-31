@@ -1,158 +1,79 @@
 #include "asset.h"
-#include "resourceManager.h"
-#include "fileReference.h"
-#include "jobScheduler.h"
-#include "engine.h"
 
 using namespace std;
 using namespace overground;
 
 
-Asset::Asset(
-  std::string_view assetName,
-  FileReference * assetDescFile, 
-  humon::HuNode & descFromFile,
-  bool cache, bool compile,
-  bool monitor)
-: assetName(assetName),
-  assetDescFile(assetDescFile), 
-  desc(descFromFile.clone()), thisIsCached(cache),
-  thisIsCompiled(compile), thisIsMonitored(monitor)
+Asset::Asset(string_view name)
+: name_(name)
 {
-  if (*desc % "dataFile")
-  {
-    string filename = (string) (*desc / "dataFile");
-    auto & resMan = engine->getResourceManager();
-    auto adf = resMan.addAssetDataFile(filename, false);
-    srcFilePath = adf->getPath();
-    adf->setClientAsset(this);
-
-    if (cache)
-    {
-      path_t compiledPath = srcFilePath;
-      compiledPath.extension() = getCompiledExtension();
-      auto adfo = resMan.addAssetDataFile(compiledPath.filename().string(), false);
-      optFilePath = compiledPath;
-      adfo->setClientAsset(this);
-    }
-  }
 }
 
 
 Asset::~Asset()
 {
+
 }
 
 
-void Asset::setDesc(humon::HuNode const & desc)
+void Asset::loadAssetInfo(asset::asset_t const & asset)
 {
-  this->desc = desc.clone();
-  setNeedsUpdateFromSrc();
-}
+  bool needsSrc = asset.srcFile.has_value();
 
+  // TODO: prepend the paths here with apt directories
+  if (needsSrc)
+    { srcFile_ = FileRef(asset.srcFile.value()); }
+  assFile_ = FileRef(asset.assFile);
 
-std::string Asset::getCompiledExtension()
-{ 
-  return "";
-}
+  bool hasSrc = needsSrc && fs::is_regular_file(srcFile().value().path());
+  bool hasAss = fs::is_regular_file(assFile().path());
+  bool isSrcNewer = hasSrc && hasAss && srcFile().value().isNewerThan(assFile());
 
+  bool needsToCompileSrc = (hasSrc && ! hasAss) || isSrcNewer;
 
-void Asset::compileSrcAsset(JobScheduler & sched)
-{
-  if (isCompiled())
+  if (! hasSrc && ! hasAss)
   {
-    compileSrcAsset_impl(srcFilePath);
+    log(thId, logTags::err, fmt::format("Asset '{}' has no source or .ass files.", name()));
+  }
 
-    // if asset is cached, save the compiled version to disk in a separate job
-    if (isCached())
-    {
-      auto saveJob = makeFnJob("saveCompiledAsset", [&]
-        { saveCompiledAsset(); });
-      sched.scheduleJob(saveJob);
-    }
+  // Load the asset's info. We use the src file if we'll be compiling, as that lets us to only have to parse one file for the info and data. We use the ass file otherwise because it's smaller. (Eventually the .ass files might be consolidated and binarized. It's good to have the separate path for them.)
+  if (needsToCompileSrc)
+  {
+    loadAssetInfo_impl(srcFile_.value().path(), true, asset);
+    compileToAss();
+  }
+  else
+  {
+    loadAssetInfo_impl(assFile_.path(), false, asset);
   }
 }
 
 
-void Asset::loadCompiledAsset()
+void Asset::compileToAss()
 {
-  auto ifs = compiledAssetLoader_t(
-    optFilePath.c_str(), ios::binary);
-  loadCompiledAsset_impl(ifs);
+  compileToAss_impl();
 }
 
 
-void Asset::saveCompiledAsset()
+void Asset::compileToBuffer(std::byte * buffer)
 {
-  auto ofs = compiledAssetLoader_t(
-    optFilePath.c_str(), ios::binary | ios::out);
-  loadCompiledAsset_impl(ofs);
+  compileToBuffer_impl(buffer);
 }
 
 
-void Asset::compileSrcAsset_impl(path_t const & path)
+void Asset::loadAssetInfo_impl(path_t file, bool loadFromSrc, asset::asset_t const & asset)
 {
-  return;
+  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'loadAssetInfo_impl'.", name_));
 }
 
 
-void Asset::loadCompiledAsset_impl(
-  compiledAssetLoader_t & file)
+void Asset::compileToAss_impl()
 {
-  return;
+  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'compileToAss_impl'.", name_));
 }
 
 
-void Asset::saveCompiledAsset_impl(
-  compiledAssetSaver_t & file)
+void Asset::compileToBuffer_impl(std::byte * buffer)
 {
-  return;
-}
-
-
-uint64_t Asset::getCompiledSize()
-{
-  return 0LL;
-}
-
-
-void * Asset::getCompiledData()
-{
-  return nullptr;
-}
-
-
-int Asset::getGraphicsBufferId()
-{
-  return -1;
-}
-
-
-uint64_t Asset::getGraphicsBufferSize()
-{
-  return 0;
-}
-
-
-void Asset::applyToBuffer(void * targetBuffer)
-{
-  applyToBuffer_impl(targetBuffer);;
-}
-
-
-void Asset::applyToEngine()
-{
-  applyToEngine_impl();
-}
-
-
-void Asset::applyToBuffer_impl(void * targetBuffer)
-{
-  return;
-}
-
-
-void Asset::applyToEngine_impl()
-{
-  return;
+  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'compileToBuffer_impl'.", name_));
 }

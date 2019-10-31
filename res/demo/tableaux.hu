@@ -1,0 +1,70 @@
+{
+  tableaux: {
+    cubeView: {
+      objects: {
+        tvCube: {
+          features: [ {
+              featureData: {
+                type: matrixTransform
+              }
+            } {
+              featureData: {
+                type: drawableModel
+                mesh: "cube-mesh"
+                subModels: [ {
+                    subset: cubeFaces
+                    material: brushedSteel
+                    tags: [opaqueMesh]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+
+        camera0: {
+          features: [ {
+              featureData: {
+                type: matrixTransform
+              }
+            } {
+              featureData: {
+                type: srtTransform
+                scale: [1 1 1]
+                rotation: ["tau/6" "tau/4" 0]
+                translate: [3 -6 2]
+              }
+            } {
+              featureData: {
+                type: camera
+                fovAroundYAxis: "tau/5.5"
+                minDepth: 0.01
+                maxDepth: 1000
+                renderPlan: singleColorPass
+              }
+            }
+          ]
+        }
+
+        lightness: {
+          features: [ {
+              featureData: {
+                type: matrixTransform
+              }
+            } {
+              featureData: {
+                type: srtTransform
+                rotation: ["-tau/8" "2*tau/3" 0]
+              }
+            } {
+              featureData: {
+                type: directionalLight
+                color: [1, .8, 1]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

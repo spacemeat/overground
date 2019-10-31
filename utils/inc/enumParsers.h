@@ -30,9 +30,23 @@ namespace overground
     }
   }
 
-
   template<>
   FramePhaseKinds fromString<FramePhaseKinds>(std::string_view rhs);
+
+
+  inline std::string to_string(BufferStrategy value)
+  {
+    switch (value)
+    {
+    case BufferStrategy::randomTableaux: return "randomTableaux";
+    case BufferStrategy::lifoTableaux: return "lifoTableaux";
+    case BufferStrategy::randomGroup: return "randomGroup";
+    default: return "invalid";
+    }
+  }
+
+  template<>
+  BufferStrategy fromString<BufferStrategy>(std::string_view rhs);
 }
 
 #endif // #ifndef ENUMPARSERSCUSTOM_H

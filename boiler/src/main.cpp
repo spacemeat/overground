@@ -6,12 +6,12 @@ using namespace humon;
 using namespace overground;
 
 
-Logger * overground::_logger = nullptr;
+Logger * overground::logger = nullptr;
 
 
 void overground::initGlobals()
 {
-  _logger = new Logger();
+  logger = new Logger();
 }
 
 
@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
   
   createLogChannel("boiler", logTags::info, logTags::macro, & cout);
 
-  if (argc > 1 && string(argv[1]) == string("assets"))
+  if (argc > 1 && string(argv[1]) == string("assembly"))
   {
     if (argc > 3)
     {

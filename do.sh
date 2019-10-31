@@ -2,6 +2,8 @@ cd utils
 source do.sh buildlib
 cd ../boiler
 source do.sh buildexe
+cd ../assembly-gen
+source do.sh buildlib
 cd ../jobs
 source do.sh buildlib
 cd ../assets

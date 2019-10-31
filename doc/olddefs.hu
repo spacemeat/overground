@@ -1,0 +1,548 @@
+{
+  defs: {
+    @loadFromString: [
+      FramePhaseKinds
+    ]
+    config: {
+      general_t: {
+        programName: { type: string }
+        version: { type: "array<int, 3>" }
+        numWorkerThreads: { type: int }
+      }
+
+      swapchainImageView_t: {
+        viewType: { type: "vk::ImageViewType" }
+        components: { type: "array<vk::ComponentSwizzle, 4>" }
+        aspectMask: { type: "vk::ImageAspectFlagBits" }
+      }
+
+      swapchain_t: {
+        formatPriorities: { type: "vector<pair<vk::Format, vk::ColorSpaceKHR>>" }
+        numViews: { type: "unsigned int" }
+        imageUsages: { type: "vector<string>" }
+        imageSharing: { type: bool }
+        pretransform: { type: "vk::SurfaceTransformFlagBitsKHR" }
+        windowAlpha: { type: "vk::CompositeAlphaFlagBitsKHR" }
+        presentModePriorities: { type: "vector<pair<vk::PresentModeKHR, std::uint32_t>>" }
+        clipped: { type: bool }
+        imageView: { type: swapchainImageView_t }
+      }
+
+      graphics_t: {
+        isConfigured: { type: bool def: false }
+        headless: { type: bool }
+        fullScreen: { type: bool }
+        width: { type: "unsigned int" }
+        height: { type: "unsigned int" }
+        vulkanValidationEnabled: { type: bool }
+        vulkanValidationLayers: { type: "vector<string>" }
+        vulkanValidationReports: { type: "vector<string>" }
+        vulkanExtensions: { type: "vector<string>" }
+        deviceExtensions: { type: "vector<string>" }
+        minGraphicsQueues: { type: "unsigned int" }
+        desiredGraphicsQueues: { type: "unsigned int" }
+        minComputeQueues: { type: "unsigned int" }
+        desiredComputeQueues: { type: "unsigned int" }
+        minTransferQueues: { type: "unsigned int" }
+        desiredTransferQueues: { type: "unsigned int" }
+        minDeviceFeatures: { type: "vector<string>" }
+        desiredDeviceFeatures: { type: "vector<string>" }
+        swapchain: { type: swapchain_t }
+      }
+
+      config_t: {
+        general: { type: general_t }
+        graphics: { type: graphics_t }
+      }
+    }
+
+    renderPass: {
+      attachment_t: {
+        name: { type: string }
+        flags: { type: "vk::AttachmentDescriptionFlagBits" def: 0 }
+        numSamples: { type: "vk::SampleCountFlagBits" }
+        loadOp: { type: "vk::AttachmentLoadOp" }
+        storeOp: { type: "vk::AttachmentStoreOp" }
+        stencilLoadOp: { type: "vk::AttachmentLoadOp" }
+        stencilStoreOp: { type: "vk::AttachmentStoreOp" }
+        initialLayout: { type: "vk::ImageLayout" }
+        finalLayout: { type: "vk::ImageLayout" }
+      }
+
+      subpassAttachment_t: {
+        attachment: { type: string }
+        layout: { type: "vk::ImageLayout"}
+      }
+
+      subpass_t: {
+        name: { type: string }
+        flags: { type: "vk::SubpassDescriptionFlagBits" }
+        bindPoint: { type: "vk::PipelineBindPoint" }
+        inputAttachments: { type: "vector<subpassAttachment_t>" }
+        colorAttachments: { type: "vector<subpassAttachment_t>" }
+        resolveAttachments: { type: "vector<subpassAttachment_t>" }
+        depthStencilAttachment: { type: "optional<subpassAttachment_t>" }
+        preserveAttachments: { type: "vector<unsigned int>" }
+      }
+
+      subpassDependency_t: {
+        srcSubpass: { 
+          type: int 
+    #      aliases: [[external, VK_SUBPASS_EXTERNAL]]
+        }
+        dstSubpass: { 
+          type: int 
+    #      aliases: [[external, VK_SUBPASS_EXTERNAL]]
+        }
+        srcStageMask: { type: "vk::PipelineStageFlagBits" }
+        dstStageMask: { type: "vk::PipelineStageFlagBits" }
+        srcAccessMask: { type: "vk::AccessFlagBits" }
+        dstAccessMask: { type: "vk::AccessFlagBits" }
+      }
+
+      renderPass_t: {
+        name: { type: string }
+        attachments: { type: "vector<attachment_t>" }
+        subpasses: { type: "vector<subpass_t>" }
+        dependencies: { type: "vector<subpassDependency_t>" }
+      }
+
+      # render operations
+
+      identifyVisibleThings_t: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      drawRecursiveCameras_t: { 
+        type: { type: string }
+      }
+
+      computeShadows_t: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      updateUbos_t: {
+        type: { type: string }
+      }
+
+      setRenderPass_t: {
+        type: { type: string }
+        renderPassName: { type: string }
+      }
+
+      nextSubpass_t: { 
+        type: { type: string }
+      }
+
+      endRenderPass_t: { 
+        type: { type: string }
+      }
+
+      computeDepth_t: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      draw: { 
+        type: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      runPostEffects_t: { 
+        type: { type: string }
+      }
+
+      operationList_t: {
+        name: { type: string }
+        ops: { type: "vector<variant<identifyVisibleThings_t, rebuildSecondaryCommandBuffers_t, computeShadows_t, setRenderPass_t, nextSubpass_t, endRenderPass_t, computeDepth_t, drawUi_t, drawOpaque_t, drawTransparent_t, drawImposters_t, drawSkybox_t, runPostEffects_t>>" }
+      }
+
+      renderPlan_t: {
+        name: { type: string }
+        renderPasses: { type: "vector<renderPass_t>" }
+        operations: { type: "vector<operationList_t>" }
+      }
+    }
+
+    framePlan: {
+      framePhase_t: {
+        kind: { type: FramePhaseKinds }
+        name: { type: string }
+        computePassName: { type: "optional<string>" }
+        renderPassName: { type: "optional<string>" }
+        subpass: { type: "optional<int>" }
+        arg: { type: "optional<string>" }
+      }
+
+      framePlan_t: {
+        name: { type: string }
+        phases: { type: "vector<framePhase_t>" }
+      }
+    }
+
+    commandList: {
+      cmdBindPipeline_t: {
+        type: { type: string }
+        bindPoint: { type: "vk::PipelineBindPoint" }
+        pipelineName: { type: string }
+      }
+      cmdSetViewport_t: { 
+        type: { type: string }
+      }
+      cmdSetScissor_t: {
+        type: { type: string }
+      }
+      cmdSetLineWidth_t:
+      { 
+        type: { type: string }
+        width: { type: float }
+      }
+      cmdSetDepthBias_t: {
+        type: { type: string }
+        constantFactor: { type: float }
+        clamp: { type: float }
+        slopeFactor: { type: float }
+      }
+      cmdSetBlendConstants_t: { 
+        type: { type: string }
+        constants: { type: "array<float, 4>" }
+      }
+      cmdSetDepthBounds_t: {
+        type: { type: string }
+        min: { type: float }
+        max: { type: float }
+      }
+      cmdSetStencilCompareMask_t: {
+        type: { type: string }
+        faceMask: { type: "vk::StencilFaceFlagBits" }
+        compareMask: { type: "uint32_t" }
+      }
+      cmdSetStencilWriteMask_t: {
+        type: { type: string }
+        faceMask: { type: "vk::StencilFaceFlagBits" }
+        writeMask: { type: "uint32_t" }
+      }
+      cmdSetStencilReference_t: {
+        type: { type: string }
+        faceMask: { type: "vk::StencilFaceFlagBits" }
+        reference: { type: "uint32_t" }
+      }
+      cmdBindDescriptorSets_t: {
+        type: { type: string }
+      }
+      cmdBindIndexBuffer_t: {
+        type: { type: string }
+      }
+      cmdBindIndexBuffers_t: {
+        type: { type: string }
+      }
+      cmdDraw_t: {
+        type: { type: string }
+      }
+      cmdDrawIndexed_t: {
+        type: { type: string }
+      }
+      cmdDrawIndirect_t: {
+        type: { type: string }
+      }
+      cmdDrawIndexedIndirect_t: {
+        type: { type: string }
+      }
+      cmdDispatch_t: {
+        type: { type: string }
+      }
+      cmdDispatchIndirect_t: {
+        type: { type: string }
+      }
+      cmdCopyBuffer_t: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdCopyImage_t: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdBlitImage_t: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+        filter: { type: "vk::Filter" }
+      }
+      cmdCopyBufferToImage_t: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdCopyImageToBuffer_t: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdUpdateBuffer_t: {
+        type: { type: string }
+        dst: { type: string }
+      }
+      cmdFillBuffer_t: {
+        type: { type: string }
+        dst: { type: string }
+        data: { type: uint32_t }
+      }
+      cmdClearColorImage_t: {
+        type: { type: string }
+        dst: { type: string }
+        color: { type: "array<float, 4>" }
+      }
+      cmdClearDepthStencilImage_t: {
+        type: { type: string }
+        dst: { type: string }
+        depth: { type: float }
+        stencil: { type: uint32_t }
+      }
+      cmdClearAttachments_t: {
+        type: { type: string }
+        attachments: { type: "vector<string>" }
+      }
+      cmdResolveImage_t: {
+        type: { type: string }
+        src: { type: string }
+        dst: { type: string }
+      }
+      cmdSetEvent_t: {
+        type: { type: string }
+        event: { type: string }
+        stageMask: { type: "vk::PipelineStageFlagBits" }
+      }
+      cmdWaitEvents_t: {
+        type: { type: string }
+      }
+      cmdPipelineBarrier_t: {
+        type: { type: string }
+      }
+      cmdBeginQuery_t: {
+        type: { type: string }
+      }
+      cmdEndQuery_t: {
+        type: { type: string }
+      }
+      cmdResetQueryPool_t: {
+        type: { type: string }
+      }
+      cmdWriteTimestamp_t: {
+        type: { type: string }
+      }
+      cmdCopyQueryPoolResults_t: {
+        type: { type: string }
+      }
+      cmdPushConstants_t: {
+        type: { type: string }
+        # TODO: Specific fields
+      }
+      cmdBeginRenderPass_t: {
+        type: { type: string }
+       # ...
+      }
+      cmdNextSubpass_t: {
+        type: { type: string }
+       # ...
+      }
+      cmdEndRenderPass_t: {
+        type: { type: string }
+      }
+      cmdExecuteCommands_t: {
+        type: { type: string }
+        commandBuffers: { type: "vector<string>" }
+      }
+      commandList_t: {
+        name: { type: string }
+        queue: { type: string } # TODO: enum for COMPUTE, GRAPHICS, etc
+        cmds: { type: "vector<variant<cmdBindPipeline_t, cmdSetViewport_t, cmdSetScissor_t, cmdSetLineWidth_t, cmdSetDepthBias_t, cmdSetBlendConstants_t, cmdSetDepthBounds_t, cmdSetStencilCompareMask_t, cmdSetStencilWriteMask_t, cmdSetStencilReference_t, cmdBindDescriptorSets_t, cmdBindIndexBuffer_t, cmdBindIndexBuffers_t, cmdDraw_t, cmdDrawIndexed_t, cmdDrawIndirect_t, cmdDrawIndexedIndirect_t, cmdDispatch_t, cmdDispatchIndirect_t, cmdCopyBuffer_t, cmdCopyImage_t, cmdBlitImage_t, cmdCopyBufferToImage_t, cmdCopyImageToBuffer_t, cmdUpdateBuffer_t, cmdFillBuffer_t, cmdClearColorImage_t, cmdClearDepthStencilImage_t, cmdClearAttachments_t, cmdResolveImage_t, cmdSetEvent_t, cmdWaitEvents_t, cmdPipelineBarrier_t, cmdPushConstants_t, cmdBeginRenderPass_t, cmdNextSubpass_t, cmdEndRenderPass_t, cmdExecuteCommands_t>>" }
+      }
+    }
+
+    mesh: {
+
+    }
+
+    material: {
+
+    }
+
+    model: {
+
+    }
+
+    objects: {
+      feature_t: {
+        name: { type: string }  
+      }
+
+      matrixTransform_t: {
+        basedOn: feature_t
+        transform: { type: "array<float, 16>" }
+      }
+
+      srtTransform_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        scale: { type: "arrat<float, 3>" }
+        rotation: { type: "array<float, 3>" }
+        translate: { type: "array<float, 3>" }
+      }
+
+      drawableSubmodel_t: {
+        subset: { type: string }
+        material: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
+      drawableModel_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        mesh: { type: string }
+        subModels: { type: "vector<drawableSubmodel_t>" }
+      }
+
+      directionalLight_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        color: { type: "array<float, 3>" }
+      }
+
+      pointLight_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        attenuation: { type: "array<float, 3>" }
+        color: { type: "array<float, 3>" }
+      }
+
+      spotlight_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        attenuation: { type: "array<float, 3>" }
+        hotspot: { type: float }
+        falloff: { type: float }
+        color: { type: "array<float, 3>" }
+      }
+
+      camera_t: {
+        basedOn: feature_t
+        requires: [matrixTransform_t]
+        fovAroundYAxis: { type: float }
+        minDepth: { type: float }
+        maxDepth: { type: float }
+        renderPlan: { type: string }
+      }
+
+      object_t: {
+        name: { type: string }
+        children: { type: "vector<object_t>" }
+        features: { type: "vector<variant<...>>" }
+      }
+
+      tableau_t: {
+        name: { type: string }
+        objects: { type: "vector<object_t>" }
+      }
+    }
+  }
+}
+
+
+{
+  name: aCubeInTwoViews
+  tvCube: {
+    # name implied from key
+    features: [{
+        type: matrixTransform_t
+    }{
+        type: srtTransform_t
+        scale: [1 1 1]
+        rotation: [0 0 0]
+        translate: [0 0 0]
+    }{
+        type: drawableModel_t
+        mesh: tvCubeMesh
+        subModels: [{
+            subset: opaqueBits
+            material: brushedSteel
+            tags: [opaqueMesh]
+          } {
+            subset: playbackBits
+            material: cameraPlayback
+            tags: [opaqueMesh]
+          } {
+            subset: transparentBits
+            material: glass
+            tags: [transparentMesh]
+          }
+        ]
+      }
+    ]
+  }
+  camera0: {
+#    features: [
+#      { } @ type: matrixTransform_t
+#      {
+#        scale: [1 1 1]
+#        rotation: ["tau/6" "tau/4" 0]
+#        translate: [3 -6 2]
+#      } @ type: srtTransform_t
+#      {
+#        fovAroundYAxis: "tau/5.5"
+#        minDepth: 0.01
+#        maxDepth: 1000
+#        renderPlan: sampRenderPlan
+#      } @ type: camera_t
+#    ]
+    features: [{
+        type: matrixTransform_t
+      } {
+        type: srtTransform_t
+        scale: [1 1 1]
+        rotation: ["tau/6" "tau/4" 0]
+        translate: [3 -6 2]
+      } {
+        type: camera_t
+        fovAroundYAxis: "tau/5.5"
+        minDepth: 0.01
+        maxDepth: 1000
+        renderPlan: sampRenderPlan
+      }
+    ]
+  }
+
+  camera1: {
+    features: [{
+        type: matrixTransform_t
+      } {
+        type: srtTransform_t
+        scale: [1 1 1]
+        rotation: ["tau/6" "4*tau/5" 0]
+        translate: [3 6 2]
+      } {
+        type: camera_t
+        fovAroundYAxis: "tau/5.5"
+        minDepth: 0.01
+        maxDepth: 1000
+        renderPlan: sampRenderPlan
+      }
+    ]
+  }
+
+  lightness: {
+    features: [{
+        type: matrixTransform_t
+      } {
+        type: srtTransform_t
+        rotation: ["-tau/8" "2*tau/3" 0]
+      } {
+        type: directionalLight_t
+        color: [1, .8, 1]
+      }
+    ]
+  }
+}

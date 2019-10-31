@@ -1,10 +1,9 @@
+#include <iostream>
 #include "engine.h"
 #include "utils.h"
-#include "configAsset.h"
 #include "jobScheduler.h"
-#include "framePlan.h"
+#include "assemblyManager.h"
 
-#include <iostream>
 
 using namespace std;
 using namespace overground;
@@ -17,13 +16,12 @@ constexpr auto pathSeparator = "/";
 
 
 Engine::Engine()
-: resMan(AssetBaseDir, AssetDataBaseDir)
 {
   thId = createLogChannel(
     "main", logTags::dbg, logTags::macro, & cout, & coutMx);
   
   jobMan->allocateWorkers(JobManager::getNumCores() * 2);
-  jobMan->setFramePlan(& framePlan);
+  //jobMan->setFramePlan(& framePlan);
 }
 
 
@@ -40,14 +38,6 @@ Engine::~Engine()
 }
 
 
-void Engine::registerAssetProvider(
-      std::string_view assetKind,
-      makeAssetFn_t const & fn)
-{
-  resMan.registerAssetProvider(assetKind, fn);
-}
-
-
 void Engine::init(int argc, char ** argv)
 {
   logFn();
@@ -57,7 +47,7 @@ void Engine::init(int argc, char ** argv)
   currentTime_us = engineTimePoint {};
 
 //  resMan.gatherAssetsFromFile("config.hu");
-  resMan.addAssetDescFile(DefaultStartupFile);
+//  resMan.addAssetDescFile(DefaultStartupFile);
 
   // ScheduledEvents::CheckForFileUpdates
   eventPeriods.push_back(chrono::milliseconds{1000});
@@ -66,13 +56,13 @@ void Engine::init(int argc, char ** argv)
   eventPeriods.push_back(chrono::milliseconds{1000});
   lastEventTimes.push_back(currentTime_us + chrono::milliseconds{500});
 
-  // load up the config file
-  JobScheduler sched(ScheduleKind::synchronous);
-  checkForFileUpdates(sched);
+//  JobScheduler sched(ScheduleKind::synchronous);
+//  checkForFileUpdates(sched);
   // latch the config to engine; creates the window, etc.
-  checkForAssetUpdates(sched);
+//  checkForAssetUpdates(sched);
   // initial config
-  checkForDataUpdates();
+//  checkForDataUpdates();
+
 }
 
 
@@ -84,26 +74,7 @@ void Engine::shutDown()
 }
 
 
-void Engine::enqueueJob(Job * job)
-{
-  jobMan->enqueueJob(job);
-}
-
-
 // ------------ process steps
-
-void Engine::loadScene()
-{
-  logFn();
-  
-}
-
-
-void Engine::latchSceneDelta()
-{
-  logFn();
-  
-}
 
 
 void Engine::enterEventLoop()
@@ -148,11 +119,6 @@ void Engine::runLoopIteration()
 {
   runFrameMaintenance();
 
-  auto & phases = framePlan.getPhases;
-  for (auto & phase : phases)
-  {
-    // do some phrasing. oy
-  }
 }
 
 
@@ -168,15 +134,7 @@ void Engine::runFrameMaintenance()
   JobScheduler sched(ScheduleKind::asynchronous);
 
   performScheduledEvents(sched);
-  checkForAssetUpdates(sched);
-
-  if (updatedObjectKinds != DataObjectKindFlags::none)
-  { 
-    framePlan.postJob("graphicsStructure", 
-      makeFnJob("checkForDataUpdates", [&]
-        { checkForDataUpdates(); }
-      ), false);
-  }
+  // ? checkForAssemblyUpdates(sched);
 }
 
 
@@ -211,8 +169,8 @@ void Engine::performScheduledEvents(JobScheduler & sched)
 
       switch ((ScheduledEvents) i)
       {
-        case ScheduledEvents::CheckForFileUpdates:
-          checkForFileUpdates(sched);
+        case ScheduledEvents::checkForUpdatedFiles:
+          checkForUpdatedFiles();
           break;
       }
     }
@@ -220,15 +178,22 @@ void Engine::performScheduledEvents(JobScheduler & sched)
 }
 
 
-void Engine::checkForFileUpdates(JobScheduler & sched)
+void Engine::checkForUpdatedFiles()
 {
-  resMan.checkForAnyFileUpdates(sched);
+  assemblyMan->checkForUpdatedFiles();
 }
 
 
-void Engine::checkForAssetUpdates(JobScheduler & sched)
+void Engine::checkForUpdatedAssembly()
 {
-  resMan.checkForAssetUpdates(sched);
+  auto assemblyDiffs = assemblyMan->checkForUpdatedAssembly();
+  if (assemblyDiffs)
+  {
+    if (assemblyDiffs->diffs & assembly::assemblyMembers_e::usingConfig)
+    {
+      
+    }
+  }
 }
 
 
