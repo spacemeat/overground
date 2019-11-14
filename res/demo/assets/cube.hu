@@ -14,7 +14,7 @@
 
 
   mesh: {
-    name: cube
+    name: cubeMesh
     format: [
       [positions float 3]
       [normals float 3]

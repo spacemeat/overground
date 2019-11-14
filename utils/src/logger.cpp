@@ -233,7 +233,9 @@ Channel & Logger::log(std::string_view channel, int tags,
 
 // ----- free fns
 
-// Logger * logger is defined elsewhere! Make one.
+// The global logger. Pleased to meet you.
+std::optional<Logger> overground::logger;
+
 
 int overground::createLogChannel(
   std::string_view name,

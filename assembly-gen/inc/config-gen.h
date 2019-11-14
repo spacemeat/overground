@@ -173,7 +173,7 @@ namespace overground
     {
       std::vector<std::pair<vk::Format, vk::ColorSpaceKHR>> formatPriorities;
       unsigned int numViews;
-      std::vector<std::string> imageUsages;
+      std::vector<string> imageUsages;
       bool imageSharing;
       vk::SurfaceTransformFlagBitsKHR pretransform;
       vk::CompositeAlphaFlagBitsKHR windowAlpha;
@@ -326,18 +326,18 @@ namespace overground
       unsigned int width;
       unsigned int height;
       bool vulkanValidationEnabled;
-      std::vector<std::string> vulkanValidationLayers;
-      std::vector<std::string> vulkanValidationReports;
-      std::vector<std::string> vulkanExtensions;
-      std::vector<std::string> deviceExtensions;
+      std::vector<string> vulkanValidationLayers;
+      std::vector<string> vulkanValidationReports;
+      std::vector<string> vulkanExtensions;
+      std::vector<string> deviceExtensions;
       unsigned int minGraphicsQueues;
       unsigned int desiredGraphicsQueues;
       unsigned int minComputeQueues;
       unsigned int desiredComputeQueues;
       unsigned int minTransferQueues;
       unsigned int desiredTransferQueues;
-      std::vector<std::string> minDeviceFeatures;
-      std::vector<std::string> desiredDeviceFeatures;
+      std::vector<string> minDeviceFeatures;
+      std::vector<string> desiredDeviceFeatures;
       swapchain_t swapchain;
       BufferStrategy bufferStrategy;
     };

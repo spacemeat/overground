@@ -7,7 +7,6 @@
         numWorkerThreads: 2
       }
       graphics: {
-        isConfigured: true
         headless: false # implies swapchain extension
         fullScreen: false
         width: 800

@@ -562,7 +562,7 @@ namespace overground
     struct identifyVisibleThings_t
     {
       std::string type;
-      std::vector<std::string> tags;
+      std::vector<string> tags;
     };
 
     void importPod(
@@ -698,7 +698,7 @@ namespace overground
     struct computeShadows_t
     {
       std::string type;
-      std::vector<std::string> tags;
+      std::vector<string> tags;
     };
 
     void importPod(
@@ -1014,7 +1014,7 @@ namespace overground
     struct computeDepth_t
     {
       std::string type;
-      std::vector<std::string> tags;
+      std::vector<string> tags;
     };
 
     void importPod(

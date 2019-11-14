@@ -1,0 +1,12 @@
+{
+  models: {
+    cubeModel: {
+      mesh: cubeMesh
+      submodels: {
+        cubeFaces: {
+          material: "defaultMaterial"
+        }
+      }
+    }
+  }
+}

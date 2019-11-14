@@ -21,7 +21,10 @@
                 "${workspaceFolder}/assembly-gen/inc",
                 "${workspaceFolder}/features/inc",
                 "${workspaceFolder}/object/inc",
-                "${workspaceFolder}/tableau/inc"
+                "${workspaceFolder}/tableau/inc",
+                "${workspaceFolder}/model/inc",
+                "${workspaceFolder}/material/inc",
+                "${workspaceFolder}/renderPlan/inc"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

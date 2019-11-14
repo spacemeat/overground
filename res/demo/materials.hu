@@ -1,27 +1,32 @@
 {
   materials: {
     defaultMaterial: {
-      vertexDecl: [ {
-          offset: 0                   # position
-          format: R32G32B32_SFLOAT
-        } {
-          offset: 0                   # normal
-          format: R32G32B32_SFLOAT
-        } {
-          offset: 0                   # tx
-          format: R32G32_SFLOAT
-        }
-      ]
-      stages: [ {
-          stage: vertex
-          module: nameOfVShaderCodeModule
+
+      # This should be replaced by the data in a mesh that uses this material. That means a different material for each mesh that has a different format. This is handled internally, but it informs the following truism: One material may generate many pipeline objects. One mesh will only ever generate one vb/ib set.
+#      vertexDecl: [ {
+#          offset: 0                   # position
+#          format: R32G32B32_SFLOAT
+#        } {
+#          offset: 0                   # normal
+#          format: R32G32B32_SFLOAT
+#        } {
+#          offset: 0                   # tx
+#          format: R32G32_SFLOAT
+#        }
+#      ]
+      stages: {
+        vertex: {
+          shaderAsset: "diffuse-vshader"
           entry: main
-        } {
-          stage: fragment
-          module: naemOfFShaderCodeModule
-          entry: main
+          # TODO: modifiers? Precompile params? Maybe not
         }
-      ]
+        fragment: {
+          shaderAsset: "diffuse-fshader"
+          entry: main
+          # TODO: modifiers? Precompile params? Maybe not
+          # TODO: texture / sampler info here?
+        }
+      }
       rasterizationState: {
         depthClampEnable: false
         rasterizerDiscardEnable: false

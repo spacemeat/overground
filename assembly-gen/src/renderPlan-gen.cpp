@@ -655,13 +655,13 @@ void overground::renderPlan::importPod(
   if (src % "tags")
   {
     auto & src0 = src / "tags";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -709,7 +709,7 @@ std::string overground::renderPlan::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.tags[i0];
+    string const & src0 = src.tags[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -793,13 +793,13 @@ void overground::renderPlan::importPod(
   if (src % "tags")
   {
     auto & src0 = src / "tags";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -847,7 +847,7 @@ std::string overground::renderPlan::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.tags[i0];
+    string const & src0 = src.tags[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -1105,13 +1105,13 @@ void overground::renderPlan::importPod(
   if (src % "tags")
   {
     auto & src0 = src / "tags";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -1159,7 +1159,7 @@ std::string overground::renderPlan::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.tags[i0];
+    string const & src0 = src.tags[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;

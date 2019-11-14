@@ -6,12 +6,9 @@ using namespace humon;
 using namespace overground;
 
 
-Logger * overground::logger = nullptr;
-
-
 void overground::initGlobals()
 {
-  logger = new Logger();
+  logger.emplace();
 }
 
 

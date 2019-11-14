@@ -3,10 +3,13 @@
 #include "utils.h"
 #include "jobScheduler.h"
 #include "assemblyManager.h"
+#include "config-gen.h"
+#include "objectTree.h"
 
 
 using namespace std;
 using namespace overground;
+using namespace assembly;
 
 
 constexpr auto AssetBaseDir = "res/assets";
@@ -131,9 +134,7 @@ void Engine::runFrameMaintenance()
 
   updateTimer();
 
-  JobScheduler sched(ScheduleKind::asynchronous);
-
-  performScheduledEvents(sched);
+  performScheduledEvents();
   // ? checkForAssemblyUpdates(sched);
 }
 
@@ -157,7 +158,7 @@ void Engine::updateTimer()
 }
 
 
-void Engine::performScheduledEvents(JobScheduler & sched)
+void Engine::performScheduledEvents()
 {
   // perform scheduled actions if any
   for (size_t i = 0; i < eventPeriods.size(); ++i)
@@ -186,143 +187,151 @@ void Engine::checkForUpdatedFiles()
 
 void Engine::checkForUpdatedAssembly()
 {
+  auto & currAsm = assemblyMan->getCurrentAssembly();
+  auto & workAsm = assemblyMan->getWorkingAssembly();
   auto assemblyDiffs = assemblyMan->checkForUpdatedAssembly();
-  if (assemblyDiffs)
+  if (assemblyDiffs.has_value())
   {
-    if (assemblyDiffs->diffs & assembly::assemblyMembers_e::usingConfig)
+    // If we change which config we're using, we need to modify the configsDiffs to contain the diffs between the current config and the new one. So if user changes both the config blocks and the usingConfig key, we will compare correctly.
+    if ((assemblyDiffs->diffs & assemblyMembers_e::usingConfig) != 0)
     {
-      
+      auto & currConfig = currAsm.configs[currAsm.usingConfig];
+      auto & workConfig = workAsm.configs[workAsm.usingConfig];
+      config::configDiffs_t configDiffs;
+      if (doPodsDiffer(currConfig, workConfig, configDiffs))
+      {
+        // Replace the configDiffs_t that matches, or add one if there isn't one. We use workAsm.usingConfig as the name so that when we look it up later, it'll match against workAsm.usingConfig which is all we care about when responding to changes.
+        auto it = std::find_if(
+          assemblyDiffs->configsDiffs.begin(), 
+          assemblyDiffs->configsDiffs.end(), 
+          [&](auto & elem) 
+            { return elem.first() == workAsm.usingConfig; });
+        
+        if (it != assemblyDiffs->configsDiffs.end())
+        {
+          it->second = configDiffs;
+        }
+        else
+        {
+          assemblyDiffs->configsDiffs.push_back({workAsm.usingConfig, move(configDiffs)});
+        }
+      }
+    }
+
+    // We can be confident due to the above that assemblyDiffs->configsDiffs[workAsm.usingConfig] is the changeset for the config we're on to the config we're ultimately going to match (workAsm.configs[workAsm.usingConfig]).
+    auto it = std::find_if(
+      assemblyDiffs->configsDiffs.begin(), 
+      assemblyDiffs->configsDiffs.end(), 
+      [&](auto & elem) 
+        { return elem.first() == workAsm.usingConfig; });
+    if (it != assemblyDiffs->configsDiffs.end())
+    {
+      auto & workConfig = workAsm.configs[workAsm.usingConfig];
+
+      // There are, in fact, config changes to address.
+      auto & configDiffs = it->second;
+
+      updateConfig(workConfig, configDiffs);
+    }
+
+    // If the tableau group we're using is different, or if any tableau has differences, we create a new tableau graph from the working assembly. It describes the buffer orderings (without sizes) and how the compiled assets are stored to cache files. Later we'll check for asset changes or out-of-date asset files or certain config updates, and recompute the size requirements to get the full buffer size and copy or compile the targets.
+
+    if ((assemblyDiffs->diffs & assemblyMembers_e::usingTableauGroup) != 0 ||
+        (assemblyDiffs->diffs & assemblyMembers_e::tableaux) != 0)
+    {
+      auto tree = ObjectTree { workAsm.tableaux.vect() };
+
+
+      //  for each asset referenced in tree,
+      //    if asset_ts changed or
+      //        asset file reports having changed or
+      //        certain config has changed,
+      //      asset.needsToBeCompiled = true
+      //      asset.sz = asset.computeBufferSize()
+      //      asset.offset = prevAsset.offset + prevAsset.sz + padding for alignment
+      //  newBufferSize = lastAsset.offset + lastAsset.sz
+
+      // NOTE: We shouldn't use a staging buffer if we're in a combined memory system (AGP). Like, say, my dev laptop. Meaning, when we create the sram buffer, we're also making the video buffer in some cases.
+      //  if newBufferSize > prevBufferSize
+      //    newBufferSize *= 1.25              // hysteresis
+      //    make new sram buffer[newBufferSize]
+      //    destBuffer = new buffer
+      //  else
+      //    destBuffer = old buffer
+      //  for each asset referenced in tree,
+      //    assetDest = destBufer + asset.offset
+      //    if asset.needsToBeCompiled,
+      //      asset.compile(assetDest)
+      //    else if asset.offset chnged or destBuffer != srcBuffer,
+      //      copy asset from assetSrc
+      //  
+      //  if any asset compiled or moved,
+      //    if we have a buffer already,
+      //      lock buffer
+      //      for each asset that is newly compiled or moved,
+      //        copy asset data to buffer
+      //      unlock buffer
+      //      for each asset that is newly compiled or moved,
+      //        adjust vulkan resource
+      //    else
+      //      create new video buffer
+      //      for each asset,
+      //        copy asset data to buffer
+      //        create vulkan resource for it
+
     }
   }
 }
 
 
-void Engine::checkForDataUpdates()
-{
-  if (updatedObjectKinds == DataObjectKindFlags::none)
-    { return; }
-  
-  log(thId, fmt::format("{}Engine::checkForDataUpdates(){} has updates.", ansi::lightGreen, ansi::off));
-
-  checkForConfigUpdates();
-  graphics.checkForDataUpdates();
-  checkForFramePlanUpdates();
-
-  jobMan->setNumEmployedWorkers(
-    config.general.numWorkerThreads);
-
-
-  configDiffs = Config::Deltas::None;
-  updatedObjectKinds = DataObjectKindFlags::none;
-}
-
-
-void Engine::checkForConfigUpdates()
+// Here, config must match what configDiffs claims. In general, it's always workAsm.configs[workAsm.usingConfig], and we're just passing it around so we don't have to find it again and again.
+void Engine::updateConfig(config::config_t & config, 
+  config::configDiffs_t & configDiffs)
 {
   logFn();
 
-  if ((updatedObjectKinds & 
-       DataObjectKindFlags::config) == 0)
-    { return; }
-
-  if (configDiffs == Config::Deltas::None)
-    { return; }
-}
-
-
-void Engine::checkForFramePlanUpdates()
-{
-  logFn();
-
-  if ((updatedObjectKinds & 
-       DataObjectKindFlags::framePlan) == 0)
-    { return; }
-  
-  framePlan.update(framePlanDesc);
-
-  // assign initial jobs to each phase
-  framePlan.forEachPhase([&](FramePhase & phase)
-  {
-    switch(phase.getKind())
-    {
-    case FramePhaseKinds::frameMaintenance:
-      assignSpecialPhaseJobs(phase);
-      break;
-    case FramePhaseKinds::graphicsStructure:
-    case FramePhaseKinds::acquireImage:
-    case FramePhaseKinds::beginComputePass:
-    case FramePhaseKinds::beginRenderPass:
-    case FramePhaseKinds::beginSubpass:
-    case FramePhaseKinds::endComputePass:
-    case FramePhaseKinds::endRenderPass:
-    case FramePhaseKinds::submitCommands:
-    case FramePhaseKinds::present:
-      graphics.assignSpecialPhaseJobs(phase);
-      break;
-    case FramePhaseKinds::barrierJobQueue:
-    case FramePhaseKinds::nonBarrierJobQueue:
-    default:
-      break;
-    }
-  });
-
-  jobMan->setNextPhaseIdx(0);
-}
-
-
-void Engine::assignSpecialPhaseJobs(FramePhase & phase)
-{
-  switch(phase.getKind())
-  {
-  case FramePhaseKinds::frameMaintenance:
-    phase.setBarrierJob(makeFnJob("frameMaintenancePhase", [this]
-      { runFrameMaintenance(); }));
-    break;
-  default:
-    break;
-  }
-}
-
-
-void Engine::updateConfig(config_t newConfig)
-{
-  logFn();
+  auto & workAsm = assemblyMan->getWorkingAssembly();
+  auto & config = workAsm.configs[workAsm.usingConfig];
 
   log(thId, logTags::asset, fmt::format(
     "new config:\n"
-    "{}\n", print(newConfig)
-  ));
+    "{}\n", print(workAsm)));
 
-  configDiffs = integrate(config, newConfig);
-  config = move(newConfig);
-  updatedObjectKinds |= DataObjectKindFlags::config;
+  if ((configDiffs.diffs & config::configMembers_e::general) != 0)
+  {
+    auto & generalDiffs = configDiffs.general;
+
+    if ((generalDiffs.diffs & config::generalMembers_e::programName) != 0)
+    {
+      setProgramName(config.general.programName);
+    }
+
+    if ((generalDiffs.diffs & config::generalMembers_e::version) != 0)
+    {
+      setProgramVersion(config.general.version);
+    }
+
+    if ((generalDiffs.diffs & config::generalMembers_e::numWorkerThreads) != 0)
+    {
+      jobMan->setNumEmployedWorkers(config.general.numWorkerThreads);
+    }
+  }
+
+  if ((configDiffs.diffs & config::configMembers_e::graphics) != 0)
+  {
+    auto & graphicsDiffs = configDiffs.graphics;
+
+    graphics.updateConfig(graphicsDiffs);
+  }
 }
 
 
-void Engine::updateFramePlan(framePlan_t newFramePlan)
+void Engine::setProgramName(string_view name)
 {
-  logFn();
-
-  log(thId, logTags::asset, fmt::format(
-    "new framePlan:\n"
-    "{}\n", print(newFramePlan)
-  ));
-
-  framePlanDesc = move(newFramePlan);
-  framePlanUpdated = true;
-  updatedObjectKinds |= DataObjectKindFlags::framePlan;
+  // TODO: stuff
 }
 
-
-unique_ptr<Asset> Engine::makeAsset(
-  std::string_view assetName,
-  FileReference * assetDescFile, 
-  humon::HuNode & descFromFile,
-  bool cache, bool compress,
-  bool monitor
-)
+void Engine::setProgramVersion(version_t name)
 {
-  return resMan.makeAsset(
-    assetName, assetDescFile, descFromFile, cache, compress, monitor);
+  // TODO: stuff
 }
-

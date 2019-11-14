@@ -74,11 +74,7 @@ namespace overground
   )>;
 
 
-  template <class T> // TODO: requires T derived from Object
-  static std::unique_ptr<T> makeObject(tableau::object_t const & desc)
-  {
-    return std::make_unique(desc);
-  }
+  static std::unique_ptr<Object> makeObject(tableau::object_t const & desc);
 }
 
 #endif // #ifndef OBJECT_H

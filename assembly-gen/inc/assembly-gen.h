@@ -29,7 +29,7 @@ namespace overground
       stringDict<material::material_t> materials;
       stringDict<model::model_t> models;
       stringDict<tableau::tableau_t> tableaux;
-      stringDict<std::vector<std::string>> tableauGroups;
+      stringDict<std::vector<string>> tableauGroups;
       std::string usingConfig;
       std::string usingTableauGroup;
     };

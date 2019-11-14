@@ -16,6 +16,15 @@
             }
           ]
           subpasses: [{
+              # TODO: Is there one before this to do the compute pass for shadows?
+#              name: depthSubpass
+#              bindPoint: Graphics
+#              colorAttachments: [{
+#                  attachment: depthTarget
+#                  layout: DepthAttachmentOptimal
+#                }
+#              ]
+#            } {
               name: colorSubpass
               bindPoint: Graphics
               colorAttachments: [{
@@ -23,6 +32,14 @@
                   layout: ColorAttachmentOptimal
                 }
               ]
+#            } {
+#              name: effectSubpass
+#              bindPoint: Graphics
+#              colorAttachments: [{
+#                  attachment: colorTarget
+#                  layout: ColorAttachmentOptimal
+#                }
+#              ]
             }
           ]
         }
@@ -40,11 +57,11 @@
             }
             { type: updateUbos }
             { type: setRenderPass
-              renderPassName: sampRenderPass }
-            { type: computeDepth 
+              renderPassName: singleColorPass }
+#            { type: computeDepth 
               tags: [opaqueUi opaqueMesh imposter] 
-            }
-            { type: nextSubpass }
+#            }
+#            { type: nextSubpass }
             { type: draw tags: [opaqueUi] }
             { type: draw tags: [transparentUi] 
               order: backToFront }
@@ -54,8 +71,8 @@
             { type: draw tags: [imposter] 
               order: backToFront }
             { type: draw tags: [skybox] }
-            { type: nextSubpass }
-            { type: runPostEffects }
+#            { type: nextSubpass }
+#            { type: runPostEffects }
             { type: endRenderPass }
           ]
         } {

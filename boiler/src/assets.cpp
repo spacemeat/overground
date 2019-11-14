@@ -91,6 +91,7 @@ map <string, size_t> featuresKeys;
 vector<featureDef> features;
 map <string, ofstream> featureHeaderFiles;
 map <string, ofstream> featureCppFiles;
+map <string, vector<string>> plugins;
 
 
 void outputHeaderHeader(string_view featureName);
@@ -120,8 +121,6 @@ ostream & operator << (ostream & s, memberTypeDef const & rhs)
 
 string resolveStdAliases(string_view type)
 {
-  stringstream ss;
-
   if (type == "string") { return "std::string"; }
   if (type == "array") { return "std::array"; }
   if (type == "vector") { return "std::vector"; }
@@ -153,15 +152,16 @@ memberTypeDef resolveType(string_view member)
     }
     else
     {
-      *pname = resolveStdAliases(*pname);
       if (*it == '<')
       {
+        *pname = resolveStdAliases(*pname);
         pdefs.top()->subTypes.emplace_back();
         pdefs.push(& pdefs.top()->subTypes.back());
         pname = & pdefs.top()->name;
       }
       else if (*it == ',')
       {
+        *pname = resolveStdAliases(*pname);
         pdefs.pop();
         pdefs.top()->subTypes.emplace_back();
         pdefs.push(& pdefs.top()->subTypes.back());
@@ -178,6 +178,62 @@ memberTypeDef resolveType(string_view member)
   *pname = resolveStdAliases(*pname);
 
   return def;
+}
+
+
+void resolvePluginMemberType(memberTypeDef & memberParentTypeDef, memberTypeDef & memberChildTypeDef, size_t childIndex)
+{
+  if (memberParentTypeDef.name == "std::variant" && 
+      memberChildTypeDef.name == "plugins")
+  {
+    auto pluginType = memberChildTypeDef.subTypes[0].name;
+    auto it = memberParentTypeDef.subTypes.begin() + childIndex;
+    memberParentTypeDef.subTypes.erase(it);
+
+    for (auto & pluginName : plugins[pluginType])
+    {
+      auto it = memberParentTypeDef.subTypes.begin() + childIndex;
+      memberTypeDef newMtd { pluginName, {} };
+      memberParentTypeDef.subTypes.insert(it, newMtd);
+      childIndex += 1;
+    }
+  }
+
+  if (memberChildTypeDef.subTypes.size() > 0)
+  {
+    size_t childChildIndex = 0;
+    for (auto & memberChildChildTypeDef : memberChildTypeDef.subTypes)
+    {
+      resolvePluginMemberType(memberChildTypeDef, memberChildChildTypeDef, childChildIndex);
+      childChildIndex += 1;
+    }
+  }
+}
+
+
+void resolvePluginTypes()
+{
+  for (auto & feature : features)
+  {
+    for (auto & structDef : feature.structDefs)
+    {
+      for (auto & memberDef : structDef.memberDefs)
+      {
+        auto & memberParentTypeDef = memberDef.type;
+
+        log(0, logTags::verb, fmt::format("FROM: {}/{}/{}: {}", feature.name, structDef.name, memberDef.name, memberParentTypeDef));
+
+        size_t idx = 0;
+        for (auto & memberChildTypeDef : memberParentTypeDef.subTypes)
+        {
+          resolvePluginMemberType(memberParentTypeDef, memberChildTypeDef, idx);
+          idx += 1;
+        }
+
+        log(0, logTags::verb, fmt::format("  TO: {}/{}/{}: {}", feature.name, structDef.name, memberDef.name, memberParentTypeDef));
+      }
+    }
+  }
 }
 
 
@@ -287,6 +343,18 @@ void parseDefsFile(path_t const & path)
         {
           struDef.isOgFeature = bool(structNode / key);
         }
+        else if (key == "plugin")
+        {
+          if (auto it = plugins.find(structNode / key); 
+              it != plugins.end())
+          {
+            it->second.push_back(structName);
+          }
+          else
+          {
+            plugins.emplace(structNode / key, vector {structName} );
+          }
+        }
         else
         {
           struDef.memberDefs.emplace_back();
@@ -308,6 +376,8 @@ void parseDefsFile(path_t const & path)
     }
   }
 
+  resolvePluginTypes();
+
   for (auto & lfs : enumFromString)
   {
     log(0, fmt::format("Enum-like value: {}{}{}",
@@ -315,6 +385,7 @@ void parseDefsFile(path_t const & path)
   }
 
   // each struct type that is based on another defined type gets its bases members
+  /*
   for (auto & feature : features)
   {
     for (auto & stru : feature.structDefs)
@@ -343,6 +414,7 @@ void parseDefsFile(path_t const & path)
       }
     }
   }
+  */
 }
 
 
@@ -1108,7 +1180,7 @@ R"({indent}{{
           //   fn_ref("cmdBindPipeline_t", ....);
           //   ofs << "}"
           for (auto & subType : mtd.subTypes)
-          {
+          {            
             ofs << fmt::format(
 R"({indent}    else if (typ == "{subType}")
 {indent}    {{

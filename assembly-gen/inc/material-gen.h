@@ -77,76 +77,11 @@ namespace overground
       return shaderModule.diffs != shaderModuleMembers_e::none;
     };
 
-    // vertexDeclEntry things
-
-    struct vertexDeclEntry_t
-    {
-      int offset;
-      vk::Format format;
-    };
-
-    void importPod(
-      humon::HuNode const & src, vertexDeclEntry_t & dest);
-
-    void importPod(
-      std::vector<uint8_t> const & src, vertexDeclEntry_t & dest);
-
-    void exportPod(vertexDeclEntry_t const & src, 
-      humon::HuNode & dest, int depth);
-
-    void exportPod(
-      vertexDeclEntry_t const & src, std::vector<uint8_t> & dest);
-
-    std::string print(vertexDeclEntry_t const & src, int depth = 0);
-
-    std::ostream & operator << (std::ostream & stream, vertexDeclEntry_t const & src);
-
-    enum class vertexDeclEntryMembers_e : int 
-    {
-      none = 0,
-      offset = 1 << 0,
-      format = 1 << 1,
-      all = offset | format
-    };
-
-    inline bool operator == (vertexDeclEntry_t const & lhs, vertexDeclEntry_t const & rhs) noexcept
-    {
-      return
-        lhs.offset == rhs.offset &&
-        lhs.format == rhs.format;
-    };
-
-    inline bool operator != (vertexDeclEntry_t const & lhs, vertexDeclEntry_t const & rhs) noexcept
-    {
-      return ! (lhs == rhs);
-    };
-
-    struct vertexDeclEntryDiffs_t
-    {
-      vertexDeclEntryMembers_e diffs;
-    };
-
-    inline bool doPodsDiffer(
-      vertexDeclEntry_t const & lhs,
-      vertexDeclEntry_t const & rhs,
-      vertexDeclEntryDiffs_t & vertexDeclEntry) noexcept
-    {
-      // diff member 'offset':
-      if (lhs.offset != rhs.offset)
-        { vertexDeclEntry.diffs |= vertexDeclEntryMembers_e::offset; }
-      // diff member 'format':
-      if (lhs.format != rhs.format)
-        { vertexDeclEntry.diffs |= vertexDeclEntryMembers_e::format; }
-
-      return vertexDeclEntry.diffs != vertexDeclEntryMembers_e::none;
-    };
-
     // stage things
 
     struct stage_t
     {
-      vk::ShaderStage stage;
-      std::string module;
+      std::string shaderAsset;
       std::string entry;
     };
 
@@ -169,17 +104,15 @@ namespace overground
     enum class stageMembers_e : int 
     {
       none = 0,
-      stage = 1 << 0,
-      module = 1 << 1,
-      entry = 1 << 2,
-      all = stage | module | entry
+      shaderAsset = 1 << 0,
+      entry = 1 << 1,
+      all = shaderAsset | entry
     };
 
     inline bool operator == (stage_t const & lhs, stage_t const & rhs) noexcept
     {
       return
-        lhs.stage == rhs.stage &&
-        lhs.module == rhs.module &&
+        lhs.shaderAsset == rhs.shaderAsset &&
         lhs.entry == rhs.entry;
     };
 
@@ -198,12 +131,9 @@ namespace overground
       stage_t const & rhs,
       stageDiffs_t & stage) noexcept
     {
-      // diff member 'stage':
-      if (lhs.stage != rhs.stage)
-        { stage.diffs |= stageMembers_e::stage; }
-      // diff member 'module':
-      if (lhs.module != rhs.module)
-        { stage.diffs |= stageMembers_e::module; }
+      // diff member 'shaderAsset':
+      if (lhs.shaderAsset != rhs.shaderAsset)
+        { stage.diffs |= stageMembers_e::shaderAsset; }
       // diff member 'entry':
       if (lhs.entry != rhs.entry)
         { stage.diffs |= stageMembers_e::entry; }
@@ -834,8 +764,7 @@ namespace overground
 
     struct material_t
     {
-      std::vector<vertexDeclEntry_t> vertexDecl;
-      std::vector<stage_t> stages;
+      stringDict<stage_t> stages;
       rasterizationState_t rasterizationState;
       multisampleState_t multisampleState;
       blendState_t blendState;
@@ -863,21 +792,19 @@ namespace overground
     enum class materialMembers_e : int 
     {
       none = 0,
-      vertexDecl = 1 << 0,
-      stages = 1 << 1,
-      rasterizationState = 1 << 2,
-      multisampleState = 1 << 3,
-      blendState = 1 << 4,
-      tesselationState = 1 << 5,
-      depthStencilState = 1 << 6,
-      dynamicStates = 1 << 7,
-      all = vertexDecl | stages | rasterizationState | multisampleState | blendState | tesselationState | depthStencilState | dynamicStates
+      stages = 1 << 0,
+      rasterizationState = 1 << 1,
+      multisampleState = 1 << 2,
+      blendState = 1 << 3,
+      tesselationState = 1 << 4,
+      depthStencilState = 1 << 5,
+      dynamicStates = 1 << 6,
+      all = stages | rasterizationState | multisampleState | blendState | tesselationState | depthStencilState | dynamicStates
     };
 
     inline bool operator == (material_t const & lhs, material_t const & rhs) noexcept
     {
       return
-        lhs.vertexDecl == rhs.vertexDecl &&
         lhs.stages == rhs.stages &&
         lhs.rasterizationState == rhs.rasterizationState &&
         lhs.multisampleState == rhs.multisampleState &&
@@ -895,8 +822,7 @@ namespace overground
     struct materialDiffs_t
     {
       materialMembers_e diffs;
-      std::vector<std::pair<size_t, vertexDeclEntryDiffs_t>> vertexDeclDiffs;
-      std::vector<std::pair<size_t, stageDiffs_t>> stagesDiffs;
+      std::vector<std::pair<std::string, stageDiffs_t>> stagesDiffs;
       rasterizationStateDiffs_t rasterizationState;
       multisampleStateDiffs_t multisampleState;
       blendStateDiffs_t blendState;
@@ -910,40 +836,28 @@ namespace overground
       material_t const & rhs,
       materialDiffs_t & material) noexcept
     {
-      // diff member 'vertexDecl':
-      {
-        auto [mn, mx] = std::minmax(lhs.vertexDecl.size(), rhs.vertexDecl.size());
-        for (size_t i = 0; i < mn; ++i)
-        {
-          vertexDeclEntryDiffs_t diffsEntry;
-          if (doPodsDiffer(lhs.vertexDecl[i], rhs.vertexDecl[i], diffsEntry))
-          {
-            material.diffs |= materialMembers_e::vertexDecl;
-            material.vertexDeclDiffs.push_back({i, diffsEntry});
-          }
-        }
-        for (size_t i = mn; i < mx; ++i)
-        {
-          vertexDeclEntryDiffs_t diffsEntry = { .diffs = vertexDeclEntryMembers_e::all };
-          material.vertexDeclDiffs.push_back({i, diffsEntry});
-        }
-      }
       // diff member 'stages':
       {
-        auto [mn, mx] = std::minmax(lhs.stages.size(), rhs.stages.size());
-        for (size_t i = 0; i < mn; ++i)
+        for (auto const & [lhsKey, lhsIdx] : lhs.stages.keys)
         {
           stageDiffs_t diffsEntry;
-          if (doPodsDiffer(lhs.stages[i], rhs.stages[i], diffsEntry))
+          if (auto it = rhs.stages.keys().find(lhsKey); it != rhs.stages.keys().end())
           {
-            material.diffs |= materialMembers_e::stages;
-            material.stagesDiffs.push_back({i, diffsEntry});
+            auto const & [rhsKey, rhsIdx] = *it;
+            if (lhsIdx == rhsIdx &&
+                doPodsDiffer(lhs.stages[lhsIdx], rhs.stages[rhsIdx], diffsEntry) == false)
+              { continue; }
           }
+          material.diffs |= materialMembers_e::stages;
+          material.stagesDiffs.push_back({lhsKey, diffsEntry});
         }
-        for (size_t i = mn; i < mx; ++i)
+        for (auto const & [rhsKey, rhsIdx] : rhs.stages.keys())
         {
+          if (auto it = lhs.stages.keys.find(rhsKey); it != lhs.stages.keys.end())
+            { continue; }
+
           stageDiffs_t diffsEntry = { .diffs = stageMembers_e::all };
-          material.stagesDiffs.push_back({i, diffsEntry});
+          material.stagesDiffs.push_back({rhsKey, diffsEntry});
         }
       }
       // diff member 'rasterizationState':

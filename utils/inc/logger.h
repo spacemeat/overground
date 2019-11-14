@@ -131,7 +131,7 @@ namespace overground
 
 
 //  extern Logger * logger;
-  static inline std::optional<Logger> logger;
+  extern std::optional<Logger> logger;
 
   // free functions that operate on *logger.
 

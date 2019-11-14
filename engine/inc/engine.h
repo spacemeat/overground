@@ -2,6 +2,7 @@
 #define ENGINE_H
 
 #include <string>
+#include <array>
 #include <vector>
 #include <stack>
 #include <mutex>
@@ -73,20 +74,25 @@ namespace overground
 
     void runFrameMaintenance();
     void updateTimer();
-    void performScheduledEvents(JobScheduler & sched);
+    void performScheduledEvents();
     // timed events
     void checkForUpdatedFiles();
     void checkForUpdatedAssembly();
 
     //void checkForDataUpdates();
-    //void checkForConfigUpdates();
-    //void checkForFramePlanUpdates();
+;
     //void assignSpecialPhaseJobs(FramePhase & phase);
 
     // external updates (say from file changes)
-    //void updateConfig(config_t newConfig);
-    //void updateFramePlan(framePlan_t newFramePlan);
+    void updateConfig(
+      config::config_t & config, 
+      config::configDiffs_t & configDiffs);
 
+    void setProgramName(std::string_view name);
+
+    void setProgramVersion(version_t version);
+
+    
     // assets
     std::string getBaseAssetDir()
       { return "res"; }

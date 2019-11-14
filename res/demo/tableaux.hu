@@ -10,7 +10,7 @@
             } {
               featureData: {
                 type: drawableModel
-                mesh: "cube-mesh"
+                model: "cube-model"
                 subModels: [ {
                     subset: cubeFaces
                     material: brushedSteel

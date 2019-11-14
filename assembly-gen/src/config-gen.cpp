@@ -225,13 +225,13 @@ void overground::config::importPod(
   if (src % "imageUsages")
   {
     auto & src0 = src / "imageUsages";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -375,7 +375,7 @@ std::string overground::config::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.imageUsages[i0];
+    string const & src0 = src.imageUsages[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -484,13 +484,13 @@ void overground::config::importPod(
   if (src % "vulkanValidationLayers")
   {
     auto & src0 = src / "vulkanValidationLayers";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -499,13 +499,13 @@ void overground::config::importPod(
   if (src % "vulkanValidationReports")
   {
     auto & src0 = src / "vulkanValidationReports";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -514,13 +514,13 @@ void overground::config::importPod(
   if (src % "vulkanExtensions")
   {
     auto & src0 = src / "vulkanExtensions";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -529,13 +529,13 @@ void overground::config::importPod(
   if (src % "deviceExtensions")
   {
     auto & src0 = src / "deviceExtensions";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -586,13 +586,13 @@ void overground::config::importPod(
   if (src % "minDeviceFeatures")
   {
     auto & src0 = src / "minDeviceFeatures";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -601,13 +601,13 @@ void overground::config::importPod(
   if (src % "desiredDeviceFeatures")
   {
     auto & src0 = src / "desiredDeviceFeatures";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -679,7 +679,7 @@ std::string overground::config::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.vulkanValidationLayers[i0];
+    string const & src0 = src.vulkanValidationLayers[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -692,7 +692,7 @@ std::string overground::config::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.vulkanValidationReports[i0];
+    string const & src0 = src.vulkanValidationReports[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -705,7 +705,7 @@ std::string overground::config::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.vulkanExtensions[i0];
+    string const & src0 = src.vulkanExtensions[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -718,7 +718,7 @@ std::string overground::config::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.deviceExtensions[i0];
+    string const & src0 = src.deviceExtensions[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -743,7 +743,7 @@ std::string overground::config::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.minDeviceFeatures[i0];
+    string const & src0 = src.minDeviceFeatures[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -756,7 +756,7 @@ std::string overground::config::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.desiredDeviceFeatures[i0];
+    string const & src0 = src.desiredDeviceFeatures[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;

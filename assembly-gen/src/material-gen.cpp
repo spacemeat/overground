@@ -71,85 +71,14 @@ ostream & overground::material::operator << (ostream & stream, shaderModule_t co
 }
 
 void overground::material::importPod(
-  humon::HuNode const & src, vertexDeclEntry_t & dest)
-{
-  if (src % "offset")
-  {
-    auto & src0 = src / "offset";
-    int dst0;
-    dst0 = (int) src0; // leaf
-    dest.offset = std::move(dst0);
-  }
-  if (src % "format")
-  {
-    auto & src0 = src / "format";
-    vk::Format dst0;
-    dst0 = fromString<vk::Format>((std::string) src0); // leaf
-    dest.format = std::move(dst0);
-  }
-}
-
-void overground::material::importPod(
-std::vector<uint8_t> const & src, vertexDeclEntry_t & dest)
-{
-  log(0, logTags::warn, "This operation has not been implemented yet.");
-
-  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
-}
-
-void overground::material::exportPod(vertexDeclEntry_t const & src,
-humon::HuNode & dest, int depth)
-{
-  log(0, logTags::warn, "This operation has not been implemented yet.");
-
-  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
-}
-
-void overground::material::exportPod(
-vertexDeclEntry_t const & src, std::vector<uint8_t> & dest)
-{
-  log(0, logTags::warn, "This operation has not been implemented yet.");
-
-  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
-}
-
-std::string overground::material::print(
-  vertexDeclEntry_t const & src, int depth)
-{
-  string prevIndentIn(depth * 2, ' ');
-  string indentIn(2 + depth * 2, ' ');
-  std::ostringstream ss;
-  ss << "{";
-  ss << "\n" << indentIn << "offset: ";
-  ss << (src.offset);
-  ss << "\n" << indentIn << "format: ";
-  ss << to_string(src.format);
-  ss << "\n" << prevIndentIn << "}";
-  return ss.str();
-}
-
-ostream & overground::material::operator << (ostream & stream, vertexDeclEntry_t const & rhs)
-{
-  stream << print(rhs);
-  return stream;
-}
-
-void overground::material::importPod(
   humon::HuNode const & src, stage_t & dest)
 {
-  if (src % "stage")
+  if (src % "shaderAsset")
   {
-    auto & src0 = src / "stage";
-    vk::ShaderStage dst0;
-    dst0 = fromString<vk::ShaderStage>((std::string) src0); // leaf
-    dest.stage = std::move(dst0);
-  }
-  if (src % "module")
-  {
-    auto & src0 = src / "module";
+    auto & src0 = src / "shaderAsset";
     std::string dst0;
     dst0 = (std::string) src0; // leaf
-    dest.module = std::move(dst0);
+    dest.shaderAsset = std::move(dst0);
   }
   if (src % "entry")
   {
@@ -191,10 +120,8 @@ std::string overground::material::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
-  ss << "\n" << indentIn << "stage: ";
-  ss << to_string(src.stage);
-  ss << "\n" << indentIn << "module: ";
-  ss << (src.module);
+  ss << "\n" << indentIn << "shaderAsset: ";
+  ss << (src.shaderAsset);
   ss << "\n" << indentIn << "entry: ";
   ss << (src.entry);
   ss << "\n" << prevIndentIn << "}";
@@ -903,33 +830,17 @@ ostream & overground::material::operator << (ostream & stream, depthStencilState
 void overground::material::importPod(
   humon::HuNode const & src, material_t & dest)
 {
-  if (src % "vertexDecl")
-  {
-    auto & src0 = src / "vertexDecl";
-    std::vector<vertexDeclEntry_t> dst0;
-
-    for (size_t i0 = 0; i0 < src0.size(); ++i0)
-    {
-      auto & src1 = src0 / i0;
-      vertexDeclEntry_t dst1;
-      importPod(src1, dst1);
-
-      dst0.push_back(std::move(dst1));
-    }
-    dest.vertexDecl = std::move(dst0);
-  }
   if (src % "stages")
   {
     auto & src0 = src / "stages";
-    std::vector<stage_t> dst0;
-
+    stringDict<stage_t> dst0;
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
+      auto const & key = src0.keyAt(i0);
       stage_t dst1;
       importPod(src1, dst1);
-
-      dst0.push_back(std::move(dst1));
+      dst0.push_back(key, std::move(dst1));
     }
     dest.stages = std::move(dst0);
   }
@@ -1016,32 +927,21 @@ std::string overground::material::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
-  ss << "\n" << indentIn << "vertexDecl: ";
-  ss << "[";
-  for (size_t i0 = 0; i0 < src.vertexDecl.size(); ++i0)
-  {
-    depth += 1;
-    string prevIndentIn(depth * 2, ' ');
-    string indentIn(2 + depth * 2, ' ');
-    vertexDeclEntry_t const & src0 = src.vertexDecl[i0];
-    ss << "\n" << indentIn;
-    ss << print(src0, depth + 1);
-    depth -= 1;
-  }
-  ss << "\n" << indentIn << "]";
   ss << "\n" << indentIn << "stages: ";
-  ss << "[";
+  ss << "{";
   for (size_t i0 = 0; i0 < src.stages.size(); ++i0)
   {
+    auto const & [key, idx] = src.stages.keys[i0];
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    stage_t const & src0 = src.stages[i0];
+    stage_t const & src0 = src.stages[idx];
+    ss << indentIn << key << ": ";
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
     depth -= 1;
   }
-  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "}";
   ss << "\n" << indentIn << "rasterizationState: ";
   ss << print(src.rasterizationState, depth + 1);
   ss << "\n" << indentIn << "multisampleState: ";

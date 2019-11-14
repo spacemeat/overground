@@ -17,6 +17,7 @@ namespace overground
 
     struct matrixTransform_t
     {
+      std::string type;
       std::array<float, 16> transform;
     };
 
@@ -39,13 +40,15 @@ namespace overground
     enum class matrixTransformMembers_e : int 
     {
       none = 0,
-      transform = 1 << 0,
-      all = transform
+      type = 1 << 0,
+      transform = 1 << 1,
+      all = type | transform
     };
 
     inline bool operator == (matrixTransform_t const & lhs, matrixTransform_t const & rhs) noexcept
     {
       return
+        lhs.type == rhs.type &&
         lhs.transform == rhs.transform;
     };
 
@@ -65,6 +68,9 @@ namespace overground
       matrixTransform_t const & rhs,
       matrixTransformDiffs_t & matrixTransform) noexcept
     {
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { matrixTransform.diffs |= matrixTransformMembers_e::type; }
       // diff member 'transform':
       for (size_t i = 0; i < lhs.transform.size(); ++i)
       {
@@ -82,6 +88,7 @@ namespace overground
 
     struct srtTransform_t
     {
+      std::string type;
       std::array<float, 3> scale;
       std::array<float, 3> rotation;
       std::array<float, 3> translate;
@@ -106,15 +113,17 @@ namespace overground
     enum class srtTransformMembers_e : int 
     {
       none = 0,
-      scale = 1 << 0,
-      rotation = 1 << 1,
-      translate = 1 << 2,
-      all = scale | rotation | translate
+      type = 1 << 0,
+      scale = 1 << 1,
+      rotation = 1 << 2,
+      translate = 1 << 3,
+      all = type | scale | rotation | translate
     };
 
     inline bool operator == (srtTransform_t const & lhs, srtTransform_t const & rhs) noexcept
     {
       return
+        lhs.type == rhs.type &&
         lhs.scale == rhs.scale &&
         lhs.rotation == rhs.rotation &&
         lhs.translate == rhs.translate;
@@ -138,6 +147,9 @@ namespace overground
       srtTransform_t const & rhs,
       srtTransformDiffs_t & srtTransform) noexcept
     {
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { srtTransform.diffs |= srtTransformMembers_e::type; }
       // diff member 'scale':
       for (size_t i = 0; i < lhs.scale.size(); ++i)
       {
@@ -173,9 +185,10 @@ namespace overground
 
     struct drawableSubmodel_t
     {
+      std::string type;
       std::string submesh;
-      std::optional<std::string> material;
-      std::vector<std::string> tags;
+      std::optional<string> material;
+      std::vector<string> tags;
     };
 
     void importPod(
@@ -197,15 +210,17 @@ namespace overground
     enum class drawableSubmodelMembers_e : int 
     {
       none = 0,
-      submesh = 1 << 0,
-      material = 1 << 1,
-      tags = 1 << 2,
-      all = submesh | material | tags
+      type = 1 << 0,
+      submesh = 1 << 1,
+      material = 1 << 2,
+      tags = 1 << 3,
+      all = type | submesh | material | tags
     };
 
     inline bool operator == (drawableSubmodel_t const & lhs, drawableSubmodel_t const & rhs) noexcept
     {
       return
+        lhs.type == rhs.type &&
         lhs.submesh == rhs.submesh &&
         lhs.material == rhs.material &&
         lhs.tags == rhs.tags;
@@ -227,6 +242,9 @@ namespace overground
       drawableSubmodel_t const & rhs,
       drawableSubmodelDiffs_t & drawableSubmodel) noexcept
     {
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { drawableSubmodel.diffs |= drawableSubmodelMembers_e::type; }
       // diff member 'submesh':
       if (lhs.submesh != rhs.submesh)
         { drawableSubmodel.diffs |= drawableSubmodelMembers_e::submesh; }
@@ -257,6 +275,7 @@ namespace overground
 
     struct drawableModel_t
     {
+      std::string type;
       std::string mesh;
       std::vector<drawableSubmodel_t> subModels;
     };
@@ -280,14 +299,16 @@ namespace overground
     enum class drawableModelMembers_e : int 
     {
       none = 0,
-      mesh = 1 << 0,
-      subModels = 1 << 1,
-      all = mesh | subModels
+      type = 1 << 0,
+      mesh = 1 << 1,
+      subModels = 1 << 2,
+      all = type | mesh | subModels
     };
 
     inline bool operator == (drawableModel_t const & lhs, drawableModel_t const & rhs) noexcept
     {
       return
+        lhs.type == rhs.type &&
         lhs.mesh == rhs.mesh &&
         lhs.subModels == rhs.subModels;
     };
@@ -308,6 +329,9 @@ namespace overground
       drawableModel_t const & rhs,
       drawableModelDiffs_t & drawableModel) noexcept
     {
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { drawableModel.diffs |= drawableModelMembers_e::type; }
       // diff member 'mesh':
       if (lhs.mesh != rhs.mesh)
         { drawableModel.diffs |= drawableModelMembers_e::mesh; }
@@ -337,6 +361,7 @@ namespace overground
 
     struct directionalLight_t
     {
+      std::string type;
       std::array<float, 3> color;
     };
 
@@ -359,13 +384,15 @@ namespace overground
     enum class directionalLightMembers_e : int 
     {
       none = 0,
-      color = 1 << 0,
-      all = color
+      type = 1 << 0,
+      color = 1 << 1,
+      all = type | color
     };
 
     inline bool operator == (directionalLight_t const & lhs, directionalLight_t const & rhs) noexcept
     {
       return
+        lhs.type == rhs.type &&
         lhs.color == rhs.color;
     };
 
@@ -385,6 +412,9 @@ namespace overground
       directionalLight_t const & rhs,
       directionalLightDiffs_t & directionalLight) noexcept
     {
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { directionalLight.diffs |= directionalLightMembers_e::type; }
       // diff member 'color':
       for (size_t i = 0; i < lhs.color.size(); ++i)
       {
@@ -402,6 +432,7 @@ namespace overground
 
     struct pointLight_t
     {
+      std::string type;
       std::array<float, 3> attenuation;
       std::array<float, 3> color;
     };
@@ -425,14 +456,16 @@ namespace overground
     enum class pointLightMembers_e : int 
     {
       none = 0,
-      attenuation = 1 << 0,
-      color = 1 << 1,
-      all = attenuation | color
+      type = 1 << 0,
+      attenuation = 1 << 1,
+      color = 1 << 2,
+      all = type | attenuation | color
     };
 
     inline bool operator == (pointLight_t const & lhs, pointLight_t const & rhs) noexcept
     {
       return
+        lhs.type == rhs.type &&
         lhs.attenuation == rhs.attenuation &&
         lhs.color == rhs.color;
     };
@@ -454,6 +487,9 @@ namespace overground
       pointLight_t const & rhs,
       pointLightDiffs_t & pointLight) noexcept
     {
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { pointLight.diffs |= pointLightMembers_e::type; }
       // diff member 'attenuation':
       for (size_t i = 0; i < lhs.attenuation.size(); ++i)
       {
@@ -480,6 +516,7 @@ namespace overground
 
     struct spotLight_t
     {
+      std::string type;
       std::array<float, 3> attenuation;
       float hotspot;
       float falloff;
@@ -505,16 +542,18 @@ namespace overground
     enum class spotLightMembers_e : int 
     {
       none = 0,
-      attenuation = 1 << 0,
-      hotspot = 1 << 1,
-      falloff = 1 << 2,
-      color = 1 << 3,
-      all = attenuation | hotspot | falloff | color
+      type = 1 << 0,
+      attenuation = 1 << 1,
+      hotspot = 1 << 2,
+      falloff = 1 << 3,
+      color = 1 << 4,
+      all = type | attenuation | hotspot | falloff | color
     };
 
     inline bool operator == (spotLight_t const & lhs, spotLight_t const & rhs) noexcept
     {
       return
+        lhs.type == rhs.type &&
         lhs.attenuation == rhs.attenuation &&
         lhs.hotspot == rhs.hotspot &&
         lhs.falloff == rhs.falloff &&
@@ -538,6 +577,9 @@ namespace overground
       spotLight_t const & rhs,
       spotLightDiffs_t & spotLight) noexcept
     {
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { spotLight.diffs |= spotLightMembers_e::type; }
       // diff member 'attenuation':
       for (size_t i = 0; i < lhs.attenuation.size(); ++i)
       {
@@ -570,6 +612,7 @@ namespace overground
 
     struct camera_t
     {
+      std::string type;
       float fovAroundYAxis;
       float minDepth;
       float maxDepth;
@@ -595,16 +638,18 @@ namespace overground
     enum class cameraMembers_e : int 
     {
       none = 0,
-      fovAroundYAxis = 1 << 0,
-      minDepth = 1 << 1,
-      maxDepth = 1 << 2,
-      renderPlan = 1 << 3,
-      all = fovAroundYAxis | minDepth | maxDepth | renderPlan
+      type = 1 << 0,
+      fovAroundYAxis = 1 << 1,
+      minDepth = 1 << 2,
+      maxDepth = 1 << 3,
+      renderPlan = 1 << 4,
+      all = type | fovAroundYAxis | minDepth | maxDepth | renderPlan
     };
 
     inline bool operator == (camera_t const & lhs, camera_t const & rhs) noexcept
     {
       return
+        lhs.type == rhs.type &&
         lhs.fovAroundYAxis == rhs.fovAroundYAxis &&
         lhs.minDepth == rhs.minDepth &&
         lhs.maxDepth == rhs.maxDepth &&
@@ -626,6 +671,9 @@ namespace overground
       camera_t const & rhs,
       cameraDiffs_t & camera) noexcept
     {
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { camera.diffs |= cameraMembers_e::type; }
       // diff member 'fovAroundYAxis':
       if (lhs.fovAroundYAxis != rhs.fovAroundYAxis)
         { camera.diffs |= cameraMembers_e::fovAroundYAxis; }
@@ -646,9 +694,7 @@ namespace overground
 
     struct feature_t
     {
-      std::string name;
-      std::string type;
-      std::variant<matrixTransform_t, srtTransform_t, drawableModel_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> data;
+      std::variant<matrixTransform_t, srtTransform_t, drawableSubmodel_t, drawableModel_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> data;
     };
 
     void importPod(
@@ -670,17 +716,13 @@ namespace overground
     enum class featureMembers_e : int 
     {
       none = 0,
-      name = 1 << 0,
-      type = 1 << 1,
-      data = 1 << 2,
-      all = name | type | data
+      data = 1 << 0,
+      all = data
     };
 
     inline bool operator == (feature_t const & lhs, feature_t const & rhs) noexcept
     {
       return
-        lhs.name == rhs.name &&
-        lhs.type == rhs.type &&
         lhs.data == rhs.data;
     };
 
@@ -699,17 +741,69 @@ namespace overground
       feature_t const & rhs,
       featureDiffs_t & feature) noexcept
     {
-      // diff member 'name':
-      if (lhs.name != rhs.name)
-        { feature.diffs |= featureMembers_e::name; }
-      // diff member 'type':
-      if (lhs.type != rhs.type)
-        { feature.diffs |= featureMembers_e::type; }
       // diff member 'data':
       if (lhs.data != rhs.data)
         { feature.diffs |= featureMembers_e::data; }
 
       return feature.diffs != featureMembers_e::none;
+    };
+
+    // otherKindOfObject things
+
+    struct otherKindOfObject_t
+    {
+      std::string type;
+    };
+
+    void importPod(
+      humon::HuNode const & src, otherKindOfObject_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, otherKindOfObject_t & dest);
+
+    void exportPod(otherKindOfObject_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      otherKindOfObject_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(otherKindOfObject_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, otherKindOfObject_t const & src);
+
+    enum class otherKindOfObjectMembers_e : int 
+    {
+      none = 0,
+      type = 1 << 0,
+      all = type
+    };
+
+    inline bool operator == (otherKindOfObject_t const & lhs, otherKindOfObject_t const & rhs) noexcept
+    {
+      return
+        lhs.type == rhs.type;
+    };
+
+    inline bool operator != (otherKindOfObject_t const & lhs, otherKindOfObject_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct otherKindOfObjectDiffs_t
+    {
+      otherKindOfObjectMembers_e diffs;
+    };
+
+    inline bool doPodsDiffer(
+      otherKindOfObject_t const & lhs,
+      otherKindOfObject_t const & rhs,
+      otherKindOfObjectDiffs_t & otherKindOfObject) noexcept
+    {
+      // diff member 'type':
+      if (lhs.type != rhs.type)
+        { otherKindOfObject.diffs |= otherKindOfObjectMembers_e::type; }
+
+      return otherKindOfObject.diffs != otherKindOfObjectMembers_e::none;
     };
 
     // object things
@@ -719,6 +813,7 @@ namespace overground
       std::string name;
       std::vector<object_t> children;
       std::vector<feature_t> features;
+      std::optional<std::variant<otherKindOfObject_t>> data;
     };
 
     void importPod(
@@ -743,7 +838,8 @@ namespace overground
       name = 1 << 0,
       children = 1 << 1,
       features = 1 << 2,
-      all = name | children | features
+      data = 1 << 3,
+      all = name | children | features | data
     };
 
     inline bool operator == (object_t const & lhs, object_t const & rhs) noexcept
@@ -751,7 +847,8 @@ namespace overground
       return
         lhs.name == rhs.name &&
         lhs.children == rhs.children &&
-        lhs.features == rhs.features;
+        lhs.features == rhs.features &&
+        lhs.data == rhs.data;
     };
 
     inline bool operator != (object_t const & lhs, object_t const & rhs) noexcept
@@ -810,6 +907,9 @@ namespace overground
           object.featuresDiffs.push_back({i, diffsEntry});
         }
       }
+      // diff member 'data':
+      if (lhs.data != rhs.data)
+        { object.diffs |= objectMembers_e::data; }
 
       return object.diffs != objectMembers_e::none;
     };
@@ -819,7 +919,7 @@ namespace overground
     struct tableau_t
     {
       std::string name;
-      std::vector<object_t> objects;
+      stringDict<object_t> objects;
     };
 
     void importPod(
@@ -861,7 +961,7 @@ namespace overground
     struct tableauDiffs_t
     {
       tableauMembers_e diffs;
-      std::vector<std::pair<size_t, objectDiffs_t>> objectsDiffs;
+      std::vector<std::pair<std::string, objectDiffs_t>> objectsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -874,20 +974,26 @@ namespace overground
         { tableau.diffs |= tableauMembers_e::name; }
       // diff member 'objects':
       {
-        auto [mn, mx] = std::minmax(lhs.objects.size(), rhs.objects.size());
-        for (size_t i = 0; i < mn; ++i)
+        for (auto const & [lhsKey, lhsIdx] : lhs.objects.keys)
         {
           objectDiffs_t diffsEntry;
-          if (doPodsDiffer(lhs.objects[i], rhs.objects[i], diffsEntry))
+          if (auto it = rhs.objects.keys().find(lhsKey); it != rhs.objects.keys().end())
           {
-            tableau.diffs |= tableauMembers_e::objects;
-            tableau.objectsDiffs.push_back({i, diffsEntry});
+            auto const & [rhsKey, rhsIdx] = *it;
+            if (lhsIdx == rhsIdx &&
+                doPodsDiffer(lhs.objects[lhsIdx], rhs.objects[rhsIdx], diffsEntry) == false)
+              { continue; }
           }
+          tableau.diffs |= tableauMembers_e::objects;
+          tableau.objectsDiffs.push_back({lhsKey, diffsEntry});
         }
-        for (size_t i = mn; i < mx; ++i)
+        for (auto const & [rhsKey, rhsIdx] : rhs.objects.keys())
         {
+          if (auto it = lhs.objects.keys.find(rhsKey); it != lhs.objects.keys.end())
+            { continue; }
+
           objectDiffs_t diffsEntry = { .diffs = objectMembers_e::all };
-          tableau.objectsDiffs.push_back({i, diffsEntry});
+          tableau.objectsDiffs.push_back({rhsKey, diffsEntry});
         }
       }
 

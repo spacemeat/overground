@@ -384,14 +384,13 @@
         shaderName: { type: string }
       }
 
-      vertexDeclEntry: {
-        offset: { type: int }
-        format: { type: "vk::Format" }
-      }
+  #    vertexDeclEntry: {
+  #      offset: { type: int }
+  #      format: { type: "vk::Format" }
+  #    }
 
       stage: {
-        stage: { type: "vk::ShaderStage" }
-        module: { type: string }
+        shaderAsset: { type: string }
         entry: { type: string }
       }
 
@@ -454,11 +453,11 @@
       }
 
       material: {
-        vertexDecl: { 
-          type: "vector<vertexDeclEntry>"
-          serialized: false # This should be set by the material/mesh combination
-        }
-        stages: { type: "vector<stage>" }
+#        vertexDecl: { 
+#          type: "vector<vertexDeclEntry>"
+#          serialized: false # This should be set by the material/mesh combination
+#        }
+        stages: { type: "stringDict<stage>" }
         rasterizationState: { type: rasterizationState }
         multisampleState: { type: multisampleState }
         blendState: { type: blendState }
@@ -471,25 +470,34 @@
     }
 
     model: {
+      submodel: {
+        name: { type: string fromKey: true } # must match mesh/submeshes/[key]
+        material: { type: string }
+        tags: { type: "vector<string>" }
+      }
+
       model: {
-        name: { type: string }
+        name: { type: string fromKey: true }
         mesh: { type: string }
-        materials: { type: "vector<optional<string>>" } # material per submesh -- optional because not all meshes need a default material. Some will always be set by the user. I, uh, think.
+        submodels: { type: "stringDict<submodel>" }
       }
     }
 
     asset: {
       meshAsset: {
+        plugin: assets
         type: { type: string deserialized: false }
       }
 
       imageAsset: {
+        plugin: assets
         type: { type: string deserialized: false }
         format: { type: "vk::Format" }
         compression: { type: "optional<string>" }
       }
 
       shaderAsset: {
+        plugin: assets
         type: { type: string deserialized: false }
         entryPoint: { type: string }
         #...
@@ -500,20 +508,20 @@
         srcFile: { type: "optional<string>" }
         assFile: { type: "string" serialized: false }
         monitorFile: { type: bool default: true }
-        data: { type: "variant<meshAsset, imageAsset, shaderAsset>" }
+        data: { type: "variant<plugins<assets>>" }
       }
     }
 
     tableau: {
       matrixTransform: {
-        feature: true
-        type: { type: string deserialize: false }
+        plugin: features
+        type: { type: string }
         transform: { type: "array<float, 16>" }
       }
 
       srtTransform: {
-        feature: true
-        type: { type: string deserialize: false }
+        plugin: features
+        type: { type: string }
         requires: [matrixTransform]
         scale: { type: "array<float, 3>" }
         rotation: { type: "array<float, 3>" }
@@ -521,39 +529,39 @@
       }
 
       drawableSubmodel: {
-        feature: true
-        type: { type: string deserialize: false }
+        plugin: features
+        type: { type: string }
         submesh: { type: string }
         material: { type: "optional<string>" }  # optional since submesh may define its own material.
         tags: { type: "vector<string>" }
       }
 
       drawableModel: {
-        feature: true
-        type: { type: string deserialize: false }
+        plugin: features
+        type: { type: string }
         requires: [matrixTransform]
         mesh: { type: string }
         subModels: { type: "vector<drawableSubmodel>" }
       }
 
       directionalLight: {
-        feature: true
-        type: { type: string deserialize: false }
+        plugin: features
+        type: { type: string }
         requires: [matrixTransform]
         color: { type: "array<float, 3>" }
       }
 
       pointLight: {
-        feature: true
-        type: { type: string deserialize: false }
+        plugin: features
+        type: { type: string }
         requires: [matrixTransform]
         attenuation: { type: "array<float, 3>" }
         color: { type: "array<float, 3>" }
       }
 
       spotLight: {
-        feature: true
-        type: { type: string deserialize: false }
+        plugin: features
+        type: { type: string }
         requires: [matrixTransform]
         attenuation: { type: "array<float, 3>" }
         hotspot: { type: float }
@@ -562,8 +570,8 @@
       }
 
       camera: {
-        feature: true
-        type: { type: string deserialize: false }
+        plugin: features
+        type: { type: string }
         requires: [matrixTransform]
         fovAroundYAxis: { type: float }
         minDepth: { type: float }
@@ -572,13 +580,19 @@
       }
 
       feature: {
-        data: { "variant<matrixTransform, srtTransform, drawableSubmodel, drawableModel, directionalLight, pointLight, spotLight, camera>" }
+        data: { type: "variant<plugins<features>>" }
+      }
+
+      otherKindOfObject: {
+        plugin: objects
+        type: { type: string deserialized: false }
       }
 
       object: {
         name: { type: string fromKey: true }
         children: { type: "vector<object>" }
         features: { type: "vector<feature>" }
+        data: { type: "optional<variant<plugins<objects>>>" }
       }
 
       tableau: {

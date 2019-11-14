@@ -9,12 +9,12 @@ using namespace std;
 void overground::asset::importPod(
   humon::HuNode const & src, meshAsset_t & dest)
 {
-  if (src % "buffer")
+  if (src % "type")
   {
-    auto & src0 = src / "buffer";
+    auto & src0 = src / "type";
     std::string dst0;
     dst0 = (std::string) src0; // leaf
-    dest.buffer = std::move(dst0);
+    dest.type = std::move(dst0);
   }
 }
 
@@ -49,8 +49,8 @@ std::string overground::asset::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
-  ss << "\n" << indentIn << "buffer: ";
-  ss << (src.buffer);
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
@@ -64,6 +64,13 @@ ostream & overground::asset::operator << (ostream & stream, meshAsset_t const & 
 void overground::asset::importPod(
   humon::HuNode const & src, imageAsset_t & dest)
 {
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
   if (src % "format")
   {
     auto & src0 = src / "format";
@@ -74,21 +81,14 @@ void overground::asset::importPod(
   if (src % "compression")
   {
     auto & src0 = src / "compression";
-    std::optional<std::string> dst0;
-    std::string dst1;
+    std::optional<string> dst0;
+    string dst1;
     {
       auto & src1 = src0;
-      dst1 = (std::string) src1; // leaf
+      dst1 = (string) src1; // leaf
     }
     dst0.emplace(std::move(dst1));
     dest.compression = std::move(dst0);
-  }
-  if (src % "buffer")
-  {
-    auto & src0 = src / "buffer";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.buffer = std::move(dst0);
   }
 }
 
@@ -123,19 +123,19 @@ std::string overground::asset::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << indentIn << "format: ";
   ss << to_string(src.format);
   ss << "\n" << indentIn << "compression: ";
 
   if ((bool) src.compression)
   {
-    std::string const & src0 = * src.compression;
+    string const & src0 = * src.compression;
     ss << (src0);
   }
   else
     { ss << "<undefined>"; }
-  ss << "\n" << indentIn << "buffer: ";
-  ss << (src.buffer);
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
@@ -149,12 +149,19 @@ ostream & overground::asset::operator << (ostream & stream, imageAsset_t const &
 void overground::asset::importPod(
   humon::HuNode const & src, shaderAsset_t & dest)
 {
-  if (src % "entry")
+  if (src % "type")
   {
-    auto & src0 = src / "entry";
+    auto & src0 = src / "type";
     std::string dst0;
     dst0 = (std::string) src0; // leaf
-    dest.entry = std::move(dst0);
+    dest.type = std::move(dst0);
+  }
+  if (src % "entryPoint")
+  {
+    auto & src0 = src / "entryPoint";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.entryPoint = std::move(dst0);
   }
 }
 
@@ -189,8 +196,10 @@ std::string overground::asset::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
-  ss << "\n" << indentIn << "entry: ";
-  ss << (src.entry);
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
+  ss << "\n" << indentIn << "entryPoint: ";
+  ss << (src.entryPoint);
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
@@ -211,21 +220,14 @@ void overground::asset::importPod(
     dst0 = (std::string) src0; // leaf
     dest.name = std::move(dst0);
   }
-  if (src % "type")
-  {
-    auto & src0 = src / "type";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.type = std::move(dst0);
-  }
   if (src % "srcFile")
   {
     auto & src0 = src / "srcFile";
-    std::optional<std::string> dst0;
-    std::string dst1;
+    std::optional<string> dst0;
+    string dst1;
     {
       auto & src1 = src0;
-      dst1 = (std::string) src1; // leaf
+      dst1 = (string) src1; // leaf
     }
     dst0.emplace(std::move(dst1));
     dest.srcFile = std::move(dst0);
@@ -313,13 +315,11 @@ std::string overground::asset::print(
   ss << "{";
   ss << "\n" << indentIn << "name: ";
   ss << (src.name);
-  ss << "\n" << indentIn << "type: ";
-  ss << (src.type);
   ss << "\n" << indentIn << "srcFile: ";
 
   if ((bool) src.srcFile)
   {
-    std::string const & src0 = * src.srcFile;
+    string const & src0 = * src.srcFile;
     ss << (src0);
   }
   else
@@ -356,81 +356,6 @@ std::string overground::asset::print(
 }
 
 ostream & overground::asset::operator << (ostream & stream, asset_t const & rhs)
-{
-  stream << print(rhs);
-  return stream;
-}
-
-void overground::asset::importPod(
-  humon::HuNode const & src, assets_t & dest)
-{
-  if (src % "assets")
-  {
-    auto & src0 = src / "assets";
-    stringDict<asset_t> dst0;
-    for (size_t i0 = 0; i0 < src0.size(); ++i0)
-    {
-      auto & src1 = src0 / i0;
-      auto const & key = src0.keyAt(i0);
-      asset_t dst1;
-      importPod(src1, dst1);
-      dst0.push_back(key, std::move(dst1));
-    }
-    dest.assets = std::move(dst0);
-  }
-}
-
-void overground::asset::importPod(
-std::vector<uint8_t> const & src, assets_t & dest)
-{
-  log(0, logTags::warn, "This operation has not been implemented yet.");
-
-  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
-}
-
-void overground::asset::exportPod(assets_t const & src,
-humon::HuNode & dest, int depth)
-{
-  log(0, logTags::warn, "This operation has not been implemented yet.");
-
-  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
-}
-
-void overground::asset::exportPod(
-assets_t const & src, std::vector<uint8_t> & dest)
-{
-  log(0, logTags::warn, "This operation has not been implemented yet.");
-
-  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
-}
-
-std::string overground::asset::print(
-  assets_t const & src, int depth)
-{
-  string prevIndentIn(depth * 2, ' ');
-  string indentIn(2 + depth * 2, ' ');
-  std::ostringstream ss;
-  ss << "{";
-  ss << "\n" << indentIn << "assets: ";
-  ss << "{";
-  for (size_t i0 = 0; i0 < src.assets.size(); ++i0)
-  {
-    auto const & [key, idx] = src.assets.keys[i0];
-    depth += 1;
-    string prevIndentIn(depth * 2, ' ');
-    string indentIn(2 + depth * 2, ' ');
-    asset_t const & src0 = src.assets[idx];
-    ss << indentIn << key << ": ";
-    ss << "\n" << indentIn;
-    ss << print(src0, depth + 1);
-    depth -= 1;
-  }
-  ss << "\n" << indentIn << "}";
-  ss << "\n" << prevIndentIn << "}";
-  return ss.str();
-}
-
-ostream & overground::asset::operator << (ostream & stream, assets_t const & rhs)
 {
   stream << print(rhs);
   return stream;

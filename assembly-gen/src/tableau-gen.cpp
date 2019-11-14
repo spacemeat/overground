@@ -9,6 +9,13 @@ using namespace std;
 void overground::tableau::importPod(
   humon::HuNode const & src, matrixTransform_t & dest)
 {
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
   if (src % "transform")
   {
     auto & src0 = src / "transform";
@@ -55,6 +62,8 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << indentIn << "transform: ";
   ss << "[";
   for (size_t i0 = 0; i0 < src.transform.size(); ++i0)
@@ -81,6 +90,13 @@ ostream & overground::tableau::operator << (ostream & stream, matrixTransform_t 
 void overground::tableau::importPod(
   humon::HuNode const & src, srtTransform_t & dest)
 {
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
   if (src % "scale")
   {
     auto & src0 = src / "scale";
@@ -153,6 +169,8 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << indentIn << "scale: ";
   ss << "[";
   for (size_t i0 = 0; i0 < src.scale.size(); ++i0)
@@ -205,6 +223,13 @@ ostream & overground::tableau::operator << (ostream & stream, srtTransform_t con
 void overground::tableau::importPod(
   humon::HuNode const & src, drawableSubmodel_t & dest)
 {
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
   if (src % "submesh")
   {
     auto & src0 = src / "submesh";
@@ -215,11 +240,11 @@ void overground::tableau::importPod(
   if (src % "material")
   {
     auto & src0 = src / "material";
-    std::optional<std::string> dst0;
-    std::string dst1;
+    std::optional<string> dst0;
+    string dst1;
     {
       auto & src1 = src0;
-      dst1 = (std::string) src1; // leaf
+      dst1 = (string) src1; // leaf
     }
     dst0.emplace(std::move(dst1));
     dest.material = std::move(dst0);
@@ -227,13 +252,13 @@ void overground::tableau::importPod(
   if (src % "tags")
   {
     auto & src0 = src / "tags";
-    std::vector<std::string> dst0;
+    std::vector<string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      std::string dst1;
-      dst1 = (std::string) src1; // leaf
+      string dst1;
+      dst1 = (string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -272,13 +297,15 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << indentIn << "submesh: ";
   ss << (src.submesh);
   ss << "\n" << indentIn << "material: ";
 
   if ((bool) src.material)
   {
-    std::string const & src0 = * src.material;
+    string const & src0 = * src.material;
     ss << (src0);
   }
   else
@@ -290,7 +317,7 @@ std::string overground::tableau::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::string const & src0 = src.tags[i0];
+    string const & src0 = src.tags[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -309,6 +336,13 @@ ostream & overground::tableau::operator << (ostream & stream, drawableSubmodel_t
 void overground::tableau::importPod(
   humon::HuNode const & src, drawableModel_t & dest)
 {
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
   if (src % "mesh")
   {
     auto & src0 = src / "mesh";
@@ -364,6 +398,8 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << indentIn << "mesh: ";
   ss << (src.mesh);
   ss << "\n" << indentIn << "subModels: ";
@@ -392,6 +428,13 @@ ostream & overground::tableau::operator << (ostream & stream, drawableModel_t co
 void overground::tableau::importPod(
   humon::HuNode const & src, directionalLight_t & dest)
 {
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
   if (src % "color")
   {
     auto & src0 = src / "color";
@@ -438,6 +481,8 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << indentIn << "color: ";
   ss << "[";
   for (size_t i0 = 0; i0 < src.color.size(); ++i0)
@@ -464,6 +509,13 @@ ostream & overground::tableau::operator << (ostream & stream, directionalLight_t
 void overground::tableau::importPod(
   humon::HuNode const & src, pointLight_t & dest)
 {
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
   if (src % "attenuation")
   {
     auto & src0 = src / "attenuation";
@@ -523,6 +575,8 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << indentIn << "attenuation: ";
   ss << "[";
   for (size_t i0 = 0; i0 < src.attenuation.size(); ++i0)
@@ -562,6 +616,13 @@ ostream & overground::tableau::operator << (ostream & stream, pointLight_t const
 void overground::tableau::importPod(
   humon::HuNode const & src, spotLight_t & dest)
 {
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
   if (src % "attenuation")
   {
     auto & src0 = src / "attenuation";
@@ -635,6 +696,8 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << indentIn << "attenuation: ";
   ss << "[";
   for (size_t i0 = 0; i0 < src.attenuation.size(); ++i0)
@@ -678,6 +741,13 @@ ostream & overground::tableau::operator << (ostream & stream, spotLight_t const 
 void overground::tableau::importPod(
   humon::HuNode const & src, camera_t & dest)
 {
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
   if (src % "fovAroundYAxis")
   {
     auto & src0 = src / "fovAroundYAxis";
@@ -739,6 +809,8 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
   ss << "\n" << indentIn << "fovAroundYAxis: ";
   ss << (src.fovAroundYAxis);
   ss << "\n" << indentIn << "minDepth: ";
@@ -760,24 +832,10 @@ ostream & overground::tableau::operator << (ostream & stream, camera_t const & r
 void overground::tableau::importPod(
   humon::HuNode const & src, feature_t & dest)
 {
-  if (src % "name")
-  {
-    auto & src0 = src / "name";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.name = std::move(dst0);
-  }
-  if (src % "type")
-  {
-    auto & src0 = src / "type";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.type = std::move(dst0);
-  }
   if (src % "data")
   {
     auto & src0 = src / "data";
-    std::variant<matrixTransform_t, srtTransform_t, drawableModel_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> dst0;
+    std::variant<matrixTransform_t, srtTransform_t, drawableSubmodel_t, drawableModel_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> dst0;
     {
       auto & src1 = src0;
       if (src1 % "type")
@@ -795,6 +853,12 @@ void overground::tableau::importPod(
           srtTransform_t dst1;
       importPod(src1, dst1);
           dst0.emplace<srtTransform_t>(std::move(dst1));
+        }
+        else if (typ == "drawableSubmodel_t")
+        {
+          drawableSubmodel_t dst1;
+      importPod(src1, dst1);
+          dst0.emplace<drawableSubmodel_t>(std::move(dst1));
         }
         else if (typ == "drawableModel_t")
         {
@@ -865,10 +929,6 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
-  ss << "\n" << indentIn << "name: ";
-  ss << (src.name);
-  ss << "\n" << indentIn << "type: ";
-  ss << (src.type);
   ss << "\n" << indentIn << "data: ";
 
   if (src.data.valueless_by_exception())
@@ -882,6 +942,12 @@ std::string overground::tableau::print(
   else if (std::holds_alternative<srtTransform_t>(src.data))
   {
     srtTransform_t const & src0 = std::get<srtTransform_t>(src.data);
+    ss << "\n" << indentIn;
+    ss << print(src0, depth + 1);
+  }
+  else if (std::holds_alternative<drawableSubmodel_t>(src.data))
+  {
+    drawableSubmodel_t const & src0 = std::get<drawableSubmodel_t>(src.data);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
@@ -927,6 +993,61 @@ ostream & overground::tableau::operator << (ostream & stream, feature_t const & 
 }
 
 void overground::tableau::importPod(
+  humon::HuNode const & src, otherKindOfObject_t & dest)
+{
+  if (src % "type")
+  {
+    auto & src0 = src / "type";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.type = std::move(dst0);
+  }
+}
+
+void overground::tableau::importPod(
+std::vector<uint8_t> const & src, otherKindOfObject_t & dest)
+{
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
+}
+
+void overground::tableau::exportPod(otherKindOfObject_t const & src,
+humon::HuNode & dest, int depth)
+{
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
+}
+
+void overground::tableau::exportPod(
+otherKindOfObject_t const & src, std::vector<uint8_t> & dest)
+{
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
+}
+
+std::string overground::tableau::print(
+  otherKindOfObject_t const & src, int depth)
+{
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
+  std::ostringstream ss;
+  ss << "{";
+  ss << "\n" << indentIn << "type: ";
+  ss << (src.type);
+  ss << "\n" << prevIndentIn << "}";
+  return ss.str();
+}
+
+ostream & overground::tableau::operator << (ostream & stream, otherKindOfObject_t const & rhs)
+{
+  stream << print(rhs);
+  return stream;
+}
+
+void overground::tableau::importPod(
   humon::HuNode const & src, object_t & dest)
 {
   if (src % "name")
@@ -965,6 +1086,33 @@ void overground::tableau::importPod(
       dst0.push_back(std::move(dst1));
     }
     dest.features = std::move(dst0);
+  }
+  if (src % "data")
+  {
+    auto & src0 = src / "data";
+    std::optional<std::variant<otherKindOfObject_t>> dst0;
+    std::variant<otherKindOfObject_t> dst1;
+    {
+      auto & src1 = src0;
+      {
+        auto & src2 = src1;
+        if (src2 % "type")
+        {
+          std::string const & typ = src2 / "type";
+          if (typ == "") { throw std::runtime_error("objects of variant type require a \"type\" key."); }
+          else if (typ == "otherKindOfObject_t")
+          {
+            otherKindOfObject_t dst2;
+        importPod(src2, dst2);
+            dst1.emplace<otherKindOfObject_t>(std::move(dst2));
+          }
+
+        }
+        else { throw std::runtime_error("objects of variant type require a \"kind\" key."); }
+      }
+    }
+    dst0.emplace(std::move(dst1));
+    dest.data = std::move(dst0);
   }
 }
 
@@ -1027,6 +1175,24 @@ std::string overground::tableau::print(
     depth -= 1;
   }
   ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "data: ";
+
+  if ((bool) src.data)
+  {
+    std::variant<otherKindOfObject_t> const & src0 = * src.data;
+
+    if (src0.valueless_by_exception())
+      { ss << "bad state\n"; }
+    else if (std::holds_alternative<otherKindOfObject_t>(src0))
+    {
+      otherKindOfObject_t const & src1 = std::get<otherKindOfObject_t>(src0);
+      ss << "\n" << indentIn;
+      ss << print(src1, depth + 1);
+    }
+    else { ss << "(unknown variant)\n"; }
+  }
+  else
+    { ss << "<undefined>"; }
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
@@ -1050,15 +1216,14 @@ void overground::tableau::importPod(
   if (src % "objects")
   {
     auto & src0 = src / "objects";
-    std::vector<object_t> dst0;
-
+    stringDict<object_t> dst0;
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
+      auto const & key = src0.keyAt(i0);
       object_t dst1;
       importPod(src1, dst1);
-
-      dst0.push_back(std::move(dst1));
+      dst0.push_back(key, std::move(dst1));
     }
     dest.objects = std::move(dst0);
   }
@@ -1098,18 +1263,20 @@ std::string overground::tableau::print(
   ss << "\n" << indentIn << "name: ";
   ss << (src.name);
   ss << "\n" << indentIn << "objects: ";
-  ss << "[";
+  ss << "{";
   for (size_t i0 = 0; i0 < src.objects.size(); ++i0)
   {
+    auto const & [key, idx] = src.objects.keys[i0];
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    object_t const & src0 = src.objects[i0];
+    object_t const & src0 = src.objects[idx];
+    ss << indentIn << key << ": ";
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
     depth -= 1;
   }
-  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "}";
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
