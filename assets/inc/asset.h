@@ -11,16 +11,16 @@ namespace overground
   class Asset
   {
   public:
-    Asset(std::string_view name);
+    Asset(asset::asset_t const & desc);
     virtual ~Asset();
 
-    void loadAssetInfo(asset::asset_t const & asset);
+    void loadAssetInfo();
 
     void compileToAss();
     void compileToBuffer(std::byte * buffer);
 
   protected:
-    virtual void loadAssetInfo_impl(path_t file, bool loadFromSrc, asset::asset_t const & asset);
+    virtual void loadAssetInfo_impl(path_t file, bool loadFromSrc);
 
     virtual void compileToAss_impl();
     virtual void compileToBuffer_impl(std::byte * buffer);
@@ -42,7 +42,7 @@ namespace overground
     inline size_t & bufferSize() noexcept;
 
   private:
-    std::string name_;
+    asset::asset_t & desc_;
     std::optional<FileRef> srcFile_;
     FileRef assFile_;
     std::unordered_map<std::string, size_t> tableauRefCounts_;
@@ -56,7 +56,7 @@ namespace overground
 
   inline std::string_view Asset::name() const noexcept
   {
-    return name_;
+    return desc_.name;
   }
 
   inline std::optional<FileRef> const & Asset::srcFile() const noexcept

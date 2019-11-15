@@ -13,67 +13,67 @@ namespace overground
 {
   namespace asset
   {
-    // meshAsset things
+    // mesh things
 
-    struct meshAsset_t
+    struct mesh_t
     {
       std::string type;
     };
 
     void importPod(
-      humon::HuNode const & src, meshAsset_t & dest);
+      humon::HuNode const & src, mesh_t & dest);
 
     void importPod(
-      std::vector<uint8_t> const & src, meshAsset_t & dest);
+      std::vector<uint8_t> const & src, mesh_t & dest);
 
-    void exportPod(meshAsset_t const & src, 
+    void exportPod(mesh_t const & src, 
       humon::HuNode & dest, int depth);
 
     void exportPod(
-      meshAsset_t const & src, std::vector<uint8_t> & dest);
+      mesh_t const & src, std::vector<uint8_t> & dest);
 
-    std::string print(meshAsset_t const & src, int depth = 0);
+    std::string print(mesh_t const & src, int depth = 0);
 
-    std::ostream & operator << (std::ostream & stream, meshAsset_t const & src);
+    std::ostream & operator << (std::ostream & stream, mesh_t const & src);
 
-    enum class meshAssetMembers_e : int 
+    enum class meshMembers_e : int 
     {
       none = 0,
       type = 1 << 0,
       all = type
     };
 
-    inline bool operator == (meshAsset_t const & lhs, meshAsset_t const & rhs) noexcept
+    inline bool operator == (mesh_t const & lhs, mesh_t const & rhs) noexcept
     {
       return
         lhs.type == rhs.type;
     };
 
-    inline bool operator != (meshAsset_t const & lhs, meshAsset_t const & rhs) noexcept
+    inline bool operator != (mesh_t const & lhs, mesh_t const & rhs) noexcept
     {
       return ! (lhs == rhs);
     };
 
-    struct meshAssetDiffs_t
+    struct meshDiffs_t
     {
-      meshAssetMembers_e diffs;
+      meshMembers_e diffs;
     };
 
     inline bool doPodsDiffer(
-      meshAsset_t const & lhs,
-      meshAsset_t const & rhs,
-      meshAssetDiffs_t & meshAsset) noexcept
+      mesh_t const & lhs,
+      mesh_t const & rhs,
+      meshDiffs_t & mesh) noexcept
     {
       // diff member 'type':
       if (lhs.type != rhs.type)
-        { meshAsset.diffs |= meshAssetMembers_e::type; }
+        { mesh.diffs |= meshMembers_e::type; }
 
-      return meshAsset.diffs != meshAssetMembers_e::none;
+      return mesh.diffs != meshMembers_e::none;
     };
 
-    // imageAsset things
+    // image things
 
-    struct imageAsset_t
+    struct image_t
     {
       std::string type;
       vk::Format format;
@@ -81,22 +81,22 @@ namespace overground
     };
 
     void importPod(
-      humon::HuNode const & src, imageAsset_t & dest);
+      humon::HuNode const & src, image_t & dest);
 
     void importPod(
-      std::vector<uint8_t> const & src, imageAsset_t & dest);
+      std::vector<uint8_t> const & src, image_t & dest);
 
-    void exportPod(imageAsset_t const & src, 
+    void exportPod(image_t const & src, 
       humon::HuNode & dest, int depth);
 
     void exportPod(
-      imageAsset_t const & src, std::vector<uint8_t> & dest);
+      image_t const & src, std::vector<uint8_t> & dest);
 
-    std::string print(imageAsset_t const & src, int depth = 0);
+    std::string print(image_t const & src, int depth = 0);
 
-    std::ostream & operator << (std::ostream & stream, imageAsset_t const & src);
+    std::ostream & operator << (std::ostream & stream, image_t const & src);
 
-    enum class imageAssetMembers_e : int 
+    enum class imageMembers_e : int 
     {
       none = 0,
       type = 1 << 0,
@@ -105,7 +105,7 @@ namespace overground
       all = type | format | compression
     };
 
-    inline bool operator == (imageAsset_t const & lhs, imageAsset_t const & rhs) noexcept
+    inline bool operator == (image_t const & lhs, image_t const & rhs) noexcept
     {
       return
         lhs.type == rhs.type &&
@@ -113,59 +113,59 @@ namespace overground
         lhs.compression == rhs.compression;
     };
 
-    inline bool operator != (imageAsset_t const & lhs, imageAsset_t const & rhs) noexcept
+    inline bool operator != (image_t const & lhs, image_t const & rhs) noexcept
     {
       return ! (lhs == rhs);
     };
 
-    struct imageAssetDiffs_t
+    struct imageDiffs_t
     {
-      imageAssetMembers_e diffs;
+      imageMembers_e diffs;
     };
 
     inline bool doPodsDiffer(
-      imageAsset_t const & lhs,
-      imageAsset_t const & rhs,
-      imageAssetDiffs_t & imageAsset) noexcept
+      image_t const & lhs,
+      image_t const & rhs,
+      imageDiffs_t & image) noexcept
     {
       // diff member 'type':
       if (lhs.type != rhs.type)
-        { imageAsset.diffs |= imageAssetMembers_e::type; }
+        { image.diffs |= imageMembers_e::type; }
       // diff member 'format':
       if (lhs.format != rhs.format)
-        { imageAsset.diffs |= imageAssetMembers_e::format; }
+        { image.diffs |= imageMembers_e::format; }
       // diff member 'compression':
       if (lhs.compression != rhs.compression)
-        { imageAsset.diffs |= imageAssetMembers_e::compression; }
+        { image.diffs |= imageMembers_e::compression; }
 
-      return imageAsset.diffs != imageAssetMembers_e::none;
+      return image.diffs != imageMembers_e::none;
     };
 
-    // shaderAsset things
+    // shader things
 
-    struct shaderAsset_t
+    struct shader_t
     {
       std::string type;
       std::string entryPoint;
     };
 
     void importPod(
-      humon::HuNode const & src, shaderAsset_t & dest);
+      humon::HuNode const & src, shader_t & dest);
 
     void importPod(
-      std::vector<uint8_t> const & src, shaderAsset_t & dest);
+      std::vector<uint8_t> const & src, shader_t & dest);
 
-    void exportPod(shaderAsset_t const & src, 
+    void exportPod(shader_t const & src, 
       humon::HuNode & dest, int depth);
 
     void exportPod(
-      shaderAsset_t const & src, std::vector<uint8_t> & dest);
+      shader_t const & src, std::vector<uint8_t> & dest);
 
-    std::string print(shaderAsset_t const & src, int depth = 0);
+    std::string print(shader_t const & src, int depth = 0);
 
-    std::ostream & operator << (std::ostream & stream, shaderAsset_t const & src);
+    std::ostream & operator << (std::ostream & stream, shader_t const & src);
 
-    enum class shaderAssetMembers_e : int 
+    enum class shaderMembers_e : int 
     {
       none = 0,
       type = 1 << 0,
@@ -173,36 +173,36 @@ namespace overground
       all = type | entryPoint
     };
 
-    inline bool operator == (shaderAsset_t const & lhs, shaderAsset_t const & rhs) noexcept
+    inline bool operator == (shader_t const & lhs, shader_t const & rhs) noexcept
     {
       return
         lhs.type == rhs.type &&
         lhs.entryPoint == rhs.entryPoint;
     };
 
-    inline bool operator != (shaderAsset_t const & lhs, shaderAsset_t const & rhs) noexcept
+    inline bool operator != (shader_t const & lhs, shader_t const & rhs) noexcept
     {
       return ! (lhs == rhs);
     };
 
-    struct shaderAssetDiffs_t
+    struct shaderDiffs_t
     {
-      shaderAssetMembers_e diffs;
+      shaderMembers_e diffs;
     };
 
     inline bool doPodsDiffer(
-      shaderAsset_t const & lhs,
-      shaderAsset_t const & rhs,
-      shaderAssetDiffs_t & shaderAsset) noexcept
+      shader_t const & lhs,
+      shader_t const & rhs,
+      shaderDiffs_t & shader) noexcept
     {
       // diff member 'type':
       if (lhs.type != rhs.type)
-        { shaderAsset.diffs |= shaderAssetMembers_e::type; }
+        { shader.diffs |= shaderMembers_e::type; }
       // diff member 'entryPoint':
       if (lhs.entryPoint != rhs.entryPoint)
-        { shaderAsset.diffs |= shaderAssetMembers_e::entryPoint; }
+        { shader.diffs |= shaderMembers_e::entryPoint; }
 
-      return shaderAsset.diffs != shaderAssetMembers_e::none;
+      return shader.diffs != shaderMembers_e::none;
     };
 
     // asset things
@@ -213,7 +213,7 @@ namespace overground
       std::optional<string> srcFile;
       std::string assFile;
       bool monitorFile;
-      std::variant<meshAsset_t, imageAsset_t, shaderAsset_t> data;
+      std::variant<mesh_t, image_t, shader_t> data;
     };
 
     void importPod(

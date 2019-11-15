@@ -7,7 +7,7 @@ using namespace std;
 
 
 void overground::asset::importPod(
-  humon::HuNode const & src, meshAsset_t & dest)
+  humon::HuNode const & src, mesh_t & dest)
 {
   if (src % "type")
   {
@@ -19,14 +19,14 @@ void overground::asset::importPod(
 }
 
 void overground::asset::importPod(
-std::vector<uint8_t> const & src, meshAsset_t & dest)
+std::vector<uint8_t> const & src, mesh_t & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
   // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
-void overground::asset::exportPod(meshAsset_t const & src,
+void overground::asset::exportPod(mesh_t const & src,
 humon::HuNode & dest, int depth)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
@@ -35,7 +35,7 @@ humon::HuNode & dest, int depth)
 }
 
 void overground::asset::exportPod(
-meshAsset_t const & src, std::vector<uint8_t> & dest)
+mesh_t const & src, std::vector<uint8_t> & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
@@ -43,7 +43,7 @@ meshAsset_t const & src, std::vector<uint8_t> & dest)
 }
 
 std::string overground::asset::print(
-  meshAsset_t const & src, int depth)
+  mesh_t const & src, int depth)
 {
   string prevIndentIn(depth * 2, ' ');
   string indentIn(2 + depth * 2, ' ');
@@ -55,14 +55,14 @@ std::string overground::asset::print(
   return ss.str();
 }
 
-ostream & overground::asset::operator << (ostream & stream, meshAsset_t const & rhs)
+ostream & overground::asset::operator << (ostream & stream, mesh_t const & rhs)
 {
   stream << print(rhs);
   return stream;
 }
 
 void overground::asset::importPod(
-  humon::HuNode const & src, imageAsset_t & dest)
+  humon::HuNode const & src, image_t & dest)
 {
   if (src % "type")
   {
@@ -93,14 +93,14 @@ void overground::asset::importPod(
 }
 
 void overground::asset::importPod(
-std::vector<uint8_t> const & src, imageAsset_t & dest)
+std::vector<uint8_t> const & src, image_t & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
   // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
-void overground::asset::exportPod(imageAsset_t const & src,
+void overground::asset::exportPod(image_t const & src,
 humon::HuNode & dest, int depth)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
@@ -109,7 +109,7 @@ humon::HuNode & dest, int depth)
 }
 
 void overground::asset::exportPod(
-imageAsset_t const & src, std::vector<uint8_t> & dest)
+image_t const & src, std::vector<uint8_t> & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
@@ -117,7 +117,7 @@ imageAsset_t const & src, std::vector<uint8_t> & dest)
 }
 
 std::string overground::asset::print(
-  imageAsset_t const & src, int depth)
+  image_t const & src, int depth)
 {
   string prevIndentIn(depth * 2, ' ');
   string indentIn(2 + depth * 2, ' ');
@@ -140,14 +140,14 @@ std::string overground::asset::print(
   return ss.str();
 }
 
-ostream & overground::asset::operator << (ostream & stream, imageAsset_t const & rhs)
+ostream & overground::asset::operator << (ostream & stream, image_t const & rhs)
 {
   stream << print(rhs);
   return stream;
 }
 
 void overground::asset::importPod(
-  humon::HuNode const & src, shaderAsset_t & dest)
+  humon::HuNode const & src, shader_t & dest)
 {
   if (src % "type")
   {
@@ -166,14 +166,14 @@ void overground::asset::importPod(
 }
 
 void overground::asset::importPod(
-std::vector<uint8_t> const & src, shaderAsset_t & dest)
+std::vector<uint8_t> const & src, shader_t & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
   // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
-void overground::asset::exportPod(shaderAsset_t const & src,
+void overground::asset::exportPod(shader_t const & src,
 humon::HuNode & dest, int depth)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
@@ -182,7 +182,7 @@ humon::HuNode & dest, int depth)
 }
 
 void overground::asset::exportPod(
-shaderAsset_t const & src, std::vector<uint8_t> & dest)
+shader_t const & src, std::vector<uint8_t> & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
@@ -190,7 +190,7 @@ shaderAsset_t const & src, std::vector<uint8_t> & dest)
 }
 
 std::string overground::asset::print(
-  shaderAsset_t const & src, int depth)
+  shader_t const & src, int depth)
 {
   string prevIndentIn(depth * 2, ' ');
   string indentIn(2 + depth * 2, ' ');
@@ -204,7 +204,7 @@ std::string overground::asset::print(
   return ss.str();
 }
 
-ostream & overground::asset::operator << (ostream & stream, shaderAsset_t const & rhs)
+ostream & overground::asset::operator << (ostream & stream, shader_t const & rhs)
 {
   stream << print(rhs);
   return stream;
@@ -249,30 +249,30 @@ void overground::asset::importPod(
   if (src % "data")
   {
     auto & src0 = src / "data";
-    std::variant<meshAsset_t, imageAsset_t, shaderAsset_t> dst0;
+    std::variant<mesh_t, image_t, shader_t> dst0;
     {
       auto & src1 = src0;
       if (src1 % "type")
       {
         std::string const & typ = src1 / "type";
         if (typ == "") { throw std::runtime_error("objects of variant type require a \"type\" key."); }
-        else if (typ == "meshAsset_t")
+        else if (typ == "mesh_t")
         {
-          meshAsset_t dst1;
+          mesh_t dst1;
       importPod(src1, dst1);
-          dst0.emplace<meshAsset_t>(std::move(dst1));
+          dst0.emplace<mesh_t>(std::move(dst1));
         }
-        else if (typ == "imageAsset_t")
+        else if (typ == "image_t")
         {
-          imageAsset_t dst1;
+          image_t dst1;
       importPod(src1, dst1);
-          dst0.emplace<imageAsset_t>(std::move(dst1));
+          dst0.emplace<image_t>(std::move(dst1));
         }
-        else if (typ == "shaderAsset_t")
+        else if (typ == "shader_t")
         {
-          shaderAsset_t dst1;
+          shader_t dst1;
       importPod(src1, dst1);
-          dst0.emplace<shaderAsset_t>(std::move(dst1));
+          dst0.emplace<shader_t>(std::move(dst1));
         }
 
       }
@@ -332,21 +332,21 @@ std::string overground::asset::print(
 
   if (src.data.valueless_by_exception())
     { ss << "bad state\n"; }
-  else if (std::holds_alternative<meshAsset_t>(src.data))
+  else if (std::holds_alternative<mesh_t>(src.data))
   {
-    meshAsset_t const & src0 = std::get<meshAsset_t>(src.data);
+    mesh_t const & src0 = std::get<mesh_t>(src.data);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<imageAsset_t>(src.data))
+  else if (std::holds_alternative<image_t>(src.data))
   {
-    imageAsset_t const & src0 = std::get<imageAsset_t>(src.data);
+    image_t const & src0 = std::get<image_t>(src.data);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<shaderAsset_t>(src.data))
+  else if (std::holds_alternative<shader_t>(src.data))
   {
-    shaderAsset_t const & src0 = std::get<shaderAsset_t>(src.data);
+    shader_t const & src0 = std::get<shader_t>(src.data);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }

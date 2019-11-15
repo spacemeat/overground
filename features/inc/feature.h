@@ -14,6 +14,11 @@ namespace overground
 
     inline std::vector<std::string> const & referencedAssets() const noexcept;
 
+    template <typename Fn>
+    void forEachAsset(Fn && visitor);
+    template <typename Fn>
+    void forEachFeature(Fn && visitor);
+
   protected:
     void trackAsset(std::string_view assetName);
     void trackFeature(std::string_view featureName);
@@ -39,8 +44,6 @@ namespace overground
   {
     return std::make_unique(desc);
   }
-
-
 }
 
 #endif // #ifndef FEATURE_H

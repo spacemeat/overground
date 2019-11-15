@@ -20,19 +20,22 @@ int main(int argc, char* argv[])
 
   if (argc > 1 && string(argv[1]) == string("assembly"))
   {
-    if (argc > 3)
+    if (argc > 4)
     {
       auto a0 = argv[2];
       auto a1 = argv[3];
+      auto a2 = argv[4];
       return assetsMain(
         fs::current_path().append(a0),
-        fs::current_path().append(a1));
+        fs::current_path().append(a1),
+        fs::current_path().append(a2));
     }
     else
     {
       return assetsMain(
         fs::current_path().append(defaultAssetsDefsPath),  
-        fs::current_path().append(defaultAssetsOutputDir));
+        fs::current_path().append(defaultAssetsOutputDir),
+        fs::current_path().append(defaultPluginsOutputDir));
     }
   }
 

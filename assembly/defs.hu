@@ -484,19 +484,19 @@
     }
 
     asset: {
-      meshAsset: {
+      mesh: {
         plugin: assets
         type: { type: string deserialized: false }
       }
 
-      imageAsset: {
+      image: {
         plugin: assets
         type: { type: string deserialized: false }
         format: { type: "vk::Format" }
         compression: { type: "optional<string>" }
       }
 
-      shaderAsset: {
+      shader: {
         plugin: assets
         type: { type: string deserialized: false }
         entryPoint: { type: string }
