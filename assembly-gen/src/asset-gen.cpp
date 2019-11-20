@@ -81,11 +81,11 @@ void overground::asset::importPod(
   if (src % "compression")
   {
     auto & src0 = src / "compression";
-    std::optional<string> dst0;
-    string dst1;
+    std::optional<std::string> dst0;
+    std::string dst1;
     {
       auto & src1 = src0;
-      dst1 = (string) src1; // leaf
+      dst1 = (std::string) src1; // leaf
     }
     dst0.emplace(std::move(dst1));
     dest.compression = std::move(dst0);
@@ -131,7 +131,7 @@ std::string overground::asset::print(
 
   if ((bool) src.compression)
   {
-    string const & src0 = * src.compression;
+    std::string const & src0 = * src.compression;
     ss << (src0);
   }
   else
@@ -223,11 +223,11 @@ void overground::asset::importPod(
   if (src % "srcFile")
   {
     auto & src0 = src / "srcFile";
-    std::optional<string> dst0;
-    string dst1;
+    std::optional<std::string> dst0;
+    std::string dst1;
     {
       auto & src1 = src0;
-      dst1 = (string) src1; // leaf
+      dst1 = (std::string) src1; // leaf
     }
     dst0.emplace(std::move(dst1));
     dest.srcFile = std::move(dst0);
@@ -256,22 +256,22 @@ void overground::asset::importPod(
       {
         std::string const & typ = src1 / "type";
         if (typ == "") { throw std::runtime_error("objects of variant type require a \"type\" key."); }
-        else if (typ == "mesh_t")
+        else if (typ == "mesh")
         {
           mesh_t dst1;
-      importPod(src1, dst1);
+          importPod(src1, dst1);
           dst0.emplace<mesh_t>(std::move(dst1));
         }
-        else if (typ == "image_t")
+        else if (typ == "image")
         {
           image_t dst1;
-      importPod(src1, dst1);
+          importPod(src1, dst1);
           dst0.emplace<image_t>(std::move(dst1));
         }
-        else if (typ == "shader_t")
+        else if (typ == "shader")
         {
           shader_t dst1;
-      importPod(src1, dst1);
+          importPod(src1, dst1);
           dst0.emplace<shader_t>(std::move(dst1));
         }
 
@@ -319,7 +319,7 @@ std::string overground::asset::print(
 
   if ((bool) src.srcFile)
   {
-    string const & src0 = * src.srcFile;
+    std::string const & src0 = * src.srcFile;
     ss << (src0);
   }
   else

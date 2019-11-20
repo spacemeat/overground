@@ -181,76 +181,70 @@ namespace overground
       return srtTransform.diffs != srtTransformMembers_e::none;
     };
 
-    // drawableSubmodel things
+    // drawableSubmesh things
 
-    struct drawableSubmodel_t
+    struct drawableSubmesh_t
     {
-      std::string type;
       std::string submesh;
-      std::optional<string> material;
-      std::vector<string> tags;
+      std::string material;
+      std::vector<std::string> tags;
     };
 
     void importPod(
-      humon::HuNode const & src, drawableSubmodel_t & dest);
+      humon::HuNode const & src, drawableSubmesh_t & dest);
 
     void importPod(
-      std::vector<uint8_t> const & src, drawableSubmodel_t & dest);
+      std::vector<uint8_t> const & src, drawableSubmesh_t & dest);
 
-    void exportPod(drawableSubmodel_t const & src, 
+    void exportPod(drawableSubmesh_t const & src, 
       humon::HuNode & dest, int depth);
 
     void exportPod(
-      drawableSubmodel_t const & src, std::vector<uint8_t> & dest);
+      drawableSubmesh_t const & src, std::vector<uint8_t> & dest);
 
-    std::string print(drawableSubmodel_t const & src, int depth = 0);
+    std::string print(drawableSubmesh_t const & src, int depth = 0);
 
-    std::ostream & operator << (std::ostream & stream, drawableSubmodel_t const & src);
+    std::ostream & operator << (std::ostream & stream, drawableSubmesh_t const & src);
 
-    enum class drawableSubmodelMembers_e : int 
+    enum class drawableSubmeshMembers_e : int 
     {
       none = 0,
-      type = 1 << 0,
-      submesh = 1 << 1,
-      material = 1 << 2,
-      tags = 1 << 3,
-      all = type | submesh | material | tags
+      submesh = 1 << 0,
+      material = 1 << 1,
+      tags = 1 << 2,
+      all = submesh | material | tags
     };
 
-    inline bool operator == (drawableSubmodel_t const & lhs, drawableSubmodel_t const & rhs) noexcept
+    inline bool operator == (drawableSubmesh_t const & lhs, drawableSubmesh_t const & rhs) noexcept
     {
       return
-        lhs.type == rhs.type &&
         lhs.submesh == rhs.submesh &&
         lhs.material == rhs.material &&
         lhs.tags == rhs.tags;
     };
 
-    inline bool operator != (drawableSubmodel_t const & lhs, drawableSubmodel_t const & rhs) noexcept
+    inline bool operator != (drawableSubmesh_t const & lhs, drawableSubmesh_t const & rhs) noexcept
     {
       return ! (lhs == rhs);
     };
 
-    struct drawableSubmodelDiffs_t
+    struct drawableSubmeshDiffs_t
     {
-      drawableSubmodelMembers_e diffs;
+      drawableSubmeshMembers_e diffs;
       std::vector<size_t> tagsDiffs;
     };
 
     inline bool doPodsDiffer(
-      drawableSubmodel_t const & lhs,
-      drawableSubmodel_t const & rhs,
-      drawableSubmodelDiffs_t & drawableSubmodel) noexcept
+      drawableSubmesh_t const & lhs,
+      drawableSubmesh_t const & rhs,
+      drawableSubmeshDiffs_t & drawableSubmesh) noexcept
     {
-      // diff member 'type':
-      if (lhs.type != rhs.type)
-        { drawableSubmodel.diffs |= drawableSubmodelMembers_e::type; }
       // diff member 'submesh':
       if (lhs.submesh != rhs.submesh)
-        { drawableSubmodel.diffs |= drawableSubmodelMembers_e::submesh; }
+        { drawableSubmesh.diffs |= drawableSubmeshMembers_e::submesh; }
       // diff member 'material':
       if (lhs.material != rhs.material)
-        { drawableSubmodel.diffs |= drawableSubmodelMembers_e::material; }
+        { drawableSubmesh.diffs |= drawableSubmeshMembers_e::material; }
       // diff member 'tags':
       {
         auto [mn, mx] = std::minmax(lhs.tags.size(), rhs.tags.size());
@@ -258,103 +252,103 @@ namespace overground
         {
           if (lhs.tags[i] != rhs.tags[i])
           {
-            drawableSubmodel.diffs |= drawableSubmodelMembers_e::tags;
-            drawableSubmodel.tagsDiffs.push_back(i);
+            drawableSubmesh.diffs |= drawableSubmeshMembers_e::tags;
+            drawableSubmesh.tagsDiffs.push_back(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          drawableSubmodel.tagsDiffs.push_back(i);
+          drawableSubmesh.tagsDiffs.push_back(i);
         }
       }
 
-      return drawableSubmodel.diffs != drawableSubmodelMembers_e::none;
+      return drawableSubmesh.diffs != drawableSubmeshMembers_e::none;
     };
 
-    // drawableModel things
+    // drawableMesh things
 
-    struct drawableModel_t
+    struct drawableMesh_t
     {
       std::string type;
       std::string mesh;
-      std::vector<drawableSubmodel_t> subModels;
+      std::vector<drawableSubmesh_t> subMeshes;
     };
 
     void importPod(
-      humon::HuNode const & src, drawableModel_t & dest);
+      humon::HuNode const & src, drawableMesh_t & dest);
 
     void importPod(
-      std::vector<uint8_t> const & src, drawableModel_t & dest);
+      std::vector<uint8_t> const & src, drawableMesh_t & dest);
 
-    void exportPod(drawableModel_t const & src, 
+    void exportPod(drawableMesh_t const & src, 
       humon::HuNode & dest, int depth);
 
     void exportPod(
-      drawableModel_t const & src, std::vector<uint8_t> & dest);
+      drawableMesh_t const & src, std::vector<uint8_t> & dest);
 
-    std::string print(drawableModel_t const & src, int depth = 0);
+    std::string print(drawableMesh_t const & src, int depth = 0);
 
-    std::ostream & operator << (std::ostream & stream, drawableModel_t const & src);
+    std::ostream & operator << (std::ostream & stream, drawableMesh_t const & src);
 
-    enum class drawableModelMembers_e : int 
+    enum class drawableMeshMembers_e : int 
     {
       none = 0,
       type = 1 << 0,
       mesh = 1 << 1,
-      subModels = 1 << 2,
-      all = type | mesh | subModels
+      subMeshes = 1 << 2,
+      all = type | mesh | subMeshes
     };
 
-    inline bool operator == (drawableModel_t const & lhs, drawableModel_t const & rhs) noexcept
+    inline bool operator == (drawableMesh_t const & lhs, drawableMesh_t const & rhs) noexcept
     {
       return
         lhs.type == rhs.type &&
         lhs.mesh == rhs.mesh &&
-        lhs.subModels == rhs.subModels;
+        lhs.subMeshes == rhs.subMeshes;
     };
 
-    inline bool operator != (drawableModel_t const & lhs, drawableModel_t const & rhs) noexcept
+    inline bool operator != (drawableMesh_t const & lhs, drawableMesh_t const & rhs) noexcept
     {
       return ! (lhs == rhs);
     };
 
-    struct drawableModelDiffs_t
+    struct drawableMeshDiffs_t
     {
-      drawableModelMembers_e diffs;
-      std::vector<std::pair<size_t, drawableSubmodelDiffs_t>> subModelsDiffs;
+      drawableMeshMembers_e diffs;
+      std::vector<std::pair<size_t, drawableSubmeshDiffs_t>> subMeshesDiffs;
     };
 
     inline bool doPodsDiffer(
-      drawableModel_t const & lhs,
-      drawableModel_t const & rhs,
-      drawableModelDiffs_t & drawableModel) noexcept
+      drawableMesh_t const & lhs,
+      drawableMesh_t const & rhs,
+      drawableMeshDiffs_t & drawableMesh) noexcept
     {
       // diff member 'type':
       if (lhs.type != rhs.type)
-        { drawableModel.diffs |= drawableModelMembers_e::type; }
+        { drawableMesh.diffs |= drawableMeshMembers_e::type; }
       // diff member 'mesh':
       if (lhs.mesh != rhs.mesh)
-        { drawableModel.diffs |= drawableModelMembers_e::mesh; }
-      // diff member 'subModels':
+        { drawableMesh.diffs |= drawableMeshMembers_e::mesh; }
+      // diff member 'subMeshes':
       {
-        auto [mn, mx] = std::minmax(lhs.subModels.size(), rhs.subModels.size());
+        auto [mn, mx] = std::minmax(lhs.subMeshes.size(), rhs.subMeshes.size());
         for (size_t i = 0; i < mn; ++i)
         {
-          drawableSubmodelDiffs_t diffsEntry;
-          if (doPodsDiffer(lhs.subModels[i], rhs.subModels[i], diffsEntry))
+          drawableSubmeshDiffs_t diffsEntry;
+          if (doPodsDiffer(lhs.subMeshes[i], rhs.subMeshes[i], diffsEntry))
           {
-            drawableModel.diffs |= drawableModelMembers_e::subModels;
-            drawableModel.subModelsDiffs.push_back({i, diffsEntry});
+            drawableMesh.diffs |= drawableMeshMembers_e::subMeshes;
+            drawableMesh.subMeshesDiffs.push_back({i, diffsEntry});
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          drawableSubmodelDiffs_t diffsEntry = { .diffs = drawableSubmodelMembers_e::all };
-          drawableModel.subModelsDiffs.push_back({i, diffsEntry});
+          drawableSubmeshDiffs_t diffsEntry = { .diffs = drawableSubmeshMembers_e::all };
+          drawableMesh.subMeshesDiffs.push_back({i, diffsEntry});
         }
       }
 
-      return drawableModel.diffs != drawableModelMembers_e::none;
+      return drawableMesh.diffs != drawableMeshMembers_e::none;
     };
 
     // directionalLight things
@@ -694,7 +688,11 @@ namespace overground
 
     struct feature_t
     {
-      std::variant<matrixTransform_t, srtTransform_t, drawableSubmodel_t, drawableModel_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> data;
+      size_t renderPlanRefs;
+      size_t modelRefs;
+      size_t materialRefs;
+      size_t assetRefs;
+      std::variant<matrixTransform_t, srtTransform_t, drawableMesh_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> featureData;
     };
 
     void importPod(
@@ -716,14 +714,22 @@ namespace overground
     enum class featureMembers_e : int 
     {
       none = 0,
-      data = 1 << 0,
-      all = data
+      renderPlanRefs = 1 << 0,
+      modelRefs = 1 << 1,
+      materialRefs = 1 << 2,
+      assetRefs = 1 << 3,
+      featureData = 1 << 4,
+      all = renderPlanRefs | modelRefs | materialRefs | assetRefs | featureData
     };
 
     inline bool operator == (feature_t const & lhs, feature_t const & rhs) noexcept
     {
       return
-        lhs.data == rhs.data;
+        lhs.renderPlanRefs == rhs.renderPlanRefs &&
+        lhs.modelRefs == rhs.modelRefs &&
+        lhs.materialRefs == rhs.materialRefs &&
+        lhs.assetRefs == rhs.assetRefs &&
+        lhs.featureData == rhs.featureData;
     };
 
     inline bool operator != (feature_t const & lhs, feature_t const & rhs) noexcept
@@ -741,9 +747,21 @@ namespace overground
       feature_t const & rhs,
       featureDiffs_t & feature) noexcept
     {
-      // diff member 'data':
-      if (lhs.data != rhs.data)
-        { feature.diffs |= featureMembers_e::data; }
+      // diff member 'renderPlanRefs':
+      if (lhs.renderPlanRefs != rhs.renderPlanRefs)
+        { feature.diffs |= featureMembers_e::renderPlanRefs; }
+      // diff member 'modelRefs':
+      if (lhs.modelRefs != rhs.modelRefs)
+        { feature.diffs |= featureMembers_e::modelRefs; }
+      // diff member 'materialRefs':
+      if (lhs.materialRefs != rhs.materialRefs)
+        { feature.diffs |= featureMembers_e::materialRefs; }
+      // diff member 'assetRefs':
+      if (lhs.assetRefs != rhs.assetRefs)
+        { feature.diffs |= featureMembers_e::assetRefs; }
+      // diff member 'featureData':
+      if (lhs.featureData != rhs.featureData)
+        { feature.diffs |= featureMembers_e::featureData; }
 
       return feature.diffs != featureMembers_e::none;
     };

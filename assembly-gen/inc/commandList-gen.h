@@ -1860,7 +1860,7 @@ namespace overground
     struct cmdClearAttachments_t
     {
       std::string type;
-      std::vector<string> attachments;
+      std::vector<std::string> attachments;
     };
 
     void importPod(
@@ -2716,7 +2716,7 @@ namespace overground
     struct cmdExecuteCommands_t
     {
       std::string type;
-      std::vector<string> commandBuffers;
+      std::vector<std::string> commandBuffers;
     };
 
     void importPod(

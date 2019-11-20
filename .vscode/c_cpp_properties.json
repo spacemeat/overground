@@ -22,7 +22,8 @@
                 "${workspaceFolder}/tableau/inc",
                 "${workspaceFolder}/model/inc",
                 "${workspaceFolder}/material/inc",
-                "${workspaceFolder}/renderPlan/inc"
+                "${workspaceFolder}/renderPlan/inc",
+                "${workspaceFolder}/plugins"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

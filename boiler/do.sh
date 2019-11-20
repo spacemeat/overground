@@ -8,7 +8,7 @@ main() {
   local deps=("utils")
   local inc=()
   local libSrc=()
-  local exeSrc=("assets" "enums" "main")
+  local exeSrc=("assemblies" "enums" "main")
   local libDirs=()
   local libs=()
   local packages=()

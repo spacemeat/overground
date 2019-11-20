@@ -14,6 +14,7 @@
 #          format: R32G32_SFLOAT
 #        }
 #      ]
+      tags: [opaqueMesh]
       stages: {
         vertex: {
           shaderAsset: "diffuse-vshader"

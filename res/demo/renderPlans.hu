@@ -3,8 +3,8 @@
     singleColorPass: {
       renderPasses: [{
           name: colorPass
-          attachments: [{
-              name: colorTarget
+          attachments: [
+            colorTarget: {
               # format is derived from swapchain
               numSamples: 1
               loadOp: Clear
@@ -15,24 +15,25 @@
               finalLayout: PresentSrcKHR
             }
           ]
-          subpasses: [{
+          subpasses: [
+#            depthSubpass: {
               # TODO: Is there one before this to do the compute pass for shadows?
-#              name: depthSubpass
 #              bindPoint: Graphics
 #              colorAttachments: [{
 #                  attachment: depthTarget
 #                  layout: DepthAttachmentOptimal
 #                }
 #              ]
-#            } {
-              name: colorSubpass
+#            } 
+            colorSubpass: {
               bindPoint: Graphics
               colorAttachments: [{
                   attachment: colorTarget
                   layout: ColorAttachmentOptimal
                 }
               ]
-#            } {
+            }
+#            effectSubpass: {
 #              name: effectSubpass
 #              bindPoint: Graphics
 #              colorAttachments: [{
@@ -45,8 +46,9 @@
         }
       ]
 
-      operations: [{
-          name: drawCameraView
+      operations: [
+        drawCameraView: {
+          primaryPlan: true
           ops: [
             { type: identifyVisibleThings
               tags: [opaqueMesh transparentMesh imposter] 
@@ -59,7 +61,7 @@
             { type: setRenderPass
               renderPassName: singleColorPass }
 #            { type: computeDepth 
-              tags: [opaqueUi opaqueMesh imposter] 
+#              tags: [opaqueUi opaqueMesh imposter] 
 #            }
 #            { type: nextSubpass }
             { type: draw tags: [opaqueUi] }
@@ -75,8 +77,8 @@
 #            { type: runPostEffects }
             { type: endRenderPass }
           ]
-        } {
-          name: computeShadows
+        }
+        computeShadows: {
           requires: [feature, etc]
           ops: [
             # stuff

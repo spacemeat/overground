@@ -8,6 +8,8 @@
 
 namespace overground
 {
+  class RenderPass;
+
   class Graphics
   {
     struct fitness_t
@@ -39,6 +41,8 @@ namespace overground
 
     void reset();
 
+    void getPhysicalDeviceLimits(vk::PhysicalDeviceLimits & pdl);
+
     void checkForDataUpdates();
     
   private:
@@ -50,14 +54,9 @@ namespace overground
 //    void waitForGraphicsOps();
     void shutDown();
 
-    void assignSpecialPhaseJobs(FramePhase & phase);
-
     void presentFrame();
     void drawFrame();
     void waitForGraphicsOps();
-
-    void updateRenderPass(renderPass_t newRenderPass);
-    void updateCommandList(commandList_t newCommandList);
 
   private:
     bool manageInvalidDevice();
@@ -98,15 +97,6 @@ namespace overground
     void createSwapchainImageViews();
     void destroySwapchainImageViews();
 
-    // renderPass.cpp
-    struct RenderPassThing
-    {
-      renderPass_t data;
-      size_t idx;
-      bool updated;
-    };
-    void resetRenderPass(RenderPassThing & rpt);
-
     struct SwapchainThing
     {
       vk::Image image;
@@ -117,11 +107,10 @@ namespace overground
     void destroyRenderPass(size_t renderPassIdx);
 
     // framebuffer.cpp
-    void resetFramebuffer(RenderPassThing & renderPassThing);
+    void resetFramebuffer(RenderPass * renderPass);
     void destroyFramebuffer(size_t framebufferIdx);
 
   private:
-    config_t * config;
     GLFWwindow * mainWindow = nullptr;
     uint32_t diWidth = 0;   // device-indep. units
     uint32_t diHeight = 0;  // device-indep. units
@@ -170,16 +159,14 @@ namespace overground
 
     vk::SwapchainKHR swapchain = nullptr;
 
-    std::unordered_map<std::string, 
-      RenderPassThing> renderPassThings;
-
     std::vector<SwapchainThing> swapchainThings;
 
     bool hasWaitedForGpuIdleThisFrame = false;
     bool hasWaitedForFrameFenceThisFrame = false;
-
-    std::unordered_map<std::string, commandList_t> commandLists;
   };
+
+
+  extern std::optional<Graphics> graphics;
 }
 
 #endif // #ifndef GRAPHICS_H

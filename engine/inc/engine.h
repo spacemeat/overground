@@ -14,9 +14,6 @@
 #include "assembly-gen.h"
 
 #include "assetManager.h"
-#include "featureManager.h"
-#include "objectManager.h"
-#include "tableauManager.h"
 
 
 namespace overground
@@ -42,8 +39,6 @@ namespace overground
 
     Engine();
     ~Engine();
-
-    Graphics & getGraphics() { return graphics; }
 
     // DataObjectKindFlags & getUpdatedObjectKinds()
     //   { return updatedObjectKinds; }
@@ -111,7 +106,7 @@ namespace overground
     std::string workingDir = "res";
     std::string configFile = "config.hu";
 
-    Graphics graphics;
+    std::unordered_map<std::string, ObjectTree> tableauGroups;
 
     systemTimePoint systemTime;
     systemTimePoint previousSystemTime;

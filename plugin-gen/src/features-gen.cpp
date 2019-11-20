@@ -3,7 +3,7 @@
 #include "feature.h"
 #include "features.matrixTransform.h"
 #include "features.srtTransform.h"
-#include "features.drawableModel.h"
+#include "features.drawableMesh.h"
 #include "features.directionalLight.h"
 #include "features.pointLight.h"
 #include "features.spotLight.h"
@@ -13,7 +13,7 @@ using namespace std;
 using namespace overground;
 
 
-static std::unique_ptr<Feature> makeFeature(tableau::feature_t const & desc)
+std::unique_ptr<Feature> makeFeature(tableau::feature_t const & desc)
 {
   if (desc.data.valueless_by_exception() == false)
   {
@@ -24,17 +24,15 @@ static std::unique_ptr<Feature> makeFeature(tableau::feature_t const & desc)
       return std::make_unique<MatrixTransform>(desc);
     case 1: // SrtTransform
       return std::make_unique<SrtTransform>(desc);
-    case 2: // DrawableSubmodel
-      return std::make_unique<DrawableSubmodel>(desc);
-    case 3: // DrawableModel
-      return std::make_unique<DrawableModel>(desc);
-    case 4: // DirectionalLight
+    case 2: // DrawableMesh
+      return std::make_unique<DrawableMesh>(desc);
+    case 3: // DirectionalLight
       return std::make_unique<DirectionalLight>(desc);
-    case 5: // PointLight
+    case 4: // PointLight
       return std::make_unique<PointLight>(desc);
-    case 6: // SpotLight
+    case 5: // SpotLight
       return std::make_unique<SpotLight>(desc);
-    case 7: // Camera
+    case 6: // Camera
       return std::make_unique<Camera>(desc);
     }
   }

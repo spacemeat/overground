@@ -25,6 +25,7 @@ void overground::initGlobals()
   logger.emplace();
   jobMan.emplace();
   engine.emplace();
+  graphics.emplace();
   assetMan.emplace();
   assemblyMan.emplace();  
 }

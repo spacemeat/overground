@@ -1899,13 +1899,13 @@ void overground::commandList::importPod(
   if (src % "attachments")
   {
     auto & src0 = src / "attachments";
-    std::vector<string> dst0;
+    std::vector<std::string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      string dst1;
-      dst1 = (string) src1; // leaf
+      std::string dst1;
+      dst1 = (std::string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -1953,7 +1953,7 @@ std::string overground::commandList::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    string const & src0 = src.attachments[i0];
+    std::string const & src0 = src.attachments[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -2733,13 +2733,13 @@ void overground::commandList::importPod(
   if (src % "commandBuffers")
   {
     auto & src0 = src / "commandBuffers";
-    std::vector<string> dst0;
+    std::vector<std::string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      string dst1;
-      dst1 = (string) src1; // leaf
+      std::string dst1;
+      dst1 = (std::string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -2787,7 +2787,7 @@ std::string overground::commandList::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    string const & src0 = src.commandBuffers[i0];
+    std::string const & src0 = src.commandBuffers[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -2835,232 +2835,232 @@ void overground::commandList::importPod(
         {
           std::string const & typ = src2 / "type";
           if (typ == "") { throw std::runtime_error("objects of variant type require a \"type\" key."); }
-          else if (typ == "cmdBindPipeline_t")
+          else if (typ == "cmdBindPipeline")
           {
             cmdBindPipeline_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdBindPipeline_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetViewport_t")
+          else if (typ == "cmdSetViewport")
           {
             cmdSetViewport_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetViewport_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetScissor_t")
+          else if (typ == "cmdSetScissor")
           {
             cmdSetScissor_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetScissor_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetLineWidth_t")
+          else if (typ == "cmdSetLineWidth")
           {
             cmdSetLineWidth_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetLineWidth_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetDepthBias_t")
+          else if (typ == "cmdSetDepthBias")
           {
             cmdSetDepthBias_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetDepthBias_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetBlendConstants_t")
+          else if (typ == "cmdSetBlendConstants")
           {
             cmdSetBlendConstants_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetBlendConstants_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetDepthBounds_t")
+          else if (typ == "cmdSetDepthBounds")
           {
             cmdSetDepthBounds_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetDepthBounds_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetStencilCompareMask_t")
+          else if (typ == "cmdSetStencilCompareMask")
           {
             cmdSetStencilCompareMask_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetStencilCompareMask_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetStencilWriteMask_t")
+          else if (typ == "cmdSetStencilWriteMask")
           {
             cmdSetStencilWriteMask_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetStencilWriteMask_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetStencilReference_t")
+          else if (typ == "cmdSetStencilReference")
           {
             cmdSetStencilReference_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetStencilReference_t>(std::move(dst2));
           }
-          else if (typ == "cmdBindDescriptorSets_t")
+          else if (typ == "cmdBindDescriptorSets")
           {
             cmdBindDescriptorSets_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdBindDescriptorSets_t>(std::move(dst2));
           }
-          else if (typ == "cmdBindIndexBuffer_t")
+          else if (typ == "cmdBindIndexBuffer")
           {
             cmdBindIndexBuffer_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdBindIndexBuffer_t>(std::move(dst2));
           }
-          else if (typ == "cmdBindIndexBuffers_t")
+          else if (typ == "cmdBindIndexBuffers")
           {
             cmdBindIndexBuffers_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdBindIndexBuffers_t>(std::move(dst2));
           }
-          else if (typ == "cmdDraw_t")
+          else if (typ == "cmdDraw")
           {
             cmdDraw_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdDraw_t>(std::move(dst2));
           }
-          else if (typ == "cmdDrawIndexed_t")
+          else if (typ == "cmdDrawIndexed")
           {
             cmdDrawIndexed_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdDrawIndexed_t>(std::move(dst2));
           }
-          else if (typ == "cmdDrawIndirect_t")
+          else if (typ == "cmdDrawIndirect")
           {
             cmdDrawIndirect_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdDrawIndirect_t>(std::move(dst2));
           }
-          else if (typ == "cmdDrawIndexedIndirect_t")
+          else if (typ == "cmdDrawIndexedIndirect")
           {
             cmdDrawIndexedIndirect_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdDrawIndexedIndirect_t>(std::move(dst2));
           }
-          else if (typ == "cmdDispatch_t")
+          else if (typ == "cmdDispatch")
           {
             cmdDispatch_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdDispatch_t>(std::move(dst2));
           }
-          else if (typ == "cmdDispatchIndirect_t")
+          else if (typ == "cmdDispatchIndirect")
           {
             cmdDispatchIndirect_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdDispatchIndirect_t>(std::move(dst2));
           }
-          else if (typ == "cmdCopyBuffer_t")
+          else if (typ == "cmdCopyBuffer")
           {
             cmdCopyBuffer_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdCopyBuffer_t>(std::move(dst2));
           }
-          else if (typ == "cmdCopyImage_t")
+          else if (typ == "cmdCopyImage")
           {
             cmdCopyImage_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdCopyImage_t>(std::move(dst2));
           }
-          else if (typ == "cmdBlitImage_t")
+          else if (typ == "cmdBlitImage")
           {
             cmdBlitImage_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdBlitImage_t>(std::move(dst2));
           }
-          else if (typ == "cmdCopyBufferToImage_t")
+          else if (typ == "cmdCopyBufferToImage")
           {
             cmdCopyBufferToImage_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdCopyBufferToImage_t>(std::move(dst2));
           }
-          else if (typ == "cmdCopyImageToBuffer_t")
+          else if (typ == "cmdCopyImageToBuffer")
           {
             cmdCopyImageToBuffer_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdCopyImageToBuffer_t>(std::move(dst2));
           }
-          else if (typ == "cmdUpdateBuffer_t")
+          else if (typ == "cmdUpdateBuffer")
           {
             cmdUpdateBuffer_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdUpdateBuffer_t>(std::move(dst2));
           }
-          else if (typ == "cmdFillBuffer_t")
+          else if (typ == "cmdFillBuffer")
           {
             cmdFillBuffer_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdFillBuffer_t>(std::move(dst2));
           }
-          else if (typ == "cmdClearColorImage_t")
+          else if (typ == "cmdClearColorImage")
           {
             cmdClearColorImage_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdClearColorImage_t>(std::move(dst2));
           }
-          else if (typ == "cmdClearDepthStencilImage_t")
+          else if (typ == "cmdClearDepthStencilImage")
           {
             cmdClearDepthStencilImage_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdClearDepthStencilImage_t>(std::move(dst2));
           }
-          else if (typ == "cmdClearAttachments_t")
+          else if (typ == "cmdClearAttachments")
           {
             cmdClearAttachments_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdClearAttachments_t>(std::move(dst2));
           }
-          else if (typ == "cmdResolveImage_t")
+          else if (typ == "cmdResolveImage")
           {
             cmdResolveImage_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdResolveImage_t>(std::move(dst2));
           }
-          else if (typ == "cmdSetEvent_t")
+          else if (typ == "cmdSetEvent")
           {
             cmdSetEvent_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdSetEvent_t>(std::move(dst2));
           }
-          else if (typ == "cmdWaitEvents_t")
+          else if (typ == "cmdWaitEvents")
           {
             cmdWaitEvents_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdWaitEvents_t>(std::move(dst2));
           }
-          else if (typ == "cmdPipelineBarrier_t")
+          else if (typ == "cmdPipelineBarrier")
           {
             cmdPipelineBarrier_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdPipelineBarrier_t>(std::move(dst2));
           }
-          else if (typ == "cmdPushConstants_t")
+          else if (typ == "cmdPushConstants")
           {
             cmdPushConstants_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdPushConstants_t>(std::move(dst2));
           }
-          else if (typ == "cmdBeginRenderPass_t")
+          else if (typ == "cmdBeginRenderPass")
           {
             cmdBeginRenderPass_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdBeginRenderPass_t>(std::move(dst2));
           }
-          else if (typ == "cmdNextSubpass_t")
+          else if (typ == "cmdNextSubpass")
           {
             cmdNextSubpass_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdNextSubpass_t>(std::move(dst2));
           }
-          else if (typ == "cmdEndRenderPass_t")
+          else if (typ == "cmdEndRenderPass")
           {
             cmdEndRenderPass_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdEndRenderPass_t>(std::move(dst2));
           }
-          else if (typ == "cmdExecuteCommands_t")
+          else if (typ == "cmdExecuteCommands")
           {
             cmdExecuteCommands_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<cmdExecuteCommands_t>(std::move(dst2));
           }
 

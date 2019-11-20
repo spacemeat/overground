@@ -1,8 +1,7 @@
-#include "graphics.h"
-#include "configAsset.h"
-#include "engine.h"
-#include "framePlan.h"
 #include <iostream>
+
+#include "graphics.h"
+#include "engine.h"
 
 using namespace std;
 using namespace overground;
@@ -114,13 +113,7 @@ void Graphics::checkForRenderPassUpdates()
 }
 
 
-void Graphics::checkForCommandListUpdates() //?
-{
-  logFn();
-
-}
-
-
+/*
 void Graphics::assignSpecialPhaseJobs(FramePhase & phase)
 {
   switch(phase.getKind())
@@ -167,6 +160,7 @@ void Graphics::assignSpecialPhaseJobs(FramePhase & phase)
     break;
   }
 }
+*/
 
 
 void Graphics::shutDown()
@@ -220,3 +214,6 @@ bool Graphics::manageInvalidDevice()
 
   return true;
 }
+
+
+std::optional<Graphics> graphics;

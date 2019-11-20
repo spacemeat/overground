@@ -12,7 +12,6 @@
 #include "renderPlan-gen.h"
 #include "asset-gen.h"
 #include "material-gen.h"
-#include "model-gen.h"
 #include "tableau-gen.h"
 
 namespace overground
@@ -27,9 +26,8 @@ namespace overground
       stringDict<renderPlan::renderPlan_t> renderPlans;
       stringDict<asset::asset_t> assets;
       stringDict<material::material_t> materials;
-      stringDict<model::model_t> models;
       stringDict<tableau::tableau_t> tableaux;
-      stringDict<std::vector<string>> tableauGroups;
+      stringDict<std::vector<std::string>> tableauGroups;
       std::string usingConfig;
       std::string usingTableauGroup;
     };
@@ -57,12 +55,11 @@ namespace overground
       renderPlans = 1 << 1,
       assets = 1 << 2,
       materials = 1 << 3,
-      models = 1 << 4,
-      tableaux = 1 << 5,
-      tableauGroups = 1 << 6,
-      usingConfig = 1 << 7,
-      usingTableauGroup = 1 << 8,
-      all = configs | renderPlans | assets | materials | models | tableaux | tableauGroups | usingConfig | usingTableauGroup
+      tableaux = 1 << 4,
+      tableauGroups = 1 << 5,
+      usingConfig = 1 << 6,
+      usingTableauGroup = 1 << 7,
+      all = configs | renderPlans | assets | materials | tableaux | tableauGroups | usingConfig | usingTableauGroup
     };
 
     inline bool operator == (assembly_t const & lhs, assembly_t const & rhs) noexcept
@@ -72,7 +69,6 @@ namespace overground
         lhs.renderPlans == rhs.renderPlans &&
         lhs.assets == rhs.assets &&
         lhs.materials == rhs.materials &&
-        lhs.models == rhs.models &&
         lhs.tableaux == rhs.tableaux &&
         lhs.tableauGroups == rhs.tableauGroups &&
         lhs.usingConfig == rhs.usingConfig &&
@@ -91,7 +87,6 @@ namespace overground
       std::vector<std::pair<std::string, renderPlan::renderPlanDiffs_t>> renderPlansDiffs;
       std::vector<std::pair<std::string, asset::assetDiffs_t>> assetsDiffs;
       std::vector<std::pair<std::string, material::materialDiffs_t>> materialsDiffs;
-      std::vector<std::pair<std::string, model::modelDiffs_t>> modelsDiffs;
       std::vector<std::pair<std::string, tableau::tableauDiffs_t>> tableauxDiffs;
       std::vector<std::string> tableauGroupsDiffs;
     };
@@ -197,30 +192,6 @@ namespace overground
           assembly.materialsDiffs.push_back({rhsKey, diffsEntry});
         }
       }
-      // diff member 'models':
-      {
-        for (auto const & [lhsKey, lhsIdx] : lhs.models.keys)
-        {
-          model::modelDiffs_t diffsEntry;
-          if (auto it = rhs.models.keys().find(lhsKey); it != rhs.models.keys().end())
-          {
-            auto const & [rhsKey, rhsIdx] = *it;
-            if (lhsIdx == rhsIdx &&
-                doPodsDiffer(lhs.models[lhsIdx], rhs.models[rhsIdx], diffsEntry) == false)
-              { continue; }
-          }
-          assembly.diffs |= assemblyMembers_e::models;
-          assembly.modelsDiffs.push_back({lhsKey, diffsEntry});
-        }
-        for (auto const & [rhsKey, rhsIdx] : rhs.models.keys())
-        {
-          if (auto it = lhs.models.keys.find(rhsKey); it != lhs.models.keys.end())
-            { continue; }
-
-          model::modelDiffs_t diffsEntry = { .diffs = model::modelMembers_e::all };
-          assembly.modelsDiffs.push_back({rhsKey, diffsEntry});
-        }
-      }
       // diff member 'tableaux':
       {
         for (auto const & [lhsKey, lhsIdx] : lhs.tableaux.keys)
@@ -261,7 +232,7 @@ namespace overground
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.tableauGroups.keys())
         {
-          if (auto it = keys.find(rhsKey); it != keys.end())
+          if (auto it = lhs.tableauGroups.keys.find(rhsKey); it != lhs.tableauGroups.keys.end())
             { continue; }
           assembly.tableauGroupsDiffs.push_back(rhsKey);
         }

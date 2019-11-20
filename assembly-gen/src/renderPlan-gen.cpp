@@ -516,30 +516,28 @@ void overground::renderPlan::importPod(
   if (src % "attachments")
   {
     auto & src0 = src / "attachments";
-    std::vector<attachment_t> dst0;
-
+    stringDict<attachment_t> dst0;
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
+      auto const & key = src0.keyAt(i0);
       attachment_t dst1;
       importPod(src1, dst1);
-
-      dst0.push_back(std::move(dst1));
+      dst0.push_back(key, std::move(dst1));
     }
     dest.attachments = std::move(dst0);
   }
   if (src % "subpasses")
   {
     auto & src0 = src / "subpasses";
-    std::vector<subpass_t> dst0;
-
+    stringDict<subpass_t> dst0;
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
+      auto const & key = src0.keyAt(i0);
       subpass_t dst1;
       importPod(src1, dst1);
-
-      dst0.push_back(std::move(dst1));
+      dst0.push_back(key, std::move(dst1));
     }
     dest.subpasses = std::move(dst0);
   }
@@ -594,31 +592,35 @@ std::string overground::renderPlan::print(
   ss << "\n" << indentIn << "name: ";
   ss << (src.name);
   ss << "\n" << indentIn << "attachments: ";
-  ss << "[";
+  ss << "{";
   for (size_t i0 = 0; i0 < src.attachments.size(); ++i0)
   {
+    auto const & [key, idx] = src.attachments.keys[i0];
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    attachment_t const & src0 = src.attachments[i0];
+    attachment_t const & src0 = src.attachments[idx];
+    ss << indentIn << key << ": ";
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
     depth -= 1;
   }
-  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "}";
   ss << "\n" << indentIn << "subpasses: ";
-  ss << "[";
+  ss << "{";
   for (size_t i0 = 0; i0 < src.subpasses.size(); ++i0)
   {
+    auto const & [key, idx] = src.subpasses.keys[i0];
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    subpass_t const & src0 = src.subpasses[i0];
+    subpass_t const & src0 = src.subpasses[idx];
+    ss << indentIn << key << ": ";
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
     depth -= 1;
   }
-  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "}";
   ss << "\n" << indentIn << "dependencies: ";
   ss << "[";
   for (size_t i0 = 0; i0 < src.dependencies.size(); ++i0)
@@ -655,13 +657,13 @@ void overground::renderPlan::importPod(
   if (src % "tags")
   {
     auto & src0 = src / "tags";
-    std::vector<string> dst0;
+    std::vector<std::string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      string dst1;
-      dst1 = (string) src1; // leaf
+      std::string dst1;
+      dst1 = (std::string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -709,7 +711,7 @@ std::string overground::renderPlan::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    string const & src0 = src.tags[i0];
+    std::string const & src0 = src.tags[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -793,13 +795,13 @@ void overground::renderPlan::importPod(
   if (src % "tags")
   {
     auto & src0 = src / "tags";
-    std::vector<string> dst0;
+    std::vector<std::string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      string dst1;
-      dst1 = (string) src1; // leaf
+      std::string dst1;
+      dst1 = (std::string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -847,7 +849,7 @@ std::string overground::renderPlan::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    string const & src0 = src.tags[i0];
+    std::string const & src0 = src.tags[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -1105,13 +1107,13 @@ void overground::renderPlan::importPod(
   if (src % "tags")
   {
     auto & src0 = src / "tags";
-    std::vector<string> dst0;
+    std::vector<std::string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      string dst1;
-      dst1 = (string) src1; // leaf
+      std::string dst1;
+      dst1 = (std::string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -1159,7 +1161,7 @@ std::string overground::renderPlan::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    string const & src0 = src.tags[i0];
+    std::string const & src0 = src.tags[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -1515,6 +1517,13 @@ void overground::renderPlan::importPod(
     dst0 = (std::string) src0; // leaf
     dest.name = std::move(dst0);
   }
+  if (src % "primaryPlan")
+  {
+    auto & src0 = src / "primaryPlan";
+    bool dst0;
+    dst0 = (bool) src0; // leaf
+    dest.primaryPlan = std::move(dst0);
+  }
   if (src % "ops")
   {
     auto & src0 = src / "ops";
@@ -1530,88 +1539,88 @@ void overground::renderPlan::importPod(
         {
           std::string const & typ = src2 / "type";
           if (typ == "") { throw std::runtime_error("objects of variant type require a \"type\" key."); }
-          else if (typ == "identifyVisibleThings_t")
+          else if (typ == "identifyVisibleThings")
           {
             identifyVisibleThings_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<identifyVisibleThings_t>(std::move(dst2));
           }
-          else if (typ == "drawRecursiveCameras_t")
+          else if (typ == "drawRecursiveCameras")
           {
             drawRecursiveCameras_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<drawRecursiveCameras_t>(std::move(dst2));
           }
-          else if (typ == "computeShadows_t")
+          else if (typ == "computeShadows")
           {
             computeShadows_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<computeShadows_t>(std::move(dst2));
           }
-          else if (typ == "updateUbos_t")
+          else if (typ == "updateUbos")
           {
             updateUbos_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<updateUbos_t>(std::move(dst2));
           }
-          else if (typ == "setRenderPass_t")
+          else if (typ == "setRenderPass")
           {
             setRenderPass_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<setRenderPass_t>(std::move(dst2));
           }
-          else if (typ == "nextSubpass_t")
+          else if (typ == "nextSubpass")
           {
             nextSubpass_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<nextSubpass_t>(std::move(dst2));
           }
-          else if (typ == "endRenderPass_t")
+          else if (typ == "endRenderPass")
           {
             endRenderPass_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<endRenderPass_t>(std::move(dst2));
           }
-          else if (typ == "computeDepth_t")
+          else if (typ == "computeDepth")
           {
             computeDepth_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<computeDepth_t>(std::move(dst2));
           }
-          else if (typ == "drawUi_t")
+          else if (typ == "drawUi")
           {
             drawUi_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<drawUi_t>(std::move(dst2));
           }
-          else if (typ == "drawOpaque_t")
+          else if (typ == "drawOpaque")
           {
             drawOpaque_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<drawOpaque_t>(std::move(dst2));
           }
-          else if (typ == "drawTransparent_t")
+          else if (typ == "drawTransparent")
           {
             drawTransparent_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<drawTransparent_t>(std::move(dst2));
           }
-          else if (typ == "drawImposters_t")
+          else if (typ == "drawImposters")
           {
             drawImposters_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<drawImposters_t>(std::move(dst2));
           }
-          else if (typ == "drawSkybox_t")
+          else if (typ == "drawSkybox")
           {
             drawSkybox_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<drawSkybox_t>(std::move(dst2));
           }
-          else if (typ == "runPostEffects_t")
+          else if (typ == "runPostEffects")
           {
             runPostEffects_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<runPostEffects_t>(std::move(dst2));
           }
 
@@ -1658,6 +1667,8 @@ std::string overground::renderPlan::print(
   ss << "{";
   ss << "\n" << indentIn << "name: ";
   ss << (src.name);
+  ss << "\n" << indentIn << "primaryPlan: ";
+  ss << (src.primaryPlan);
   ss << "\n" << indentIn << "ops: ";
   ss << "[";
   for (size_t i0 = 0; i0 < src.ops.size(); ++i0)
@@ -1780,30 +1791,28 @@ void overground::renderPlan::importPod(
   if (src % "renderPasses")
   {
     auto & src0 = src / "renderPasses";
-    std::vector<renderPass_t> dst0;
-
+    stringDict<renderPass_t> dst0;
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
+      auto const & key = src0.keyAt(i0);
       renderPass_t dst1;
       importPod(src1, dst1);
-
-      dst0.push_back(std::move(dst1));
+      dst0.push_back(key, std::move(dst1));
     }
     dest.renderPasses = std::move(dst0);
   }
   if (src % "operations")
   {
     auto & src0 = src / "operations";
-    std::vector<operationList_t> dst0;
-
+    stringDict<operationList_t> dst0;
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
+      auto const & key = src0.keyAt(i0);
       operationList_t dst1;
       importPod(src1, dst1);
-
-      dst0.push_back(std::move(dst1));
+      dst0.push_back(key, std::move(dst1));
     }
     dest.operations = std::move(dst0);
   }
@@ -1843,31 +1852,35 @@ std::string overground::renderPlan::print(
   ss << "\n" << indentIn << "name: ";
   ss << (src.name);
   ss << "\n" << indentIn << "renderPasses: ";
-  ss << "[";
+  ss << "{";
   for (size_t i0 = 0; i0 < src.renderPasses.size(); ++i0)
   {
+    auto const & [key, idx] = src.renderPasses.keys[i0];
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    renderPass_t const & src0 = src.renderPasses[i0];
+    renderPass_t const & src0 = src.renderPasses[idx];
+    ss << indentIn << key << ": ";
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
     depth -= 1;
   }
-  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "}";
   ss << "\n" << indentIn << "operations: ";
-  ss << "[";
+  ss << "{";
   for (size_t i0 = 0; i0 < src.operations.size(); ++i0)
   {
+    auto const & [key, idx] = src.operations.keys[i0];
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    operationList_t const & src0 = src.operations[i0];
+    operationList_t const & src0 = src.operations[idx];
+    ss << indentIn << key << ": ";
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
     depth -= 1;
   }
-  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "}";
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }

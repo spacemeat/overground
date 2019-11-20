@@ -1,4 +1,5 @@
 #include <iostream>
+#include <numeric>
 #include "engine.h"
 #include "utils.h"
 #include "jobScheduler.h"
@@ -73,7 +74,7 @@ void Engine::shutDown()
 {
   logFn();
 
-  graphics.shutDown();
+  graphics->shutDown();
 }
 
 
@@ -92,7 +93,7 @@ void Engine::enterEventLoop()
     glfwSetWindowShouldClose(graphics.getMainWindow(), true);
   });*/
 
-  auto window = graphics.getMainWindow();
+  auto window = graphics->getMainWindow();
   if (window == nullptr)
   {
     log(thId, logTags::err, "No window was created. Was graphics.reset() called?");
@@ -114,7 +115,7 @@ void Engine::enterEventLoop()
   jobMan->stopAndJoin();
 
   // wait for the GPU to finish everything.
-  graphics.waitForGraphicsOps();
+  graphics->waitForGraphicsOps();
 }
 
 
@@ -234,14 +235,83 @@ void Engine::checkForUpdatedAssembly()
       updateConfig(workConfig, configDiffs);
     }
 
-    // If the tableau group we're using is different, or if any tableau has differences, we create a new tableau graph from the working assembly. It describes the buffer orderings (without sizes) and how the compiled assets are stored to cache files. Later we'll check for asset changes or out-of-date asset files or certain config updates, and recompute the size requirements to get the full buffer size and copy or compile the targets.
+    // At this point, device and swap chains are up to date.
 
-    if ((assemblyDiffs->diffs & assemblyMembers_e::usingTableauGroup) != 0 ||
+    // Any changes to asset_ts must be noted for (re)compilation. Note that even if the asset file itself is not monitored, the asset_t always is, and will invoke recompilations if certain things change.
+    for (auto & [assetName, assetsDiff] : assemblyDiffs->assetsDiffs)
+    {
+      if ((assetsDiff.diffs | asset::assetMembers_e::srcFile) != 0 ||
+          (assetsDiff.diffs | asset::assetMembers_e::data) != 0)
+      {
+        if (auto it = assetMan->assets().find(assetName);
+            it != assetMan->assets().end())
+        {
+          auto & [assetName, asset] = *it;
+          asset->setNeedToCompile(true);
+        }
+      }
+    }
+
+    // After this all assets have their sizes computed for the host and device memory alloc and on-disk asset cache. This also creates all the vkBuffer objects, but not the backing memory.
+    assetMan->syncBufferAndImageObjects();
+
+    // If any tableau group has changes, we should recompute the vkbuffer layouts. Build an object tree for each tableau group that has changed, and then compare them.
+    bool workingObjectTreeWasRebuilt = false;
+    if ((assemblyDiffs->diffs & assemblyMembers_e::tableauGroups) != 0 ||
         (assemblyDiffs->diffs & assemblyMembers_e::tableaux) != 0)
     {
-      auto tree = ObjectTree { workAsm.tableaux.vect() };
+      for (auto & [tgName, idx]: workAsm.tableauGroups.keys())
+      {
+        // We need to create the object tree
+        bool need = false;
+        // if we don't have one,
+        need = need || tableauGroups.find(tgName) == tableauGroups.end();
+        // or if the tableau group itself is different,
+        need = need || find(assemblyDiffs->tableauGroupsDiffs.begin(), assemblyDiffs->tableauGroupsDiffs.end(), tgName) != assemblyDiffs->tableauGroupsDiffs.end();
+        // or if any of the group's tableaux are different.
+        if (need == false)
+        {
+          for (auto tn: workAsm.tableauGroups[tgName])
+          {
+            need = need || find(assemblyDiffs->tableauxDiffs.begin(), assemblyDiffs->tableauxDiffs.end(), tgName) != assemblyDiffs->tableauxDiffs.end();
+            if (need)
+              { break; }
+          }
+        }
+
+        if (need)
+        {
+          tableauGroups.insert_or_assign(tgName, ObjectTree { workAsm, tgName } );
+          if (workAsm.usingTableauGroup == tgName)
+            { workingObjectTreeWasRebuilt = true; }
+        }
+      }
+    }
+
+    // At this point, all assets sizes are computed and all object trees are up to date. We can ensure we have a device memory large enough.
+    graphics->ensureDeviceAllocSize(
+      accumulate(tableauGroups.begin(), tableauGroups.end(), 0, 
+      [](auto accum, auto & entry)
+    {
+      return accum + entry.getAllocSize();
+    }));
+
+    // In a smooth and professional manner, we can blt any assets that have previously been compiled now, and bind their buffers/images. Assets that are compiling or loading from cache will have their day probably in some future frame.
+    // Basically, the current tableau group's ObjectTree may need to be (re)created. If so,and an older version is present, we can recreate by allocating a new host-visible (and maybe device-visible on AGPs) segment and blt asset data from the old segment for any assets that haven't changed. The rest are loaded from cache or compiled in-place in a later frame.
 
 
+    // Now let's sync materials.
+
+    // Now let's sync renderplans.
+
+
+
+
+
+    if ((assemblyDiffs->diffs & assemblyMembers_e::usingTableauGroup) != 0 ||
+        (assemblyDiffs->diffs & assemblyMembers_e::tableauGroups) != 0 ||
+        (assemblyDiffs->diffs & assemblyMembers_e::tableaux) != 0)
+    {
       //  for each asset referenced in tree,
       //    if asset_ts changed or
       //        asset file reports having changed or
@@ -321,7 +391,7 @@ void Engine::updateConfig(config::config_t & config,
   {
     auto & graphicsDiffs = configDiffs.graphics;
 
-    graphics.updateConfig(graphicsDiffs);
+    graphics->updateConfig(graphicsDiffs);
   }
 }
 

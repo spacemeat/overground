@@ -19,9 +19,9 @@ using namespace humon;
 using namespace overground;
 
 
-constexpr auto featurePreamble = 
-R"(#ifndef {featureName}_GEN_H
-#define {featureName}_GEN_H
+constexpr auto nsPreamble = 
+R"(#ifndef {nsName}_GEN_H
+#define {nsName}_GEN_H
 
 #include <string>
 #include <vector>
@@ -32,19 +32,19 @@ R"(#ifndef {featureName}_GEN_H
 #include "enumParsers.h"
 )";
 
-constexpr auto featurePostamble = 
+constexpr auto nsPostamble = 
 R"(  }}
 }}
 
-#endif // #ifndef {featureName}_GEN_H
+#endif // #ifndef {nsName}_GEN_H
 )";
 
 
-constexpr auto featureCppPreamble = 
-R"(#include "{featureHeader}"
+constexpr auto nsCppPreamble = 
+R"(#include "{nsHeader}"
 
 using namespace overground;
-using namespace overground::{featureName};
+using namespace overground::{nsName};
 using namespace humon;
 using namespace std;
 
@@ -72,13 +72,12 @@ struct structDef
   string name;
   unordered_map<string, size_t> memberDefsKeys;
   vector<memberDef> memberDefs;
-  vector<string> requires;
+  vector<string> requiresFeatures;
   string basedOn;
   bool suppressDefinition = false;
-  bool isOgFeature = false;
 };
 
-struct featureDef
+struct nsDef
 {
   string name;
   vector<string> uses;
@@ -87,15 +86,15 @@ struct featureDef
 };
 
 string topNamespace;
-map <string, size_t> featuresKeys;
-vector<featureDef> features;
-map <string, ofstream> featureHeaderFiles;
-map <string, ofstream> featureCppFiles;
+map <string, size_t> nssKeys;
+vector<nsDef> nss;
+map <string, ofstream> nsHeaderFiles;
+map <string, ofstream> nsCppFiles;
 map <string, ofstream> pluginCppFiles;
 map <string, vector<string>, std::less<>> plugins;
 
 
-void outputHeaderHeader(string_view featureName);
+void outputHeaderHeader(string_view nsName);
 structDef * findStructDef(string_view rhs);
 
 
@@ -170,6 +169,7 @@ memberTypeDef resolveType(string_view member)
       }
       else if (*it == '>')
       {
+          *pname = resolveStdAliases(*pname);
         pdefs.pop();
         pname = & pdefs.top()->name;
       }
@@ -214,15 +214,15 @@ void resolvePluginMemberType(memberTypeDef & memberParentTypeDef, memberTypeDef 
 
 void resolvePluginTypes()
 {
-  for (auto & feature : features)
+  for (auto & ns : nss)
   {
-    for (auto & structDef : feature.structDefs)
+    for (auto & structDef : ns.structDefs)
     {
       for (auto & memberDef : structDef.memberDefs)
       {
         auto & memberParentTypeDef = memberDef.type;
 
-        log(0, logTags::verb, fmt::format("FROM: {}/{}/{}: {}", feature.name, structDef.name, memberDef.name, memberParentTypeDef));
+        log(0, logTags::verb, fmt::format("FROM: {}/{}/{}: {}", ns.name, structDef.name, memberDef.name, memberParentTypeDef));
 
         size_t idx = 0;
         for (auto & memberChildTypeDef : memberParentTypeDef.subTypes)
@@ -231,7 +231,7 @@ void resolvePluginTypes()
           idx += 1;
         }
 
-        log(0, logTags::verb, fmt::format("  TO: {}/{}/{}: {}", feature.name, structDef.name, memberDef.name, memberParentTypeDef));
+        log(0, logTags::verb, fmt::format("  TO: {}/{}/{}: {}", ns.name, structDef.name, memberDef.name, memberParentTypeDef));
       }
     }
   }
@@ -253,16 +253,16 @@ void markStringLoads(memberTypeDef const & mtd)
 
 structDef * findStructDef(string_view rhs)
 {
-  for (auto & [featureName, idx] : featuresKeys)
+  for (auto & [nsName, idx] : nssKeys)
   {
-    auto & feature = features[idx];
-    for (auto & [structName, idx] : feature.structDefsKeys)
+    auto & ns = nss[idx];
+    for (auto & [structName, idx] : ns.structDefsKeys)
     {
-      auto & structDef = feature.structDefs[idx];
+      auto & structDef = ns.structDefs[idx];
       if (structName == rhs || structName == rhs)
         { return & structDef; }
 
-      string targetStructName = fmt::format("{}::{}", featureName, structName);
+      string targetStructName = fmt::format("{}::{}", nsName, structName);
       if (targetStructName == rhs)
         { return & structDef; }
     }
@@ -288,19 +288,19 @@ void parseDefsFile(path_t const & path)
 
   topNamespace = (string) (node / "topNamespace");
 
-  auto & def = node / "features";
+  auto & def = node / "namespaces";
   for (size_t i = 0; i < def.size(); ++i)
   {
-    auto & featureName = def.keyAt(i);
-    auto & structCollectionNode = def / featureName;
+    auto & nsName = def.keyAt(i);
+    auto & structCollectionNode = def / nsName;
 
-    features.emplace_back();
-    featureDef & feature = features.back();
-    feature.name = featureName;
-    featuresKeys.insert_or_assign(featureName, features.size() - 1);
+    nss.emplace_back();
+    nsDef & ns = nss.back();
+    ns.name = nsName;
+    nssKeys.insert_or_assign(nsName, nss.size() - 1);
 
-    log(0, fmt::format("Feature {}{}.{}",
-      ansi::lightBlue, featureName, ansi::off));
+    log(0, fmt::format("Namespace {}{}.{}",
+      ansi::lightBlue, nsName, ansi::off));
 
     for (size_t j = 0; j < structCollectionNode.size(); ++j)
     {
@@ -312,37 +312,29 @@ void parseDefsFile(path_t const & path)
         for (size_t k = 0; k < structNode.size(); ++k)
         {
           auto usesName = (string)(structNode / k);
-          feature.uses.push_back(usesName);
+          ns.uses.push_back(usesName);
         }
 
         continue;
       }
 
-      feature.structDefs.emplace_back();
-      structDef & struDef = feature.structDefs.back();
+      ns.structDefs.emplace_back();
+      structDef & struDef = ns.structDefs.back();
       struDef.name = structName;
-      feature.structDefsKeys.insert_or_assign(structName, feature.structDefs.size() - 1);
+      ns.structDefsKeys.insert_or_assign(structName, ns.structDefs.size() - 1);
       log(0, fmt::format("  struct {}{}.{}",
         ansi::lightCyan, structName, ansi::off));
 
       for (size_t k = 0; k < structNode.size(); ++k)
       {
         auto const & key = structNode.keyAt(k);
-        if (key == "requires")
+        if (key == "requiresFeatures")
         {
           auto & listNode = structNode / key;
           for (size_t l = 0; l < listNode.size(); ++l)
           {
-            struDef.requires.emplace_back(string(listNode / l));
+            struDef.requiresFeatures.emplace_back(string(listNode / l));
           }
-        }
-        else if (key == "basedOn")
-        {
-          struDef.basedOn = string(structNode / key);
-        }
-        else if (key == "feature")
-        {
-          struDef.isOgFeature = bool(structNode / key);
         }
         else if (key == "plugin")
         {
@@ -384,38 +376,6 @@ void parseDefsFile(path_t const & path)
     log(0, fmt::format("Enum-like value: {}{}{}",
       ansi::lightMagenta, lfs, ansi::off));
   }
-
-  // each struct type that is based on another defined type gets its bases members
-  /*
-  for (auto & feature : features)
-  {
-    for (auto & stru : feature.structDefs)
-    {
-      if (stru.basedOn.size() > 0)
-      {
-        auto baseStru = findStructDef(stru.basedOn);
-        while (baseStru != nullptr)
-        {
-          for (auto & [key, idx]: baseStru->memberDefsKeys)
-          {
-            auto & member = baseStru->memberDefs[idx];
-            if (auto it = stru.memberDefsKeys.find(key);
-                it == stru.memberDefsKeys.end())
-            {
-              stru.memberDefsKeys.insert({key, stru.memberDefs.size()});
-              stru.memberDefs.push_back(member);
-            }
-          }
-
-          if (baseStru->basedOn.size() > 0)
-          {
-            baseStru = findStructDef(baseStru->basedOn);
-          }
-        }
-      }
-    }
-  }
-  */
 }
 
 
@@ -423,29 +383,29 @@ static void openFiles(path_t const & podsDir, path_t const & pluginCentralDir)
 {
   logFn();
 
-  for (auto & [featureName, fidx] : featuresKeys)
+  for (auto & [nsName, fidx] : nssKeys)
   {
     // headers
-    auto featureFile = featureName + "-gen.h";
-    auto featurePath = path_t(podsDir).append("inc").append(featureFile);
+    auto nsFile = nsName + "-gen.h";
+    auto nsPath = path_t(podsDir).append("inc").append(nsFile);
     log(0, fmt::format("Generating {}{}.{}",
-      ansi::lightBlue, featurePath, ansi::off));
+      ansi::lightBlue, nsPath, ansi::off));
 
-    auto & ofs = featureHeaderFiles[featureName];
-    ofs.open(featurePath);
-    outputHeaderHeader(featureName);
+    auto & ofs = nsHeaderFiles[nsName];
+    ofs.open(nsPath);
+    outputHeaderHeader(nsName);
 
     // srcs
-    auto featureCppFile = featureName + "-gen.cpp";
-    auto featureCppPath = path_t(podsDir).append("src").append(featureCppFile);
+    auto nsCppFile = nsName + "-gen.cpp";
+    auto nsCppPath = path_t(podsDir).append("src").append(nsCppFile);
     log(0, fmt::format("Generating {}{}.{}",
-      ansi::lightBlue, featureCppPath, ansi::off));
+      ansi::lightBlue, nsCppPath, ansi::off));
 
-    auto & ofsCpp = featureCppFiles[featureName];
-    ofsCpp.open(featureCppPath);
-    ofsCpp << fmt::format(featureCppPreamble, 
-      fmt::arg("featureName", featureName),
-      fmt::arg("featureHeader", featureFile));
+    auto & ofsCpp = nsCppFiles[nsName];
+    ofsCpp.open(nsCppPath);
+    ofsCpp << fmt::format(nsCppPreamble, 
+      fmt::arg("nsName", nsName),
+      fmt::arg("nsHeader", nsFile));
   }
 
   // pluginzz
@@ -464,39 +424,39 @@ static void openFiles(path_t const & podsDir, path_t const & pluginCentralDir)
 
 static void closeFiles()
 {
-  for (auto & [featureName, _] : featuresKeys)
+  for (auto & [nsName, _] : nssKeys)
   {
-    auto & ofs = featureHeaderFiles[featureName];
+    auto & ofs = nsHeaderFiles[nsName];
 
-    ofs << fmt::format(featurePostamble,
-      fmt::arg("featureName", featureName));
+    ofs << fmt::format(nsPostamble,
+      fmt::arg("nsName", nsName));
   }
 }
 
 
-void outputHeaderHeader(string_view featureName)
+void outputHeaderHeader(string_view nsName)
 {
-  auto & ofs = featureHeaderFiles[(string)featureName];
-  ofs << fmt::format(featurePreamble, 
-    fmt::arg("featureName", featureName));
+  auto & ofs = nsHeaderFiles[(string)nsName];
+  ofs << fmt::format(nsPreamble, 
+    fmt::arg("nsName", nsName));
   
-  auto & feature = features[featuresKeys[(string)featureName]];
-  for (auto const & usingFeature: feature.uses)
+  auto & ns = nss[nssKeys[(string)nsName]];
+  for (auto const & usingNs: ns.uses)
   {
     ofs << fmt::format(
-R"(#include "{usingFeature}-gen.h"
+R"(#include "{usingNs}-gen.h"
 )", 
-      fmt::arg("usingFeature", usingFeature));
+      fmt::arg("usingNs", usingNs));
   }
 
   ofs << fmt::format(
 R"(
 namespace {topNamespace}
 {{
-  namespace {featureName}
+  namespace {nsName}
   {{
 )",
-    fmt::arg("topNamespace", topNamespace),fmt::arg("featureName", featureName)); 
+    fmt::arg("topNamespace", topNamespace),fmt::arg("nsName", nsName)); 
 }
 
 
@@ -944,7 +904,7 @@ R"(      {{
         }}
         for (auto const & [rhsKey, rhsIdx] : rhs.{memberName}.keys())
         {{
-          if (auto it = keys.find(rhsKey); it != keys.end())
+          if (auto it = lhs.{memberName}.keys.find(rhsKey); it != lhs.{memberName}.keys.end())
             {{ continue; }}
           {structName}.{memberName}Diffs.push_back(rhsKey);
         }}
@@ -984,18 +944,18 @@ R"(
 }
 
 constexpr auto importPreamble = R"(
-void overground::{featureName}::importPod(
+void overground::{nsName}::importPod(
   humon::HuNode const & src, {structName}_t & dest)
 {{
 )";
 
-void outputImportFromHumon(string_view featureName, structDef const & stru, ofstream & ofs)
+void outputImportFromHumon(string_view nsName, structDef const & stru, ofstream & ofs)
 {
   logFn();
 
   ofs << fmt::format(importPreamble, 
     fmt::arg("structName", stru.name),
-    fmt::arg("featureName", featureName));
+    fmt::arg("nsName", nsName));
 
   for (auto & member : stru.memberDefs)
   {
@@ -1193,17 +1153,23 @@ R"({indent}{{
           //   fn_ref("cmdBindPipeline_t", ....);
           //   ofs << "}"
           for (auto & subType : mtd.subTypes)
-          {            
+          {
+            string subTypeNu = fmt::format("{}", subType);
+            if (subTypeNu[subTypeNu.size() - 2] == '_' &&
+                subTypeNu[subTypeNu.size() - 1] == 't')
+              { subTypeNu.resize(subTypeNu.size() - 2); }
+
             ofs << fmt::format(
-R"({indent}    else if (typ == "{subType}")
+R"({indent}    else if (typ == "{subTypeNu}")
 {indent}    {{
 {indent}      {subType} dst{depth};
 )",
               fmt::arg("indent", string(2 + 2 * depth, ' ')),
               fmt::arg("depth", depth),
+              fmt::arg("subTypeNu", subTypeNu),
               fmt::arg("subType", subType));
 
-            fn_ref(subType, depth + 1, fmt::format("dst{}", depth), 
+            fn_ref(subType, depth + 3, fmt::format("dst{}", depth), 
               fmt::format("src{}", depth), fn_ref);
 
           ofs << fmt::format(
@@ -1281,19 +1247,19 @@ R"(    dest.{memberName} = std::move(dst0);
 }
 
 
-void outputImportFromBinary(string_view featureName, structDef const & stru, ofstream & ofs)
+void outputImportFromBinary(string_view nsName, structDef const & stru, ofstream & ofs)
 {
   logFn();
 
   log(thId, logTags::warn, "This operation has not been implemented yet.");
 
   ofs << fmt::format(
-R"(void overground::{featureName}::importPod(
+R"(void overground::{nsName}::importPod(
 std::vector<uint8_t> const & src, {structName}_t & dest)
 {{
 )", 
     fmt::arg("structName", stru.name),
-    fmt::arg("featureName", featureName));
+    fmt::arg("nsName", nsName));
 
   ofs << 
 R"(  log(0, logTags::warn, "This operation has not been implemented yet.");
@@ -1305,19 +1271,19 @@ R"(  log(0, logTags::warn, "This operation has not been implemented yet.");
 }
 
 
-void outputExportToHumon(string_view featureName, structDef const & stru, ofstream & ofs)
+void outputExportToHumon(string_view nsName, structDef const & stru, ofstream & ofs)
 {
   logFn();
 
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
   ofs << fmt::format(
-R"(void overground::{featureName}::exportPod({structName}_t const & src,
+R"(void overground::{nsName}::exportPod({structName}_t const & src,
 humon::HuNode & dest, int depth)
 {{
 )", 
     fmt::arg("structName", stru.name),
-    fmt::arg("featureName", featureName));
+    fmt::arg("nsName", nsName));
 
   ofs << 
 R"(  log(0, logTags::warn, "This operation has not been implemented yet.");
@@ -1329,19 +1295,19 @@ R"(  log(0, logTags::warn, "This operation has not been implemented yet.");
 }
 
 
-void outputExportToBinary(string_view featureName, structDef const & stru, ofstream & ofs)
+void outputExportToBinary(string_view nsName, structDef const & stru, ofstream & ofs)
 {
   logFn();
 
   log(thId, logTags::warn, "This operation has not been implemented yet.");
 
   ofs << fmt::format(
-R"(void overground::{featureName}::exportPod(
+R"(void overground::{nsName}::exportPod(
 {structName}_t const & src, std::vector<uint8_t> & dest)
 {{
 )", 
     fmt::arg("structName", stru.name),
-    fmt::arg("featureName", featureName));
+    fmt::arg("nsName", nsName));
 
   ofs << 
 R"(  log(0, logTags::warn, "This operation has not been implemented yet.");
@@ -1353,12 +1319,12 @@ R"(  log(0, logTags::warn, "This operation has not been implemented yet.");
 }
 
 
-void outputPrint(string_view featureName, structDef const & stru, ofstream & ofs)
+void outputPrint(string_view nsName, structDef const & stru, ofstream & ofs)
 {
   logFn();
 
   ofs << fmt::format(
-R"(std::string overground::{featureName}::print(
+R"(std::string overground::{nsName}::print(
   {structName}_t const & src, int depth)
 {{
   string prevIndentIn(depth * 2, ' ');
@@ -1367,7 +1333,7 @@ R"(std::string overground::{featureName}::print(
   ss << "{{";
 )", 
     fmt::arg("structName", stru.name),
-    fmt::arg("featureName", featureName));
+    fmt::arg("nsName", nsName));
 
   for (auto & member : stru.memberDefs)
   {
@@ -1642,14 +1608,14 @@ R"(  ss << "\n" << prevIndentIn << "}}";
   return ss.str();
 }}
 
-ostream & overground::{featureName}::operator << (ostream & stream, {structType}_t const & rhs)
+ostream & overground::{nsName}::operator << (ostream & stream, {structType}_t const & rhs)
 {{
   stream << print(rhs);
   return stream;
 }}
 )",
     fmt::arg("structType", stru.name),
-    fmt::arg("featureName", featureName));
+    fmt::arg("nsName", nsName));
 }
 
 
@@ -1661,7 +1627,7 @@ string capitalize(string_view rhs)
 }
 
 
-void outputPluginCentralStation(string_view featureName, string_view pluginType, string_view pluginTypeLower, string_view pluginTypeUpper, ofstream & ofs)
+void outputPluginCentralStation(string_view nsName, string_view pluginType, string_view pluginTypeLower, string_view pluginTypeUpper, ofstream & ofs)
 {
   // "objects", "object", "Object"
 
@@ -1685,13 +1651,36 @@ R"(#include "{basePluginType}.{pluginName}.h"
       fmt::arg("pluginName", pluginName));
   }
 
-  ofs << fmt::format(
-R"(
+  if (pluginType == "objects")
+  {
+    ofs << fmt::format(
+  R"(
+  using namespace std;
+  using namespace overground;
+
+
+  std::unique_ptr<{baseClassName}> make{baseClassName}({nsName}::{podName}_t const & desc)
+  {{
+  if (desc.data.has_value() &&
+      desc.data->valueless_by_exception() == false)
+  {{
+      auto typeIdx = desc.data->index();
+      switch(typeIdx)
+      {{
+  )",
+      fmt::arg("baseClassName", pluginTypeUpper),
+      fmt::arg("nsName", nsName),
+      fmt::arg("podName", pluginTypeLower));
+  }
+  else
+  {
+    ofs << fmt::format(
+  R"(
 using namespace std;
 using namespace overground;
 
 
-static std::unique_ptr<{baseClassName}> make{baseClassName}({featureName}::{podName}_t const & desc)
+std::unique_ptr<{baseClassName}> make{baseClassName}({nsName}::{podName}_t const & desc)
 {{
   if (desc.data.valueless_by_exception() == false)
   {{
@@ -1699,10 +1688,11 @@ static std::unique_ptr<{baseClassName}> make{baseClassName}({featureName}::{podN
     switch(typeIdx)
     {{
 )",
-    fmt::arg("baseClassName", pluginTypeUpper),
-    fmt::arg("featureName", featureName),
-    fmt::arg("podName", pluginTypeLower));
-
+      fmt::arg("baseClassName", pluginTypeUpper),
+      fmt::arg("nsName", nsName),
+      fmt::arg("podName", pluginTypeLower));
+  }
+  
   size_t pluginIdx = 0;
   for (auto & pluginName : pluginNames)
   {
@@ -1760,20 +1750,20 @@ Output base: {}{}{}",
   parseDefsFile(defsPath);
   openFiles(outputPodsDir, outputPluginsDir);
 
-  for (auto & feature : features)
+  for (auto & ns : nss)
   {
-    auto & featureName = feature.name;
-    auto & ofsH = featureHeaderFiles[featureName];
-    auto & ofsC = featureCppFiles[featureName];
+    auto & nsName = ns.name;
+    auto & ofsH = nsHeaderFiles[nsName];
+    auto & ofsC = nsCppFiles[nsName];
 
-    for (auto & stru : feature.structDefs)
+    for (auto & stru : ns.structDefs)
     {
       outputStructDefs(stru, ofsH);
-      outputImportFromHumon(featureName, stru, ofsC);
-      outputImportFromBinary(featureName, stru, ofsC);
-      outputExportToHumon(featureName, stru, ofsC);
-      outputExportToBinary(featureName, stru, ofsC);
-      outputPrint(featureName, stru, ofsC);
+      outputImportFromHumon(nsName, stru, ofsC);
+      outputImportFromBinary(nsName, stru, ofsC);
+      outputExportToHumon(nsName, stru, ofsC);
+      outputExportToBinary(nsName, stru, ofsC);
+      outputPrint(nsName, stru, ofsC);
     }
   }
   

@@ -3,18 +3,19 @@
 #include "object.h"
 #include "objects.otherKindOfObject.h"
 
-using namespace std;
-using namespace overground;
+  using namespace std;
+  using namespace overground;
 
 
-static std::unique_ptr<Object> makeObject(tableau::object_t const & desc)
-{
-  if (desc.data.valueless_by_exception() == false)
+  std::unique_ptr<Object> makeObject(tableau::object_t const & desc)
   {
-    auto typeIdx = desc.data.index();
-    switch(typeIdx)
-    {
-    case 0: // OtherKindOfObject
+  if (desc.data.has_value() &&
+      desc.data->valueless_by_exception() == false)
+  {
+      auto typeIdx = desc.data->index();
+      switch(typeIdx)
+      {
+      case 0: // OtherKindOfObject
       return std::make_unique<OtherKindOfObject>(desc);
     }
   }

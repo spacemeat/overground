@@ -5,11 +5,11 @@
 
 namespace overground
 {
-  class Otherkindofobject : public Object
+  class OtherKindOfObject : public Object
   {
   public:
-    Otherkindofobject(tableaux::object_t const & desc);
-    virtual ~Otherkindofobject();
+    OtherKindOfObject(tableau::object_t const & desc);
+    virtual ~OtherKindOfObject();
 
   protected:
   };

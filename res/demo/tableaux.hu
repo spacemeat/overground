@@ -8,13 +8,14 @@
                 type: matrixTransform
               }
             } {
+              assetRefs: 1
+              materialRefs: 1
               featureData: {
-                type: drawableModel
-                model: "cube-model"
-                subModels: [ {
+                type: drawableMesh
+                mesh: "cubeMesh"
+                subMeshes: [ {
                     subset: cubeFaces
                     material: brushedSteel
-                    tags: [opaqueMesh]
                   }
                 ]
               }
@@ -35,6 +36,7 @@
                 translate: [3 -6 2]
               }
             } {
+              renderPlanRefs: 1
               featureData: {
                 type: camera
                 fovAroundYAxis: "tau/5.5"

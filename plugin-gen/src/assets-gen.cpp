@@ -9,7 +9,7 @@ using namespace std;
 using namespace overground;
 
 
-static std::unique_ptr<Asset> makeAsset(asset::asset_t const & desc)
+std::unique_ptr<Asset> makeAsset(asset::asset_t const & desc)
 {
   if (desc.data.valueless_by_exception() == false)
   {

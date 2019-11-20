@@ -6,7 +6,7 @@ else:
   pluginName = sys.argv[1]
 
 macroName = pluginName.upper()
-className = pluginName.capitalize()
+className = "".join([pluginName[0].capitalize(), pluginName[1:]])
 
 src = f'''\
 #ifndef OBJECTS_{macroName}_H
@@ -19,7 +19,7 @@ namespace overground
   class {className} : public Object
   {{
   public:
-    {className}(tableaux::object_t const & desc);
+    {className}(tableau::object_t const & desc);
     virtual ~{className}();
 
   protected:

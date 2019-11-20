@@ -77,7 +77,7 @@ namespace overground
     {
       std::string type;
       vk::Format format;
-      std::optional<string> compression;
+      std::optional<std::string> compression;
     };
 
     void importPod(
@@ -210,7 +210,7 @@ namespace overground
     struct asset_t
     {
       std::string name;
-      std::optional<string> srcFile;
+      std::optional<std::string> srcFile;
       std::string assFile;
       bool monitorFile;
       std::variant<mesh_t, image_t, shader_t> data;

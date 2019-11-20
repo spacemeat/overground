@@ -1,7 +1,7 @@
 {
   enumFromString: [BufferStrategy]
   topNamespace: overground
-  features: {
+  namespaces: {
     config: {
       general: {
         programName: { type: string }
@@ -58,7 +58,7 @@
 
     renderPlan: {
       attachment: {
-        name: { type: string }
+        name: { type: string fromKey: true }
         flags: { type: "vk::AttachmentDescriptionFlagBits" default: 0 }
         numSamples: { type: "vk::SampleCountFlagBits" }
         loadOp: { type: "vk::AttachmentLoadOp" }
@@ -75,7 +75,7 @@
       }
 
       subpass: {
-        name: { type: string }
+        name: { type: string fromKey: true }
         flags: { type: "vk::SubpassDescriptionFlagBits" }
         bindPoint: { type: "vk::PipelineBindPoint" }
         inputAttachments: { type: "vector<subpassAttachment>" }
@@ -101,9 +101,9 @@
       }
 
       renderPass: {
-        name: { type: string }
-        attachments: { type: "vector<attachment>" }
-        subpasses: { type: "vector<subpass>" }
+        name: { type: string fromKey: true }
+        attachments: { type: "stringDict<attachment>" }
+        subpasses: { type: "stringDict<subpass>" }
         dependencies: { type: "vector<subpassDependency>" }
       }
 
@@ -170,14 +170,15 @@
       }
 
       operationList: {
-        name: { type: string }
+        name: { type: string fromKey: true }
+        primaryPlan: { type: bool }
         ops: { type: "vector<variant<identifyVisibleThings, drawRecursiveCameras, computeShadows, updateUbos, setRenderPass, nextSubpass, endRenderPass, computeDepth, drawUi, drawOpaque, drawTransparent, drawImposters, drawSkybox, runPostEffects>>" }
       }
 
       renderPlan: {
         name: { type: string }
-        renderPasses: { type: "vector<renderPass>" }
-        operations: { type: "vector<operationList>" }
+        renderPasses: { type: "stringDict<renderPass>" }
+        operations: { type: "stringDict<operationList>" }
       }
     }
 
@@ -469,20 +470,6 @@
       }
     }
 
-    model: {
-      submodel: {
-        name: { type: string fromKey: true } # must match mesh/submeshes/[key]
-        material: { type: string }
-        tags: { type: "vector<string>" }
-      }
-
-      model: {
-        name: { type: string fromKey: true }
-        mesh: { type: string }
-        submodels: { type: "stringDict<submodel>" }
-      }
-    }
-
     asset: {
       mesh: {
         plugin: assets
@@ -522,39 +509,37 @@
       srtTransform: {
         plugin: features
         type: { type: string }
-        requires: [matrixTransform]
+        requiresFeatures: [matrixTransform]
         scale: { type: "array<float, 3>" }
         rotation: { type: "array<float, 3>" }
         translate: { type: "array<float, 3>" }
       }
 
-      drawableSubmodel: {
-        plugin: features
-        type: { type: string }
+      drawableSubmesh: {
         submesh: { type: string }
-        material: { type: "optional<string>" }  # optional since submesh may define its own material.
-        tags: { type: "vector<string>" }
+        material: { type: "string" }
+        tags: { type: "vector<string>" } # TODO: These alter tags gotten from material.
       }
 
-      drawableModel: {
+      drawableMesh: {
         plugin: features
         type: { type: string }
-        requires: [matrixTransform]
+        requiresFeatures: [matrixTransform]
         mesh: { type: string }
-        subModels: { type: "vector<drawableSubmodel>" }
+        subMeshes: { type: "vector<drawableSubmesh>" }
       }
 
       directionalLight: {
         plugin: features
         type: { type: string }
-        requires: [matrixTransform]
+        requiresFeatures: [matrixTransform]
         color: { type: "array<float, 3>" }
       }
 
       pointLight: {
         plugin: features
         type: { type: string }
-        requires: [matrixTransform]
+        requiresFeatures: [matrixTransform]
         attenuation: { type: "array<float, 3>" }
         color: { type: "array<float, 3>" }
       }
@@ -562,7 +547,7 @@
       spotLight: {
         plugin: features
         type: { type: string }
-        requires: [matrixTransform]
+        requiresFeatures: [matrixTransform]
         attenuation: { type: "array<float, 3>" }
         hotspot: { type: float }
         falloff: { type: float }
@@ -572,7 +557,7 @@
       camera: {
         plugin: features
         type: { type: string }
-        requires: [matrixTransform]
+        requiresFeatures: [matrixTransform]
         fovAroundYAxis: { type: float }
         minDepth: { type: float }
         maxDepth: { type: float }
@@ -580,7 +565,11 @@
       }
 
       feature: {
-        data: { type: "variant<plugins<features>>" }
+        renderPlanRefs: { type: size_t default: 0 }
+        modelRefs: { type: size_t default: 0 }
+        materialRefs: { type: size_t default: 0 }
+        assetRefs: { type: size_t default: 0 }
+        featureData: { type: "variant<plugins<features>>" }
       }
 
       otherKindOfObject: {
@@ -603,7 +592,7 @@
 
     assembly: {
       uses: [
-        config, renderPlan, asset, material, model, tableau
+        config, renderPlan, asset, material, tableau
       ]
       # Every file in the assemblies dir -is- an assembly. They merge into the following superset:
       assembly: {
@@ -611,7 +600,6 @@
         renderPlans: { type: "stringDict<renderPlan::renderPlan>" }
         assets: { type: "stringDict<asset::asset>" }
         materials: { type: "stringDict<material::material>" }
-        models: { type: "stringDict<model::model>" }
         tableaux: { type: "stringDict<tableau::tableau>" }
         tableauGroups: { type: "stringDict<vector<string>>" }
         usingConfig: { type: string }

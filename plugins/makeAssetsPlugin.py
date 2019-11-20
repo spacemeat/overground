@@ -6,7 +6,7 @@ else:
   pluginName = sys.argv[1]
 
 macroName = pluginName.upper()
-className = pluginName.capitalize()
+className = "".join([pluginName[0].capitalize(), pluginName[1:]])
 
 src = f'''\
 #ifndef ASSETS_{macroName}_H

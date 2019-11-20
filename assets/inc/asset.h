@@ -19,6 +19,9 @@ namespace overground
     void compileToAss();
     void compileToBuffer(std::byte * buffer);
 
+    bool isImage();
+    vk::MemoryRequirements getDeviceMemoryRequirements();
+
   protected:
     virtual void loadAssetInfo_impl(path_t file, bool loadFromSrc);
 

@@ -65,20 +65,6 @@ void overground::assembly::importPod(
     }
     dest.materials = std::move(dst0);
   }
-  if (src % "models")
-  {
-    auto & src0 = src / "models";
-    stringDict<model::model_t> dst0;
-    for (size_t i0 = 0; i0 < src0.size(); ++i0)
-    {
-      auto & src1 = src0 / i0;
-      auto const & key = src0.keyAt(i0);
-      model::model_t dst1;
-      importPod(src1, dst1);
-      dst0.push_back(key, std::move(dst1));
-    }
-    dest.models = std::move(dst0);
-  }
   if (src % "tableaux")
   {
     auto & src0 = src / "tableaux";
@@ -96,18 +82,18 @@ void overground::assembly::importPod(
   if (src % "tableauGroups")
   {
     auto & src0 = src / "tableauGroups";
-    stringDict<std::vector<string>> dst0;
+    stringDict<std::vector<std::string>> dst0;
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
       auto const & key = src0.keyAt(i0);
-      std::vector<string> dst1;
+      std::vector<std::string> dst1;
 
       for (size_t i1 = 0; i1 < src1.size(); ++i1)
       {
         auto & src2 = src1 / i1;
-        string dst2;
-        dst2 = (string) src2; // leaf
+        std::string dst2;
+        dst2 = (std::string) src2; // leaf
 
         dst1.push_back(std::move(dst2));
       }
@@ -222,21 +208,6 @@ std::string overground::assembly::print(
     depth -= 1;
   }
   ss << "\n" << indentIn << "}";
-  ss << "\n" << indentIn << "models: ";
-  ss << "{";
-  for (size_t i0 = 0; i0 < src.models.size(); ++i0)
-  {
-    auto const & [key, idx] = src.models.keys[i0];
-    depth += 1;
-    string prevIndentIn(depth * 2, ' ');
-    string indentIn(2 + depth * 2, ' ');
-    model::model_t const & src0 = src.models[idx];
-    ss << indentIn << key << ": ";
-    ss << "\n" << indentIn;
-    ss << print(src0, depth + 1);
-    depth -= 1;
-  }
-  ss << "\n" << indentIn << "}";
   ss << "\n" << indentIn << "tableaux: ";
   ss << "{";
   for (size_t i0 = 0; i0 < src.tableaux.size(); ++i0)
@@ -260,7 +231,7 @@ std::string overground::assembly::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    std::vector<string> const & src0 = src.tableauGroups[idx];
+    std::vector<std::string> const & src0 = src.tableauGroups[idx];
     ss << indentIn << key << ": ";
     ss << "[";
     for (size_t i1 = 0; i1 < src0.size(); ++i1)
@@ -268,7 +239,7 @@ std::string overground::assembly::print(
       depth += 1;
       string prevIndentIn(depth * 2, ' ');
       string indentIn(2 + depth * 2, ' ');
-      string const & src1 = src0[i1];
+      std::string const & src1 = src0[i1];
       ss << "\n" << indentIn;
       ss << (src1);
       depth -= 1;

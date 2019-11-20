@@ -438,8 +438,8 @@ namespace overground
     struct renderPass_t
     {
       std::string name;
-      std::vector<attachment_t> attachments;
-      std::vector<subpass_t> subpasses;
+      stringDict<attachment_t> attachments;
+      stringDict<subpass_t> subpasses;
       std::vector<subpassDependency_t> dependencies;
     };
 
@@ -486,8 +486,8 @@ namespace overground
     struct renderPassDiffs_t
     {
       renderPassMembers_e diffs;
-      std::vector<std::pair<size_t, attachmentDiffs_t>> attachmentsDiffs;
-      std::vector<std::pair<size_t, subpassDiffs_t>> subpassesDiffs;
+      std::vector<std::pair<std::string, attachmentDiffs_t>> attachmentsDiffs;
+      std::vector<std::pair<std::string, subpassDiffs_t>> subpassesDiffs;
       std::vector<std::pair<size_t, subpassDependencyDiffs_t>> dependenciesDiffs;
     };
 
@@ -501,38 +501,50 @@ namespace overground
         { renderPass.diffs |= renderPassMembers_e::name; }
       // diff member 'attachments':
       {
-        auto [mn, mx] = std::minmax(lhs.attachments.size(), rhs.attachments.size());
-        for (size_t i = 0; i < mn; ++i)
+        for (auto const & [lhsKey, lhsIdx] : lhs.attachments.keys)
         {
           attachmentDiffs_t diffsEntry;
-          if (doPodsDiffer(lhs.attachments[i], rhs.attachments[i], diffsEntry))
+          if (auto it = rhs.attachments.keys().find(lhsKey); it != rhs.attachments.keys().end())
           {
-            renderPass.diffs |= renderPassMembers_e::attachments;
-            renderPass.attachmentsDiffs.push_back({i, diffsEntry});
+            auto const & [rhsKey, rhsIdx] = *it;
+            if (lhsIdx == rhsIdx &&
+                doPodsDiffer(lhs.attachments[lhsIdx], rhs.attachments[rhsIdx], diffsEntry) == false)
+              { continue; }
           }
+          renderPass.diffs |= renderPassMembers_e::attachments;
+          renderPass.attachmentsDiffs.push_back({lhsKey, diffsEntry});
         }
-        for (size_t i = mn; i < mx; ++i)
+        for (auto const & [rhsKey, rhsIdx] : rhs.attachments.keys())
         {
+          if (auto it = lhs.attachments.keys.find(rhsKey); it != lhs.attachments.keys.end())
+            { continue; }
+
           attachmentDiffs_t diffsEntry = { .diffs = attachmentMembers_e::all };
-          renderPass.attachmentsDiffs.push_back({i, diffsEntry});
+          renderPass.attachmentsDiffs.push_back({rhsKey, diffsEntry});
         }
       }
       // diff member 'subpasses':
       {
-        auto [mn, mx] = std::minmax(lhs.subpasses.size(), rhs.subpasses.size());
-        for (size_t i = 0; i < mn; ++i)
+        for (auto const & [lhsKey, lhsIdx] : lhs.subpasses.keys)
         {
           subpassDiffs_t diffsEntry;
-          if (doPodsDiffer(lhs.subpasses[i], rhs.subpasses[i], diffsEntry))
+          if (auto it = rhs.subpasses.keys().find(lhsKey); it != rhs.subpasses.keys().end())
           {
-            renderPass.diffs |= renderPassMembers_e::subpasses;
-            renderPass.subpassesDiffs.push_back({i, diffsEntry});
+            auto const & [rhsKey, rhsIdx] = *it;
+            if (lhsIdx == rhsIdx &&
+                doPodsDiffer(lhs.subpasses[lhsIdx], rhs.subpasses[rhsIdx], diffsEntry) == false)
+              { continue; }
           }
+          renderPass.diffs |= renderPassMembers_e::subpasses;
+          renderPass.subpassesDiffs.push_back({lhsKey, diffsEntry});
         }
-        for (size_t i = mn; i < mx; ++i)
+        for (auto const & [rhsKey, rhsIdx] : rhs.subpasses.keys())
         {
+          if (auto it = lhs.subpasses.keys.find(rhsKey); it != lhs.subpasses.keys.end())
+            { continue; }
+
           subpassDiffs_t diffsEntry = { .diffs = subpassMembers_e::all };
-          renderPass.subpassesDiffs.push_back({i, diffsEntry});
+          renderPass.subpassesDiffs.push_back({rhsKey, diffsEntry});
         }
       }
       // diff member 'dependencies':
@@ -562,7 +574,7 @@ namespace overground
     struct identifyVisibleThings_t
     {
       std::string type;
-      std::vector<string> tags;
+      std::vector<std::string> tags;
     };
 
     void importPod(
@@ -698,7 +710,7 @@ namespace overground
     struct computeShadows_t
     {
       std::string type;
-      std::vector<string> tags;
+      std::vector<std::string> tags;
     };
 
     void importPod(
@@ -1014,7 +1026,7 @@ namespace overground
     struct computeDepth_t
     {
       std::string type;
-      std::vector<string> tags;
+      std::vector<std::string> tags;
     };
 
     void importPod(
@@ -1440,6 +1452,7 @@ namespace overground
     struct operationList_t
     {
       std::string name;
+      bool primaryPlan;
       std::vector<std::variant<identifyVisibleThings_t, drawRecursiveCameras_t, computeShadows_t, updateUbos_t, setRenderPass_t, nextSubpass_t, endRenderPass_t, computeDepth_t, drawUi_t, drawOpaque_t, drawTransparent_t, drawImposters_t, drawSkybox_t, runPostEffects_t>> ops;
     };
 
@@ -1463,14 +1476,16 @@ namespace overground
     {
       none = 0,
       name = 1 << 0,
-      ops = 1 << 1,
-      all = name | ops
+      primaryPlan = 1 << 1,
+      ops = 1 << 2,
+      all = name | primaryPlan | ops
     };
 
     inline bool operator == (operationList_t const & lhs, operationList_t const & rhs) noexcept
     {
       return
         lhs.name == rhs.name &&
+        lhs.primaryPlan == rhs.primaryPlan &&
         lhs.ops == rhs.ops;
     };
 
@@ -1493,6 +1508,9 @@ namespace overground
       // diff member 'name':
       if (lhs.name != rhs.name)
         { operationList.diffs |= operationListMembers_e::name; }
+      // diff member 'primaryPlan':
+      if (lhs.primaryPlan != rhs.primaryPlan)
+        { operationList.diffs |= operationListMembers_e::primaryPlan; }
       // diff member 'ops':
       {
         auto [mn, mx] = std::minmax(lhs.ops.size(), rhs.ops.size());
@@ -1518,8 +1536,8 @@ namespace overground
     struct renderPlan_t
     {
       std::string name;
-      std::vector<renderPass_t> renderPasses;
-      std::vector<operationList_t> operations;
+      stringDict<renderPass_t> renderPasses;
+      stringDict<operationList_t> operations;
     };
 
     void importPod(
@@ -1563,8 +1581,8 @@ namespace overground
     struct renderPlanDiffs_t
     {
       renderPlanMembers_e diffs;
-      std::vector<std::pair<size_t, renderPassDiffs_t>> renderPassesDiffs;
-      std::vector<std::pair<size_t, operationListDiffs_t>> operationsDiffs;
+      std::vector<std::pair<std::string, renderPassDiffs_t>> renderPassesDiffs;
+      std::vector<std::pair<std::string, operationListDiffs_t>> operationsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -1577,38 +1595,50 @@ namespace overground
         { renderPlan.diffs |= renderPlanMembers_e::name; }
       // diff member 'renderPasses':
       {
-        auto [mn, mx] = std::minmax(lhs.renderPasses.size(), rhs.renderPasses.size());
-        for (size_t i = 0; i < mn; ++i)
+        for (auto const & [lhsKey, lhsIdx] : lhs.renderPasses.keys)
         {
           renderPassDiffs_t diffsEntry;
-          if (doPodsDiffer(lhs.renderPasses[i], rhs.renderPasses[i], diffsEntry))
+          if (auto it = rhs.renderPasses.keys().find(lhsKey); it != rhs.renderPasses.keys().end())
           {
-            renderPlan.diffs |= renderPlanMembers_e::renderPasses;
-            renderPlan.renderPassesDiffs.push_back({i, diffsEntry});
+            auto const & [rhsKey, rhsIdx] = *it;
+            if (lhsIdx == rhsIdx &&
+                doPodsDiffer(lhs.renderPasses[lhsIdx], rhs.renderPasses[rhsIdx], diffsEntry) == false)
+              { continue; }
           }
+          renderPlan.diffs |= renderPlanMembers_e::renderPasses;
+          renderPlan.renderPassesDiffs.push_back({lhsKey, diffsEntry});
         }
-        for (size_t i = mn; i < mx; ++i)
+        for (auto const & [rhsKey, rhsIdx] : rhs.renderPasses.keys())
         {
+          if (auto it = lhs.renderPasses.keys.find(rhsKey); it != lhs.renderPasses.keys.end())
+            { continue; }
+
           renderPassDiffs_t diffsEntry = { .diffs = renderPassMembers_e::all };
-          renderPlan.renderPassesDiffs.push_back({i, diffsEntry});
+          renderPlan.renderPassesDiffs.push_back({rhsKey, diffsEntry});
         }
       }
       // diff member 'operations':
       {
-        auto [mn, mx] = std::minmax(lhs.operations.size(), rhs.operations.size());
-        for (size_t i = 0; i < mn; ++i)
+        for (auto const & [lhsKey, lhsIdx] : lhs.operations.keys)
         {
           operationListDiffs_t diffsEntry;
-          if (doPodsDiffer(lhs.operations[i], rhs.operations[i], diffsEntry))
+          if (auto it = rhs.operations.keys().find(lhsKey); it != rhs.operations.keys().end())
           {
-            renderPlan.diffs |= renderPlanMembers_e::operations;
-            renderPlan.operationsDiffs.push_back({i, diffsEntry});
+            auto const & [rhsKey, rhsIdx] = *it;
+            if (lhsIdx == rhsIdx &&
+                doPodsDiffer(lhs.operations[lhsIdx], rhs.operations[rhsIdx], diffsEntry) == false)
+              { continue; }
           }
+          renderPlan.diffs |= renderPlanMembers_e::operations;
+          renderPlan.operationsDiffs.push_back({lhsKey, diffsEntry});
         }
-        for (size_t i = mn; i < mx; ++i)
+        for (auto const & [rhsKey, rhsIdx] : rhs.operations.keys())
         {
+          if (auto it = lhs.operations.keys.find(rhsKey); it != lhs.operations.keys.end())
+            { continue; }
+
           operationListDiffs_t diffsEntry = { .diffs = operationListMembers_e::all };
-          renderPlan.operationsDiffs.push_back({i, diffsEntry});
+          renderPlan.operationsDiffs.push_back({rhsKey, diffsEntry});
         }
       }
 

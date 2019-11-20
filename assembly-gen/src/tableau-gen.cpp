@@ -221,15 +221,8 @@ ostream & overground::tableau::operator << (ostream & stream, srtTransform_t con
 }
 
 void overground::tableau::importPod(
-  humon::HuNode const & src, drawableSubmodel_t & dest)
+  humon::HuNode const & src, drawableSubmesh_t & dest)
 {
-  if (src % "type")
-  {
-    auto & src0 = src / "type";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.type = std::move(dst0);
-  }
   if (src % "submesh")
   {
     auto & src0 = src / "submesh";
@@ -240,25 +233,20 @@ void overground::tableau::importPod(
   if (src % "material")
   {
     auto & src0 = src / "material";
-    std::optional<string> dst0;
-    string dst1;
-    {
-      auto & src1 = src0;
-      dst1 = (string) src1; // leaf
-    }
-    dst0.emplace(std::move(dst1));
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
     dest.material = std::move(dst0);
   }
   if (src % "tags")
   {
     auto & src0 = src / "tags";
-    std::vector<string> dst0;
+    std::vector<std::string> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      string dst1;
-      dst1 = (string) src1; // leaf
+      std::string dst1;
+      dst1 = (std::string) src1; // leaf
 
       dst0.push_back(std::move(dst1));
     }
@@ -267,14 +255,14 @@ void overground::tableau::importPod(
 }
 
 void overground::tableau::importPod(
-std::vector<uint8_t> const & src, drawableSubmodel_t & dest)
+std::vector<uint8_t> const & src, drawableSubmesh_t & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
   // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
-void overground::tableau::exportPod(drawableSubmodel_t const & src,
+void overground::tableau::exportPod(drawableSubmesh_t const & src,
 humon::HuNode & dest, int depth)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
@@ -283,7 +271,7 @@ humon::HuNode & dest, int depth)
 }
 
 void overground::tableau::exportPod(
-drawableSubmodel_t const & src, std::vector<uint8_t> & dest)
+drawableSubmesh_t const & src, std::vector<uint8_t> & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
@@ -291,25 +279,16 @@ drawableSubmodel_t const & src, std::vector<uint8_t> & dest)
 }
 
 std::string overground::tableau::print(
-  drawableSubmodel_t const & src, int depth)
+  drawableSubmesh_t const & src, int depth)
 {
   string prevIndentIn(depth * 2, ' ');
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
-  ss << "\n" << indentIn << "type: ";
-  ss << (src.type);
   ss << "\n" << indentIn << "submesh: ";
   ss << (src.submesh);
   ss << "\n" << indentIn << "material: ";
-
-  if ((bool) src.material)
-  {
-    string const & src0 = * src.material;
-    ss << (src0);
-  }
-  else
-    { ss << "<undefined>"; }
+  ss << (src.material);
   ss << "\n" << indentIn << "tags: ";
   ss << "[";
   for (size_t i0 = 0; i0 < src.tags.size(); ++i0)
@@ -317,7 +296,7 @@ std::string overground::tableau::print(
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    string const & src0 = src.tags[i0];
+    std::string const & src0 = src.tags[i0];
     ss << "\n" << indentIn;
     ss << (src0);
     depth -= 1;
@@ -327,14 +306,14 @@ std::string overground::tableau::print(
   return ss.str();
 }
 
-ostream & overground::tableau::operator << (ostream & stream, drawableSubmodel_t const & rhs)
+ostream & overground::tableau::operator << (ostream & stream, drawableSubmesh_t const & rhs)
 {
   stream << print(rhs);
   return stream;
 }
 
 void overground::tableau::importPod(
-  humon::HuNode const & src, drawableModel_t & dest)
+  humon::HuNode const & src, drawableMesh_t & dest)
 {
   if (src % "type")
   {
@@ -350,32 +329,32 @@ void overground::tableau::importPod(
     dst0 = (std::string) src0; // leaf
     dest.mesh = std::move(dst0);
   }
-  if (src % "subModels")
+  if (src % "subMeshes")
   {
-    auto & src0 = src / "subModels";
-    std::vector<drawableSubmodel_t> dst0;
+    auto & src0 = src / "subMeshes";
+    std::vector<drawableSubmesh_t> dst0;
 
     for (size_t i0 = 0; i0 < src0.size(); ++i0)
     {
       auto & src1 = src0 / i0;
-      drawableSubmodel_t dst1;
+      drawableSubmesh_t dst1;
       importPod(src1, dst1);
 
       dst0.push_back(std::move(dst1));
     }
-    dest.subModels = std::move(dst0);
+    dest.subMeshes = std::move(dst0);
   }
 }
 
 void overground::tableau::importPod(
-std::vector<uint8_t> const & src, drawableModel_t & dest)
+std::vector<uint8_t> const & src, drawableMesh_t & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
   // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
 }
 
-void overground::tableau::exportPod(drawableModel_t const & src,
+void overground::tableau::exportPod(drawableMesh_t const & src,
 humon::HuNode & dest, int depth)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
@@ -384,7 +363,7 @@ humon::HuNode & dest, int depth)
 }
 
 void overground::tableau::exportPod(
-drawableModel_t const & src, std::vector<uint8_t> & dest)
+drawableMesh_t const & src, std::vector<uint8_t> & dest)
 {
   log(0, logTags::warn, "This operation has not been implemented yet.");
 
@@ -392,7 +371,7 @@ drawableModel_t const & src, std::vector<uint8_t> & dest)
 }
 
 std::string overground::tableau::print(
-  drawableModel_t const & src, int depth)
+  drawableMesh_t const & src, int depth)
 {
   string prevIndentIn(depth * 2, ' ');
   string indentIn(2 + depth * 2, ' ');
@@ -402,14 +381,14 @@ std::string overground::tableau::print(
   ss << (src.type);
   ss << "\n" << indentIn << "mesh: ";
   ss << (src.mesh);
-  ss << "\n" << indentIn << "subModels: ";
+  ss << "\n" << indentIn << "subMeshes: ";
   ss << "[";
-  for (size_t i0 = 0; i0 < src.subModels.size(); ++i0)
+  for (size_t i0 = 0; i0 < src.subMeshes.size(); ++i0)
   {
     depth += 1;
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
-    drawableSubmodel_t const & src0 = src.subModels[i0];
+    drawableSubmesh_t const & src0 = src.subMeshes[i0];
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
     depth -= 1;
@@ -419,7 +398,7 @@ std::string overground::tableau::print(
   return ss.str();
 }
 
-ostream & overground::tableau::operator << (ostream & stream, drawableModel_t const & rhs)
+ostream & overground::tableau::operator << (ostream & stream, drawableMesh_t const & rhs)
 {
   stream << print(rhs);
   return stream;
@@ -832,69 +811,91 @@ ostream & overground::tableau::operator << (ostream & stream, camera_t const & r
 void overground::tableau::importPod(
   humon::HuNode const & src, feature_t & dest)
 {
-  if (src % "data")
+  if (src % "renderPlanRefs")
   {
-    auto & src0 = src / "data";
-    std::variant<matrixTransform_t, srtTransform_t, drawableSubmodel_t, drawableModel_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> dst0;
+    auto & src0 = src / "renderPlanRefs";
+    size_t dst0;
+    dst0 = (size_t) src0; // leaf
+    dest.renderPlanRefs = std::move(dst0);
+  }
+  if (src % "modelRefs")
+  {
+    auto & src0 = src / "modelRefs";
+    size_t dst0;
+    dst0 = (size_t) src0; // leaf
+    dest.modelRefs = std::move(dst0);
+  }
+  if (src % "materialRefs")
+  {
+    auto & src0 = src / "materialRefs";
+    size_t dst0;
+    dst0 = (size_t) src0; // leaf
+    dest.materialRefs = std::move(dst0);
+  }
+  if (src % "assetRefs")
+  {
+    auto & src0 = src / "assetRefs";
+    size_t dst0;
+    dst0 = (size_t) src0; // leaf
+    dest.assetRefs = std::move(dst0);
+  }
+  if (src % "featureData")
+  {
+    auto & src0 = src / "featureData";
+    std::variant<matrixTransform_t, srtTransform_t, drawableMesh_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> dst0;
     {
       auto & src1 = src0;
       if (src1 % "type")
       {
         std::string const & typ = src1 / "type";
         if (typ == "") { throw std::runtime_error("objects of variant type require a \"type\" key."); }
-        else if (typ == "matrixTransform_t")
+        else if (typ == "matrixTransform")
         {
           matrixTransform_t dst1;
-      importPod(src1, dst1);
+          importPod(src1, dst1);
           dst0.emplace<matrixTransform_t>(std::move(dst1));
         }
-        else if (typ == "srtTransform_t")
+        else if (typ == "srtTransform")
         {
           srtTransform_t dst1;
-      importPod(src1, dst1);
+          importPod(src1, dst1);
           dst0.emplace<srtTransform_t>(std::move(dst1));
         }
-        else if (typ == "drawableSubmodel_t")
+        else if (typ == "drawableMesh")
         {
-          drawableSubmodel_t dst1;
-      importPod(src1, dst1);
-          dst0.emplace<drawableSubmodel_t>(std::move(dst1));
+          drawableMesh_t dst1;
+          importPod(src1, dst1);
+          dst0.emplace<drawableMesh_t>(std::move(dst1));
         }
-        else if (typ == "drawableModel_t")
-        {
-          drawableModel_t dst1;
-      importPod(src1, dst1);
-          dst0.emplace<drawableModel_t>(std::move(dst1));
-        }
-        else if (typ == "directionalLight_t")
+        else if (typ == "directionalLight")
         {
           directionalLight_t dst1;
-      importPod(src1, dst1);
+          importPod(src1, dst1);
           dst0.emplace<directionalLight_t>(std::move(dst1));
         }
-        else if (typ == "pointLight_t")
+        else if (typ == "pointLight")
         {
           pointLight_t dst1;
-      importPod(src1, dst1);
+          importPod(src1, dst1);
           dst0.emplace<pointLight_t>(std::move(dst1));
         }
-        else if (typ == "spotLight_t")
+        else if (typ == "spotLight")
         {
           spotLight_t dst1;
-      importPod(src1, dst1);
+          importPod(src1, dst1);
           dst0.emplace<spotLight_t>(std::move(dst1));
         }
-        else if (typ == "camera_t")
+        else if (typ == "camera")
         {
           camera_t dst1;
-      importPod(src1, dst1);
+          importPod(src1, dst1);
           dst0.emplace<camera_t>(std::move(dst1));
         }
 
       }
       else { throw std::runtime_error("objects of variant type require a \"kind\" key."); }
     }
-    dest.data = std::move(dst0);
+    dest.featureData = std::move(dst0);
   }
 }
 
@@ -929,55 +930,57 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
-  ss << "\n" << indentIn << "data: ";
+  ss << "\n" << indentIn << "renderPlanRefs: ";
+  ss << (src.renderPlanRefs);
+  ss << "\n" << indentIn << "modelRefs: ";
+  ss << (src.modelRefs);
+  ss << "\n" << indentIn << "materialRefs: ";
+  ss << (src.materialRefs);
+  ss << "\n" << indentIn << "assetRefs: ";
+  ss << (src.assetRefs);
+  ss << "\n" << indentIn << "featureData: ";
 
-  if (src.data.valueless_by_exception())
+  if (src.featureData.valueless_by_exception())
     { ss << "bad state\n"; }
-  else if (std::holds_alternative<matrixTransform_t>(src.data))
+  else if (std::holds_alternative<matrixTransform_t>(src.featureData))
   {
-    matrixTransform_t const & src0 = std::get<matrixTransform_t>(src.data);
+    matrixTransform_t const & src0 = std::get<matrixTransform_t>(src.featureData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<srtTransform_t>(src.data))
+  else if (std::holds_alternative<srtTransform_t>(src.featureData))
   {
-    srtTransform_t const & src0 = std::get<srtTransform_t>(src.data);
+    srtTransform_t const & src0 = std::get<srtTransform_t>(src.featureData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<drawableSubmodel_t>(src.data))
+  else if (std::holds_alternative<drawableMesh_t>(src.featureData))
   {
-    drawableSubmodel_t const & src0 = std::get<drawableSubmodel_t>(src.data);
+    drawableMesh_t const & src0 = std::get<drawableMesh_t>(src.featureData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<drawableModel_t>(src.data))
+  else if (std::holds_alternative<directionalLight_t>(src.featureData))
   {
-    drawableModel_t const & src0 = std::get<drawableModel_t>(src.data);
+    directionalLight_t const & src0 = std::get<directionalLight_t>(src.featureData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<directionalLight_t>(src.data))
+  else if (std::holds_alternative<pointLight_t>(src.featureData))
   {
-    directionalLight_t const & src0 = std::get<directionalLight_t>(src.data);
+    pointLight_t const & src0 = std::get<pointLight_t>(src.featureData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<pointLight_t>(src.data))
+  else if (std::holds_alternative<spotLight_t>(src.featureData))
   {
-    pointLight_t const & src0 = std::get<pointLight_t>(src.data);
+    spotLight_t const & src0 = std::get<spotLight_t>(src.featureData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<spotLight_t>(src.data))
+  else if (std::holds_alternative<camera_t>(src.featureData))
   {
-    spotLight_t const & src0 = std::get<spotLight_t>(src.data);
-    ss << "\n" << indentIn;
-    ss << print(src0, depth + 1);
-  }
-  else if (std::holds_alternative<camera_t>(src.data))
-  {
-    camera_t const & src0 = std::get<camera_t>(src.data);
+    camera_t const & src0 = std::get<camera_t>(src.featureData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
@@ -1100,10 +1103,10 @@ void overground::tableau::importPod(
         {
           std::string const & typ = src2 / "type";
           if (typ == "") { throw std::runtime_error("objects of variant type require a \"type\" key."); }
-          else if (typ == "otherKindOfObject_t")
+          else if (typ == "otherKindOfObject")
           {
             otherKindOfObject_t dst2;
-        importPod(src2, dst2);
+            importPod(src2, dst2);
             dst1.emplace<otherKindOfObject_t>(std::move(dst2));
           }
 

@@ -2,8 +2,8 @@
 #define OBJECT_H
 
 #include <vector>
-#include "featureManager.h"
 #include "tableau-gen.h"
+#include "feature.h"
 
 namespace overground
 {
@@ -24,7 +24,7 @@ namespace overground
     inline void setState(ObjectState newState);
 
     template <typename Fn>
-    inline void forEachFeature(Fn fn);
+    inline void forEachFeature(Fn && fn);
 
   protected:
 
@@ -59,7 +59,7 @@ namespace overground
 
 
   template <typename Fn>
-  inline void Object::forEachFeature(Fn fn)
+  inline void Object::forEachFeature(Fn && fn)
   {
     std::for_each(features_.begin(), features.end(), 
       [](size_t id){ fn(featureMan->features()[id]) });
