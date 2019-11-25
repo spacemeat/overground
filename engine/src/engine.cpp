@@ -289,12 +289,17 @@ void Engine::checkForUpdatedAssembly()
     }
 
     // At this point, all assets sizes are computed and all object trees are up to date. We can ensure we have a device memory large enough.
-    graphics->ensureDeviceAllocSize(
-      accumulate(tableauGroups.begin(), tableauGroups.end(), 0, 
+    auto maxAllocSize = accumulate(tableauGroups.begin(), tableauGroups.end(), 0, 
       [](auto accum, auto & entry)
     {
-      return accum + entry.getAllocSize();
-    }));
+      return std::max(accum, entry.getAllocSize());
+    });
+
+    ObjectTree & workingTree = tableauGroups.find(workAsm.usingTableauGroup)->second;
+
+    graphics->setNewAllocDesc(workingTree.allocDesc());
+
+    graphics->ensureDeviceAllocSize(maxAllocSize);
 
     // In a smooth and professional manner, we can blt any assets that have previously been compiled now, and bind their buffers/images. Assets that are compiling or loading from cache will have their day probably in some future frame.
     // Basically, the current tableau group's ObjectTree may need to be (re)created. If so,and an older version is present, we can recreate by allocating a new host-visible (and maybe device-visible on AGPs) segment and blt asset data from the old segment for any assets that haven't changed. The rest are loaded from cache or compiled in-place in a later frame.
@@ -303,9 +308,6 @@ void Engine::checkForUpdatedAssembly()
     // Now let's sync materials.
 
     // Now let's sync renderplans.
-
-
-
 
 
     if ((assemblyDiffs->diffs & assemblyMembers_e::usingTableauGroup) != 0 ||

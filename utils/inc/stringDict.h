@@ -10,6 +10,12 @@ namespace overground
   class stringDict
   {
   public:
+    void clear()
+    {
+      keyMap.clear();
+      dataVect.clear();
+    }
+    
     void push_back(std::string_view key, T const & value)
     {
       keyMap.insert_or_assign(key, dataVect.size());

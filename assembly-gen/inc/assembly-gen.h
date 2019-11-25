@@ -23,6 +23,7 @@ namespace overground
     struct assembly_t
     {
       stringDict<config::config_t> configs;
+      stringDict<memoryPlan::memoryPlan_t> memoryPlans;
       stringDict<renderPlan::renderPlan_t> renderPlans;
       stringDict<asset::asset_t> assets;
       stringDict<material::material_t> materials;
@@ -52,20 +53,22 @@ namespace overground
     {
       none = 0,
       configs = 1 << 0,
-      renderPlans = 1 << 1,
-      assets = 1 << 2,
-      materials = 1 << 3,
-      tableaux = 1 << 4,
-      tableauGroups = 1 << 5,
-      usingConfig = 1 << 6,
-      usingTableauGroup = 1 << 7,
-      all = configs | renderPlans | assets | materials | tableaux | tableauGroups | usingConfig | usingTableauGroup
+      memoryPlans = 1 << 1,
+      renderPlans = 1 << 2,
+      assets = 1 << 3,
+      materials = 1 << 4,
+      tableaux = 1 << 5,
+      tableauGroups = 1 << 6,
+      usingConfig = 1 << 7,
+      usingTableauGroup = 1 << 8,
+      all = configs | memoryPlans | renderPlans | assets | materials | tableaux | tableauGroups | usingConfig | usingTableauGroup
     };
 
     inline bool operator == (assembly_t const & lhs, assembly_t const & rhs) noexcept
     {
       return
         lhs.configs == rhs.configs &&
+        lhs.memoryPlans == rhs.memoryPlans &&
         lhs.renderPlans == rhs.renderPlans &&
         lhs.assets == rhs.assets &&
         lhs.materials == rhs.materials &&
@@ -84,6 +87,7 @@ namespace overground
     {
       assemblyMembers_e diffs;
       std::vector<std::pair<std::string, config::configDiffs_t>> configsDiffs;
+      std::vector<std::pair<std::string, memoryPlan::memoryPlanDiffs_t>> memoryPlansDiffs;
       std::vector<std::pair<std::string, renderPlan::renderPlanDiffs_t>> renderPlansDiffs;
       std::vector<std::pair<std::string, asset::assetDiffs_t>> assetsDiffs;
       std::vector<std::pair<std::string, material::materialDiffs_t>> materialsDiffs;
@@ -118,6 +122,30 @@ namespace overground
 
           config::configDiffs_t diffsEntry = { .diffs = config::configMembers_e::all };
           assembly.configsDiffs.push_back({rhsKey, diffsEntry});
+        }
+      }
+      // diff member 'memoryPlans':
+      {
+        for (auto const & [lhsKey, lhsIdx] : lhs.memoryPlans.keys)
+        {
+          memoryPlan::memoryPlanDiffs_t diffsEntry;
+          if (auto it = rhs.memoryPlans.keys().find(lhsKey); it != rhs.memoryPlans.keys().end())
+          {
+            auto const & [rhsKey, rhsIdx] = *it;
+            if (lhsIdx == rhsIdx &&
+                doPodsDiffer(lhs.memoryPlans[lhsIdx], rhs.memoryPlans[rhsIdx], diffsEntry) == false)
+              { continue; }
+          }
+          assembly.diffs |= assemblyMembers_e::memoryPlans;
+          assembly.memoryPlansDiffs.push_back({lhsKey, diffsEntry});
+        }
+        for (auto const & [rhsKey, rhsIdx] : rhs.memoryPlans.keys())
+        {
+          if (auto it = lhs.memoryPlans.keys.find(rhsKey); it != lhs.memoryPlans.keys.end())
+            { continue; }
+
+          memoryPlan::memoryPlanDiffs_t diffsEntry = { .diffs = memoryPlan::memoryPlanMembers_e::all };
+          assembly.memoryPlansDiffs.push_back({rhsKey, diffsEntry});
         }
       }
       // diff member 'renderPlans':

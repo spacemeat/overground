@@ -4,6 +4,7 @@
 #include <string>
 #include <set>
 
+#include "allocDesc.h"
 #include "graphicsUtils.h"
 
 namespace overground
@@ -59,8 +60,15 @@ namespace overground
     void waitForGraphicsOps();
 
   private:
+    // graphics.cpp
     bool manageInvalidDevice();
-    
+  
+  public:
+    void setNewAllocDesc(AllocDesc newDesc);
+    void ensureDeviceAllocSize();
+  private:
+    void syncAllocs_s2s(AllocDesc * from, AllocDesc * to);
+
     // window.cpp
     void createWindow();
     void updateWindow();
@@ -109,6 +117,7 @@ namespace overground
     // framebuffer.cpp
     void resetFramebuffer(RenderPass * renderPass);
     void destroyFramebuffer(size_t framebufferIdx);
+
 
   private:
     GLFWwindow * mainWindow = nullptr;
@@ -160,6 +169,14 @@ namespace overground
     vk::SwapchainKHR swapchain = nullptr;
 
     std::vector<SwapchainThing> swapchainThings;
+
+    std::array<AllocDesc, 2> allocDescs;
+    AllocDesc * currAllocDesc;
+    AllocDesc * workAllocDesc;
+    size_t bufferImageAllocSize = 0;
+    vk::DeviceMemory bufferImageAlloc_hostOrShared;
+    vk::DeviceMemory bufferImageAlloc_device;
+    bool forceAllocStaging = false;
 
     bool hasWaitedForGpuIdleThisFrame = false;
     bool hasWaitedForFrameFenceThisFrame = false;

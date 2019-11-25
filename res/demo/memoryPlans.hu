@@ -1,0 +1,53 @@
+{
+  memoryPlans: {
+    default3d: {
+      allocs: {
+        staging: {
+          types: [ {
+              memoryProps: [hostVisible hostCoherent]
+              allocChunkSize: 256 # MB
+              mappable: true
+          } ]
+        }
+        static: {
+          types: [ {
+              memoryProps: [deviceLocal]
+              allocChunkSize: 256
+              mappable: false
+            } {
+              memoryProps: [deviceLocal hostVisible hostCoherent] # max size is 256 MB on Windows (AMD?)
+              allocChunkSize: 64
+              mappable: true
+              # writeInChunks: true # probably not a thing to worry about?
+            } {
+              memoryProps: [hostVisible hostCoherent]
+              allocChunkSize: 256
+              mappable: true
+            }
+          ]
+        }
+        hostWriteDeviceRead: {
+          types: [ {
+              memoryProps: [deviceLocal hostVisible hostCoherent] # max size is 256 MB on Windows (AMD?)
+              allocChunkSize: 64
+              mappable: true
+              # writeInChunks: true # probably not a thing to worry about?
+            } {
+              memoryProps: [hostVisible hostCoherent]
+              allocChunkSize: 256
+              mappable: true
+            }
+          ]
+        }
+        deviceWriteHostRead: {
+          types: [ {
+              memoryProps: [hostVisible hostCoherent hostCached]
+              allocChunkSize: 256
+              mappable: true
+            }
+          ]
+        }        
+      }
+    }
+  }
+}

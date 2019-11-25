@@ -12,7 +12,7 @@
 #include "fileReference.h"
 #include "jobManager.h"
 #include "assembly-gen.h"
-
+#include "objectTree.h"
 #include "assetManager.h"
 
 

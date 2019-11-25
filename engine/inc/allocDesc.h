@@ -15,13 +15,15 @@ namespace overground
   class AllocDesc
   {
   public:
-    void trackAsset(std::string_view assetName, size_t size);
-    void setAssetOffset(std::string_view assetName, size_t offset);
+    void reset(bool computeAlignments);
+    void trackAsset(std::string_view assetName);
+    void computeMap();
     size_t getAllocSize();
     stringDict<AllocDescEntry> const & getBufferDesc() const noexcept;
 
   private:
-    void * allocBlock = nullptr;
+    bool 
+computeAlignments = false;
     size_t totalAllocSize = 0;
     stringDict<AllocDescEntry> bufferDesc;
   };

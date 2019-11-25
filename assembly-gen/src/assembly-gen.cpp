@@ -23,6 +23,20 @@ void overground::assembly::importPod(
     }
     dest.configs = std::move(dst0);
   }
+  if (src % "memoryPlans")
+  {
+    auto & src0 = src / "memoryPlans";
+    stringDict<memoryPlan::memoryPlan_t> dst0;
+    for (size_t i0 = 0; i0 < src0.size(); ++i0)
+    {
+      auto & src1 = src0 / i0;
+      auto const & key = src0.keyAt(i0);
+      memoryPlan::memoryPlan_t dst1;
+      importPod(src1, dst1);
+      dst0.push_back(key, std::move(dst1));
+    }
+    dest.memoryPlans = std::move(dst0);
+  }
   if (src % "renderPlans")
   {
     auto & src0 = src / "renderPlans";
@@ -157,6 +171,21 @@ std::string overground::assembly::print(
     string prevIndentIn(depth * 2, ' ');
     string indentIn(2 + depth * 2, ' ');
     config::config_t const & src0 = src.configs[idx];
+    ss << indentIn << key << ": ";
+    ss << "\n" << indentIn;
+    ss << print(src0, depth + 1);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "}";
+  ss << "\n" << indentIn << "memoryPlans: ";
+  ss << "{";
+  for (size_t i0 = 0; i0 < src.memoryPlans.size(); ++i0)
+  {
+    auto const & [key, idx] = src.memoryPlans.keys[i0];
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    memoryPlan::memoryPlan_t const & src0 = src.memoryPlans[idx];
     ss << indentIn << key << ": ";
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);

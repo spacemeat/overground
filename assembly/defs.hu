@@ -56,6 +56,23 @@
       }
     }
 
+    memoryPlan: {
+      memoryType: {
+        memoryProps: { type: "vector<vk::MemoryPropertyFlagBits>" }
+        allocChunkSize: { type: size_t }
+        mappable: { type: bool }
+      }
+
+      memoryAlloc: {
+        name: { type: string fromKey: true }
+        types: { type: "vector<memoryType>" }
+      }
+
+      memoryPlan: {
+        allocs: { type: "stringDict<memoryAlloc>" }
+      }
+    }
+
     renderPlan: {
       attachment: {
         name: { type: string fromKey: true }
@@ -591,12 +608,11 @@
     }
 
     assembly: {
-      uses: [
-        config, renderPlan, asset, material, tableau
-      ]
+      uses: [ config memoryPlan renderPlan asset material tableau ]
       # Every file in the assemblies dir -is- an assembly. They merge into the following superset:
       assembly: {
         configs: { type: "stringDict<config::config>" }
+        memoryPlans: { type: "stringDict<memoryPlan::memoryPlan>" }
         renderPlans: { type: "stringDict<renderPlan::renderPlan>" }
         assets: { type: "stringDict<asset::asset>" }
         materials: { type: "stringDict<material::material>" }

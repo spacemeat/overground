@@ -28,39 +28,11 @@ ObjectTree::ObjectTree(assembly::assembly_t const & assembly, std::string_view t
     }
   }
 
+  allocDesc_.reset(true);
+
   // compute buffer/image order for device memory
   forEachAsset([&](Asset * asset)
-  {
-    allocDesc_.trackAsset(asset->name, asset->bufferSize);)
-  });
+    { allocDesc_.trackAsset(asset->name); });
 
-  bool prevBufferWasImage = false;
-
-  // compute buffer/image offsets
-  totalAllocSize = accumulate(bufferDesc.begin(), bufferDesc.end(), 0, 
-    [&](size_t lhs, AllocDescEntry & rhs)
-  {
-    // lhs is the total buffer size so far. It must be rounded up to the next alignmet multiple that rhs's asset type requires. That sets the offset for rhs, and then we compute rhs's asset size and end-of-block alignment. That's also the new end-of-buffer size we return.
-
-    // Calc the starting alignment.
-    bool useBig = rhs.asset->isImage() != prevBufferWasImage;
-    size_t resAlignment = rhs.asset->
-      getDeviceMemoryRequirements().alignment;
-    size_t alignment = alignment;
-    if (useBig)
-    {
-      vk::PhysicalDeviceLimits pdl;
-      graphics->getPhysicalDeviceLimits(pdl);
-      alignment = max(alignment, pdl.bufferImageGranularity);
-    }
-
-    rhs.offset = lhs + alignment - (lhs % alignment);
-
-    // Calc the size alignment.
-    rhs.size = rhs.asset->bufferSize + resAlignment - (rhs.asset->bufferSize % resAlignment);
-
-    prevBufferWasImage = rhs.asset->isImage();
-
-    return rhs.offset + rhs.size;
-  });
+  allocDesc_.computeMap();
 }
