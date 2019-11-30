@@ -40,11 +40,10 @@ void AllocDesc::computeMap()
     if (computeAlignments)
     {
       // Calc the starting alignment.
-      bool useBig = rhsAsset->isImage() != prevBufferWasImage;
       sizeAlignment = rhsAsset->
         getDeviceMemoryRequirements().alignment;
       offsetAlignment = sizeAlignment;
-      if (useBig)
+      if (rhsAsset->isImage() != prevBufferWasImage)
       {
         vk::PhysicalDeviceLimits pdl;
         graphics->getPhysicalDeviceLimits(pdl);

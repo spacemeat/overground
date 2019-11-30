@@ -23,7 +23,8 @@
                 "${workspaceFolder}/model/inc",
                 "${workspaceFolder}/material/inc",
                 "${workspaceFolder}/renderPlan/inc",
-                "${workspaceFolder}/plugins"
+                "${workspaceFolder}/plugins",
+                "${workspaceFolder}/memoryPlan/inc"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

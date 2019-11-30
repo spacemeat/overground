@@ -17,6 +17,7 @@ namespace overground
   public:
     void reset(bool computeAlignments);
     void trackAsset(std::string_view assetName);
+    void trackAsset(Asset * asset);
     void computeMap();
     size_t getAllocSize();
     stringDict<AllocDescEntry> const & getBufferDesc() const noexcept;

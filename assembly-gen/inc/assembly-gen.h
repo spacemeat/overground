@@ -9,6 +9,7 @@
 #include "graphicsUtils.h"
 #include "enumParsers.h"
 #include "config-gen.h"
+#include "memoryPlan-gen.h"
 #include "renderPlan-gen.h"
 #include "asset-gen.h"
 #include "material-gen.h"

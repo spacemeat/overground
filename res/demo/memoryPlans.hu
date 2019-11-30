@@ -1,50 +1,119 @@
+# allocChunkSize values are in MB.
 {
   memoryPlans: {
     default3d: {
-      allocs: {
+      maxChunkSize: 256
+      minChunksPerHeap: 4
+      allocRetries: 4
+      stagingSize: 64
+      memoryTypes: [{ # not order-dependent
+          memoryProps: []
+          chunkSize: 256
+          mappable: false
+        } {
+          memoryProps: [hostVisible hostCoherent]
+          chunkSize: 256
+          mappable: true
+        } {
+          memoryProps: [hostVisible hostCached]
+          chunkSize: 256
+          mappable: true
+        } {
+          memoryProps: [hostVisible hostCached hostCoherent]
+          chunkSize: 256
+          mappable: true
+        } {
+          memoryProps: [deviceLocal]
+          chunkSize: 256
+          mappable: false
+        } {
+          memoryProps: [deviceLocal hostVisible hostCoherent]
+          chunkSize: 64
+          mappable: true
+        } {
+          memoryProps: [deviceLocal hostVisible hostCached]
+          chunkSize: 64
+          mappable: true
+        } {
+          memoryProps: [deviceLocal hostVisible hostCached hostCoherent]
+          chunkSize: 64
+          mappable: true
+        } {
+          memoryProps: [deviceLocal lazilyAllocated]
+          chunkSize: 256
+          mappable: false
+        } {
+          memoryProps: [protected]
+          chunkSize: 256
+          mappable: false
+        } {
+          memoryProps: [protected deviceLocal]
+          chunkSize: 256
+          mappable: false
+        } {
+          memoryProps: [hostVisible hostCoherent deviceCoherent]
+          chunkSize: 256
+          mappable: false
+        } {
+          memoryProps: [hostVisible hostCached hostCoherent deviceCoherent]
+          chunkSize: 256
+          mappable: true
+        } {
+          memoryProps: [deviceLocal deviceCoherent]
+          chunkSize: 256
+          mappable: false
+        } {
+          memoryProps: [deviceLocal hostVisible hostCoherent deviceCoherent]
+          chunkSize: 64
+          mappable: true
+        } {
+          memoryProps: [deviceLocal hostVisible hostCached hostCoherent           chunkSize: 64
+deviceCoherent]
+          mappable: true
+        } {
+          memoryProps: [hostVisible hostCoherent deviceCoherent deviceUncached]
+          chunkSize: 256
+          mappable: true
+        } {
+          memoryProps: [hostVisible hostCached hostCoherent deviceCoherent deviceUncached]
+          chunkSize: 256
+          mappable: true
+        } {
+          memoryProps: [deviceLocal deviceCoherent deviceUncached]
+          chunkSize: 256
+          mappable: false
+        } {
+          memoryProps: [deviceLocal hostVisible hostCoherent deviceCoherent deviceUncached]
+          chunkSize: 64
+          mappable: true
+        } {
+          memoryProps: [deviceLocal hostVisible hostCached hostCoherent deviceCoherent deviceUncached]
+          chunkSize: 64
+          mappable: true
+        }
+      ]
+      usageTypes: {
         staging: {
-          types: [ {
-              memoryProps: [hostVisible hostCoherent]
-              allocChunkSize: 256 # MB
-              mappable: true
-          } ]
+          memoryProps: [ 
+            [hostVisible hostCoherent]
+          ]
         }
         static: {
-          types: [ {
-              memoryProps: [deviceLocal]
-              allocChunkSize: 256
-              mappable: false
-            } {
-              memoryProps: [deviceLocal hostVisible hostCoherent] # max size is 256 MB on Windows (AMD?)
-              allocChunkSize: 64
-              mappable: true
-              # writeInChunks: true # probably not a thing to worry about?
-            } {
-              memoryProps: [hostVisible hostCoherent]
-              allocChunkSize: 256
-              mappable: true
-            }
+          memoryProps: [
+            [deviceLocal]
+            [deviceLocal hostVisible hostCoherent]
+            [hostVisible hostCoherent]
           ]
         }
         hostWriteDeviceRead: {
-          types: [ {
-              memoryProps: [deviceLocal hostVisible hostCoherent] # max size is 256 MB on Windows (AMD?)
-              allocChunkSize: 64
-              mappable: true
-              # writeInChunks: true # probably not a thing to worry about?
-            } {
-              memoryProps: [hostVisible hostCoherent]
-              allocChunkSize: 256
-              mappable: true
-            }
+          memoryProps: [
+            [deviceLocal hostVisible hostCoherent]
+            [hostVisible hostCoherent]
           ]
         }
         deviceWriteHostRead: {
-          types: [ {
-              memoryProps: [hostVisible hostCoherent hostCached]
-              allocChunkSize: 256
-              mappable: true
-            }
+          memoryProps: [
+            [hostVisible hostCoherent hostCached]
           ]
         }        
       }

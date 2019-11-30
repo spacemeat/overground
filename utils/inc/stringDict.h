@@ -16,16 +16,18 @@ namespace overground
       dataVect.clear();
     }
     
-    void push_back(std::string_view key, T const & value)
+    T & push_back(std::string_view key, T const & value)
     {
       keyMap.insert_or_assign(key, dataVect.size());
       dataVect.push_back(value);
+      return dataVect.back();
     }
 
-    void push_back(std::string_view key, T const && value)
+    T & push_back(std::string_view key, T const && value)
     {
       keyMap.insert_or_assign(key, dataVect.size());
       dataVect.push_back(std::move(value));
+      return dataVect.back();
     }
 
     void remove(std::string_view key)

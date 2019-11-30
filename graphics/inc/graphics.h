@@ -39,6 +39,8 @@ namespace overground
     ~Graphics();
 
     GLFWwindow * getMainWindow() { return mainWindow; }
+    vk::PhysicalDevice & getPhysicalDevice() { return physicalDevice; }
+    vk::Device & getDevice() { return vulkanDevice; }
 
     void reset();
 

@@ -18,7 +18,7 @@ namespace overground
     struct memoryType_t
     {
       std::vector<vk::MemoryPropertyFlagBits> memoryProps;
-      size_t allocChunkSize;
+      size_t chunkSize;
       bool mappable;
     };
 
@@ -42,16 +42,16 @@ namespace overground
     {
       none = 0,
       memoryProps = 1 << 0,
-      allocChunkSize = 1 << 1,
+      chunkSize = 1 << 1,
       mappable = 1 << 2,
-      all = memoryProps | allocChunkSize | mappable
+      all = memoryProps | chunkSize | mappable
     };
 
     inline bool operator == (memoryType_t const & lhs, memoryType_t const & rhs) noexcept
     {
       return
         lhs.memoryProps == rhs.memoryProps &&
-        lhs.allocChunkSize == rhs.allocChunkSize &&
+        lhs.chunkSize == rhs.chunkSize &&
         lhs.mappable == rhs.mappable;
     };
 
@@ -87,9 +87,9 @@ namespace overground
           memoryType.memoryPropsDiffs.push_back(i);
         }
       }
-      // diff member 'allocChunkSize':
-      if (lhs.allocChunkSize != rhs.allocChunkSize)
-        { memoryType.diffs |= memoryTypeMembers_e::allocChunkSize; }
+      // diff member 'chunkSize':
+      if (lhs.chunkSize != rhs.chunkSize)
+        { memoryType.diffs |= memoryTypeMembers_e::chunkSize; }
       // diff member 'mappable':
       if (lhs.mappable != rhs.mappable)
         { memoryType.diffs |= memoryTypeMembers_e::mappable; }
@@ -97,91 +97,94 @@ namespace overground
       return memoryType.diffs != memoryTypeMembers_e::none;
     };
 
-    // memoryAlloc things
+    // usageType things
 
-    struct memoryAlloc_t
+    struct usageType_t
     {
       std::string name;
-      std::vector<memoryType_t> types;
+      std::vector<std::vector<vk::MemoryPropertyFlagBits>> memoryProps;
     };
 
     void importPod(
-      humon::HuNode const & src, memoryAlloc_t & dest);
+      humon::HuNode const & src, usageType_t & dest);
 
     void importPod(
-      std::vector<uint8_t> const & src, memoryAlloc_t & dest);
+      std::vector<uint8_t> const & src, usageType_t & dest);
 
-    void exportPod(memoryAlloc_t const & src, 
+    void exportPod(usageType_t const & src, 
       humon::HuNode & dest, int depth);
 
     void exportPod(
-      memoryAlloc_t const & src, std::vector<uint8_t> & dest);
+      usageType_t const & src, std::vector<uint8_t> & dest);
 
-    std::string print(memoryAlloc_t const & src, int depth = 0);
+    std::string print(usageType_t const & src, int depth = 0);
 
-    std::ostream & operator << (std::ostream & stream, memoryAlloc_t const & src);
+    std::ostream & operator << (std::ostream & stream, usageType_t const & src);
 
-    enum class memoryAllocMembers_e : int 
+    enum class usageTypeMembers_e : int 
     {
       none = 0,
       name = 1 << 0,
-      types = 1 << 1,
-      all = name | types
+      memoryProps = 1 << 1,
+      all = name | memoryProps
     };
 
-    inline bool operator == (memoryAlloc_t const & lhs, memoryAlloc_t const & rhs) noexcept
+    inline bool operator == (usageType_t const & lhs, usageType_t const & rhs) noexcept
     {
       return
         lhs.name == rhs.name &&
-        lhs.types == rhs.types;
+        lhs.memoryProps == rhs.memoryProps;
     };
 
-    inline bool operator != (memoryAlloc_t const & lhs, memoryAlloc_t const & rhs) noexcept
+    inline bool operator != (usageType_t const & lhs, usageType_t const & rhs) noexcept
     {
       return ! (lhs == rhs);
     };
 
-    struct memoryAllocDiffs_t
+    struct usageTypeDiffs_t
     {
-      memoryAllocMembers_e diffs;
-      std::vector<std::pair<size_t, memoryTypeDiffs_t>> typesDiffs;
+      usageTypeMembers_e diffs;
+      std::vector<size_t> memoryPropsDiffs;
     };
 
     inline bool doPodsDiffer(
-      memoryAlloc_t const & lhs,
-      memoryAlloc_t const & rhs,
-      memoryAllocDiffs_t & memoryAlloc) noexcept
+      usageType_t const & lhs,
+      usageType_t const & rhs,
+      usageTypeDiffs_t & usageType) noexcept
     {
       // diff member 'name':
       if (lhs.name != rhs.name)
-        { memoryAlloc.diffs |= memoryAllocMembers_e::name; }
-      // diff member 'types':
+        { usageType.diffs |= usageTypeMembers_e::name; }
+      // diff member 'memoryProps':
       {
-        auto [mn, mx] = std::minmax(lhs.types.size(), rhs.types.size());
+        auto [mn, mx] = std::minmax(lhs.memoryProps.size(), rhs.memoryProps.size());
         for (size_t i = 0; i < mn; ++i)
         {
-          memoryTypeDiffs_t diffsEntry;
-          if (doPodsDiffer(lhs.types[i], rhs.types[i], diffsEntry))
+          if (lhs.memoryProps[i] != rhs.memoryProps[i])
           {
-            memoryAlloc.diffs |= memoryAllocMembers_e::types;
-            memoryAlloc.typesDiffs.push_back({i, diffsEntry});
+            usageType.diffs |= usageTypeMembers_e::memoryProps;
+            usageType.memoryPropsDiffs.push_back(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          memoryTypeDiffs_t diffsEntry = { .diffs = memoryTypeMembers_e::all };
-          memoryAlloc.typesDiffs.push_back({i, diffsEntry});
+          usageType.memoryPropsDiffs.push_back(i);
         }
       }
 
-      return memoryAlloc.diffs != memoryAllocMembers_e::none;
+      return usageType.diffs != usageTypeMembers_e::none;
     };
 
     // memoryPlan things
 
     struct memoryPlan_t
     {
-      stringDict<memoryAlloc_t> allocs;
+      size_t maxChunkSize;
+      size_t minChunksPerHeap;
+      size_t allocRetries;
+      size_t stagingSize;
+      std::vector<memoryType_t> memoryTypes;
+      stringDict<usageType_t> usageTypes;
     };
 
     void importPod(
@@ -203,14 +206,24 @@ namespace overground
     enum class memoryPlanMembers_e : int 
     {
       none = 0,
-      allocs = 1 << 0,
-      all = allocs
+      maxChunkSize = 1 << 0,
+      minChunksPerHeap = 1 << 1,
+      allocRetries = 1 << 2,
+      stagingSize = 1 << 3,
+      memoryTypes = 1 << 4,
+      usageTypes = 1 << 5,
+      all = maxChunkSize | minChunksPerHeap | allocRetries | stagingSize | memoryTypes | usageTypes
     };
 
     inline bool operator == (memoryPlan_t const & lhs, memoryPlan_t const & rhs) noexcept
     {
       return
-        lhs.allocs == rhs.allocs;
+        lhs.maxChunkSize == rhs.maxChunkSize &&
+        lhs.minChunksPerHeap == rhs.minChunksPerHeap &&
+        lhs.allocRetries == rhs.allocRetries &&
+        lhs.stagingSize == rhs.stagingSize &&
+        lhs.memoryTypes == rhs.memoryTypes &&
+        lhs.usageTypes == rhs.usageTypes;
     };
 
     inline bool operator != (memoryPlan_t const & lhs, memoryPlan_t const & rhs) noexcept
@@ -221,7 +234,8 @@ namespace overground
     struct memoryPlanDiffs_t
     {
       memoryPlanMembers_e diffs;
-      std::vector<std::pair<std::string, memoryAllocDiffs_t>> allocsDiffs;
+      std::vector<std::pair<size_t, memoryTypeDiffs_t>> memoryTypesDiffs;
+      std::vector<std::pair<std::string, usageTypeDiffs_t>> usageTypesDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -229,28 +243,58 @@ namespace overground
       memoryPlan_t const & rhs,
       memoryPlanDiffs_t & memoryPlan) noexcept
     {
-      // diff member 'allocs':
+      // diff member 'maxChunkSize':
+      if (lhs.maxChunkSize != rhs.maxChunkSize)
+        { memoryPlan.diffs |= memoryPlanMembers_e::maxChunkSize; }
+      // diff member 'minChunksPerHeap':
+      if (lhs.minChunksPerHeap != rhs.minChunksPerHeap)
+        { memoryPlan.diffs |= memoryPlanMembers_e::minChunksPerHeap; }
+      // diff member 'allocRetries':
+      if (lhs.allocRetries != rhs.allocRetries)
+        { memoryPlan.diffs |= memoryPlanMembers_e::allocRetries; }
+      // diff member 'stagingSize':
+      if (lhs.stagingSize != rhs.stagingSize)
+        { memoryPlan.diffs |= memoryPlanMembers_e::stagingSize; }
+      // diff member 'memoryTypes':
       {
-        for (auto const & [lhsKey, lhsIdx] : lhs.allocs.keys)
+        auto [mn, mx] = std::minmax(lhs.memoryTypes.size(), rhs.memoryTypes.size());
+        for (size_t i = 0; i < mn; ++i)
         {
-          memoryAllocDiffs_t diffsEntry;
-          if (auto it = rhs.allocs.keys().find(lhsKey); it != rhs.allocs.keys().end())
+          memoryTypeDiffs_t diffsEntry;
+          if (doPodsDiffer(lhs.memoryTypes[i], rhs.memoryTypes[i], diffsEntry))
+          {
+            memoryPlan.diffs |= memoryPlanMembers_e::memoryTypes;
+            memoryPlan.memoryTypesDiffs.push_back({i, diffsEntry});
+          }
+        }
+        for (size_t i = mn; i < mx; ++i)
+        {
+          memoryTypeDiffs_t diffsEntry = { .diffs = memoryTypeMembers_e::all };
+          memoryPlan.memoryTypesDiffs.push_back({i, diffsEntry});
+        }
+      }
+      // diff member 'usageTypes':
+      {
+        for (auto const & [lhsKey, lhsIdx] : lhs.usageTypes.keys)
+        {
+          usageTypeDiffs_t diffsEntry;
+          if (auto it = rhs.usageTypes.keys().find(lhsKey); it != rhs.usageTypes.keys().end())
           {
             auto const & [rhsKey, rhsIdx] = *it;
             if (lhsIdx == rhsIdx &&
-                doPodsDiffer(lhs.allocs[lhsIdx], rhs.allocs[rhsIdx], diffsEntry) == false)
+                doPodsDiffer(lhs.usageTypes[lhsIdx], rhs.usageTypes[rhsIdx], diffsEntry) == false)
               { continue; }
           }
-          memoryPlan.diffs |= memoryPlanMembers_e::allocs;
-          memoryPlan.allocsDiffs.push_back({lhsKey, diffsEntry});
+          memoryPlan.diffs |= memoryPlanMembers_e::usageTypes;
+          memoryPlan.usageTypesDiffs.push_back({lhsKey, diffsEntry});
         }
-        for (auto const & [rhsKey, rhsIdx] : rhs.allocs.keys())
+        for (auto const & [rhsKey, rhsIdx] : rhs.usageTypes.keys())
         {
-          if (auto it = lhs.allocs.keys.find(rhsKey); it != lhs.allocs.keys.end())
+          if (auto it = lhs.usageTypes.keys.find(rhsKey); it != lhs.usageTypes.keys.end())
             { continue; }
 
-          memoryAllocDiffs_t diffsEntry = { .diffs = memoryAllocMembers_e::all };
-          memoryPlan.allocsDiffs.push_back({rhsKey, diffsEntry});
+          usageTypeDiffs_t diffsEntry = { .diffs = usageTypeMembers_e::all };
+          memoryPlan.usageTypesDiffs.push_back({rhsKey, diffsEntry});
         }
       }
 

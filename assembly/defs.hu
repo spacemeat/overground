@@ -59,17 +59,22 @@
     memoryPlan: {
       memoryType: {
         memoryProps: { type: "vector<vk::MemoryPropertyFlagBits>" }
-        allocChunkSize: { type: size_t }
+        chunkSize: { type: size_t }
         mappable: { type: bool }
       }
 
-      memoryAlloc: {
+      usageType: {
         name: { type: string fromKey: true }
-        types: { type: "vector<memoryType>" }
+        memoryProps: { type: "vector<vector<vk::MemoryPropertyFlagBits>>" }
       }
 
       memoryPlan: {
-        allocs: { type: "stringDict<memoryAlloc>" }
+        maxChunkSize: { type: size_t }
+        minChunksPerHeap: { type: size_t }
+        allocRetries: { type: size_t }
+        stagingSize: { type: size_t }
+        memoryTypes: { type: "vector<memoryType>" }
+        usageTypes: { type: "stringDict<usageType>" }
       }
     }
 
