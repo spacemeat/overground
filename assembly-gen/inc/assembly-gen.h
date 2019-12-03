@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <variant>
+#include <unordered_set>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -31,6 +32,7 @@ namespace overground
       stringDict<tableau::tableau_t> tableaux;
       stringDict<std::vector<std::string>> tableauGroups;
       std::string usingConfig;
+      std::string usingMemoryPlan;
       std::string usingTableauGroup;
     };
 
@@ -61,8 +63,9 @@ namespace overground
       tableaux = 1 << 5,
       tableauGroups = 1 << 6,
       usingConfig = 1 << 7,
-      usingTableauGroup = 1 << 8,
-      all = configs | memoryPlans | renderPlans | assets | materials | tableaux | tableauGroups | usingConfig | usingTableauGroup
+      usingMemoryPlan = 1 << 8,
+      usingTableauGroup = 1 << 9,
+      all = configs | memoryPlans | renderPlans | assets | materials | tableaux | tableauGroups | usingConfig | usingMemoryPlan | usingTableauGroup
     };
 
     inline bool operator == (assembly_t const & lhs, assembly_t const & rhs) noexcept
@@ -76,6 +79,7 @@ namespace overground
         lhs.tableaux == rhs.tableaux &&
         lhs.tableauGroups == rhs.tableauGroups &&
         lhs.usingConfig == rhs.usingConfig &&
+        lhs.usingMemoryPlan == rhs.usingMemoryPlan &&
         lhs.usingTableauGroup == rhs.usingTableauGroup;
     };
 
@@ -87,13 +91,13 @@ namespace overground
     struct assemblyDiffs_t
     {
       assemblyMembers_e diffs;
-      std::vector<std::pair<std::string, config::configDiffs_t>> configsDiffs;
-      std::vector<std::pair<std::string, memoryPlan::memoryPlanDiffs_t>> memoryPlansDiffs;
-      std::vector<std::pair<std::string, renderPlan::renderPlanDiffs_t>> renderPlansDiffs;
-      std::vector<std::pair<std::string, asset::assetDiffs_t>> assetsDiffs;
-      std::vector<std::pair<std::string, material::materialDiffs_t>> materialsDiffs;
-      std::vector<std::pair<std::string, tableau::tableauDiffs_t>> tableauxDiffs;
-      std::vector<std::string> tableauGroupsDiffs;
+      std::unordered_map<std::string, config::configDiffs_t> configsDiffs;
+      std::unordered_map<std::string, memoryPlan::memoryPlanDiffs_t> memoryPlansDiffs;
+      std::unordered_map<std::string, renderPlan::renderPlanDiffs_t> renderPlansDiffs;
+      std::unordered_map<std::string, asset::assetDiffs_t> assetsDiffs;
+      std::unordered_map<std::string, material::materialDiffs_t> materialsDiffs;
+      std::unordered_map<std::string, tableau::tableauDiffs_t> tableauxDiffs;
+      std::unordered_set<std::string> tableauGroupsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -114,7 +118,7 @@ namespace overground
               { continue; }
           }
           assembly.diffs |= assemblyMembers_e::configs;
-          assembly.configsDiffs.push_back({lhsKey, diffsEntry});
+          assembly.configsDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.configs.keys())
         {
@@ -122,7 +126,7 @@ namespace overground
             { continue; }
 
           config::configDiffs_t diffsEntry = { .diffs = config::configMembers_e::all };
-          assembly.configsDiffs.push_back({rhsKey, diffsEntry});
+          assembly.configsDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'memoryPlans':
@@ -138,7 +142,7 @@ namespace overground
               { continue; }
           }
           assembly.diffs |= assemblyMembers_e::memoryPlans;
-          assembly.memoryPlansDiffs.push_back({lhsKey, diffsEntry});
+          assembly.memoryPlansDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.memoryPlans.keys())
         {
@@ -146,7 +150,7 @@ namespace overground
             { continue; }
 
           memoryPlan::memoryPlanDiffs_t diffsEntry = { .diffs = memoryPlan::memoryPlanMembers_e::all };
-          assembly.memoryPlansDiffs.push_back({rhsKey, diffsEntry});
+          assembly.memoryPlansDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'renderPlans':
@@ -162,7 +166,7 @@ namespace overground
               { continue; }
           }
           assembly.diffs |= assemblyMembers_e::renderPlans;
-          assembly.renderPlansDiffs.push_back({lhsKey, diffsEntry});
+          assembly.renderPlansDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.renderPlans.keys())
         {
@@ -170,7 +174,7 @@ namespace overground
             { continue; }
 
           renderPlan::renderPlanDiffs_t diffsEntry = { .diffs = renderPlan::renderPlanMembers_e::all };
-          assembly.renderPlansDiffs.push_back({rhsKey, diffsEntry});
+          assembly.renderPlansDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'assets':
@@ -186,7 +190,7 @@ namespace overground
               { continue; }
           }
           assembly.diffs |= assemblyMembers_e::assets;
-          assembly.assetsDiffs.push_back({lhsKey, diffsEntry});
+          assembly.assetsDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.assets.keys())
         {
@@ -194,7 +198,7 @@ namespace overground
             { continue; }
 
           asset::assetDiffs_t diffsEntry = { .diffs = asset::assetMembers_e::all };
-          assembly.assetsDiffs.push_back({rhsKey, diffsEntry});
+          assembly.assetsDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'materials':
@@ -210,7 +214,7 @@ namespace overground
               { continue; }
           }
           assembly.diffs |= assemblyMembers_e::materials;
-          assembly.materialsDiffs.push_back({lhsKey, diffsEntry});
+          assembly.materialsDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.materials.keys())
         {
@@ -218,7 +222,7 @@ namespace overground
             { continue; }
 
           material::materialDiffs_t diffsEntry = { .diffs = material::materialMembers_e::all };
-          assembly.materialsDiffs.push_back({rhsKey, diffsEntry});
+          assembly.materialsDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'tableaux':
@@ -234,7 +238,7 @@ namespace overground
               { continue; }
           }
           assembly.diffs |= assemblyMembers_e::tableaux;
-          assembly.tableauxDiffs.push_back({lhsKey, diffsEntry});
+          assembly.tableauxDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.tableaux.keys())
         {
@@ -242,7 +246,7 @@ namespace overground
             { continue; }
 
           tableau::tableauDiffs_t diffsEntry = { .diffs = tableau::tableauMembers_e::all };
-          assembly.tableauxDiffs.push_back({rhsKey, diffsEntry});
+          assembly.tableauxDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'tableauGroups':
@@ -257,18 +261,21 @@ namespace overground
               { continue; }
           }
           assembly.diffs |= assemblyMembers_e::tableauGroups;
-          assembly.tableauGroupsDiffs.push_back(lhsKey);
+          assembly.tableauGroupsDiffs.insert(lhsKey);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.tableauGroups.keys())
         {
           if (auto it = lhs.tableauGroups.keys.find(rhsKey); it != lhs.tableauGroups.keys.end())
             { continue; }
-          assembly.tableauGroupsDiffs.push_back(rhsKey);
+          assembly.tableauGroupsDiffs.insert(rhsKey);
         }
       }
       // diff member 'usingConfig':
       if (lhs.usingConfig != rhs.usingConfig)
         { assembly.diffs |= assemblyMembers_e::usingConfig; }
+      // diff member 'usingMemoryPlan':
+      if (lhs.usingMemoryPlan != rhs.usingMemoryPlan)
+        { assembly.diffs |= assemblyMembers_e::usingMemoryPlan; }
       // diff member 'usingTableauGroup':
       if (lhs.usingTableauGroup != rhs.usingTableauGroup)
         { assembly.diffs |= assemblyMembers_e::usingTableauGroup; }

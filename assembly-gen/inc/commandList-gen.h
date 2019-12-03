@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <variant>
+#include <unordered_set>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -386,7 +387,7 @@ namespace overground
     struct cmdSetBlendConstantsDiffs_t
     {
       cmdSetBlendConstantsMembers_e diffs;
-      std::vector<size_t> constantsDiffs;
+      std::unordered_set<size_t> constantsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -403,7 +404,7 @@ namespace overground
         if (lhs.constants[i] != rhs.constants[i])
         {
           cmdSetBlendConstants.diffs |= cmdSetBlendConstantsMembers_e::constants;
-          cmdSetBlendConstants.constantsDiffs.push_back(i);
+          cmdSetBlendConstants.constantsDiffs.insert(i);
         }
       }
 
@@ -1752,7 +1753,7 @@ namespace overground
     struct cmdClearColorImageDiffs_t
     {
       cmdClearColorImageMembers_e diffs;
-      std::vector<size_t> colorDiffs;
+      std::unordered_set<size_t> colorDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -1772,7 +1773,7 @@ namespace overground
         if (lhs.color[i] != rhs.color[i])
         {
           cmdClearColorImage.diffs |= cmdClearColorImageMembers_e::color;
-          cmdClearColorImage.colorDiffs.push_back(i);
+          cmdClearColorImage.colorDiffs.insert(i);
         }
       }
 
@@ -1902,7 +1903,7 @@ namespace overground
     struct cmdClearAttachmentsDiffs_t
     {
       cmdClearAttachmentsMembers_e diffs;
-      std::vector<size_t> attachmentsDiffs;
+      std::unordered_set<size_t> attachmentsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -1921,12 +1922,12 @@ namespace overground
           if (lhs.attachments[i] != rhs.attachments[i])
           {
             cmdClearAttachments.diffs |= cmdClearAttachmentsMembers_e::attachments;
-            cmdClearAttachments.attachmentsDiffs.push_back(i);
+            cmdClearAttachments.attachmentsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          cmdClearAttachments.attachmentsDiffs.push_back(i);
+          cmdClearAttachments.attachmentsDiffs.insert(i);
         }
       }
 
@@ -2758,7 +2759,7 @@ namespace overground
     struct cmdExecuteCommandsDiffs_t
     {
       cmdExecuteCommandsMembers_e diffs;
-      std::vector<size_t> commandBuffersDiffs;
+      std::unordered_set<size_t> commandBuffersDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -2777,12 +2778,12 @@ namespace overground
           if (lhs.commandBuffers[i] != rhs.commandBuffers[i])
           {
             cmdExecuteCommands.diffs |= cmdExecuteCommandsMembers_e::commandBuffers;
-            cmdExecuteCommands.commandBuffersDiffs.push_back(i);
+            cmdExecuteCommands.commandBuffersDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          cmdExecuteCommands.commandBuffersDiffs.push_back(i);
+          cmdExecuteCommands.commandBuffersDiffs.insert(i);
         }
       }
 
@@ -2839,7 +2840,7 @@ namespace overground
     struct commandListDiffs_t
     {
       commandListMembers_e diffs;
-      std::vector<size_t> cmdsDiffs;
+      std::unordered_set<size_t> cmdsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -2861,12 +2862,12 @@ namespace overground
           if (lhs.cmds[i] != rhs.cmds[i])
           {
             commandList.diffs |= commandListMembers_e::cmds;
-            commandList.cmdsDiffs.push_back(i);
+            commandList.cmdsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          commandList.cmdsDiffs.push_back(i);
+          commandList.cmdsDiffs.insert(i);
         }
       }
 

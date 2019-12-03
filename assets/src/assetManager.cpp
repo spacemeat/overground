@@ -2,6 +2,7 @@
 #include <stack>
 #include <queue>
 #include "assetManager.h"
+#include "assemblyManager.h"
 #include "assembly-gen.h"
 
 
@@ -9,6 +10,82 @@ using namespace std;
 using namespace overground;
 
 
+// Called when cache is initialized and ready to use for data sourcing. Implicitly, 
+void AssetManager::initializeAssetDatabase(path_t const & assemblyDir, path_t const & cacheDir, string_view assFile)
+{
+  workAssetMap.clear();
+  workCacheMap.reset(false);
+
+  bool assNeedsToStore = false;
+  path_t assPath = fmt::format("{}\\{}", cacheDir, assFile);
+//if ass file exists:
+  if (fs::is_regular_file(assPath))
+  {
+//  load the ass file contents
+    loadAssFileContents(assPath);
+    auto assMtime = fs::last_write_time(assPath);
+//  for each asset in assembly:
+    for (auto & assetDesc : assemblyMan->getWorkingAssembly().assets.vect())
+    {
+//    if asset's file is_regular_file:
+      path_t assetPath = fmt::format("{}\\assets\\{}", assemblyDir, assetDesc.srcFile);
+      if (fs::is_regular_file(assetPath))
+      {
+//      stat ass file against asset file
+        auto assetMtime = fs::last_write_time(assetPath);
+//      if ass file is not up to date:
+        if (assMtime < assetMtime)
+        {
+//        create plugin asset type object
+          auto newAssetObj = makeAsset(assetDesc);
+//        track dat ass
+          workAssetMap.emplace(pair {assetDesc.name, move(newAssetObj)});
+//        compute essentials like compile size and image dims
+          newAssetObj->computeImportData();
+          assNeedsToStore = true;
+        }
+//      mark asset as "ass up to date"
+      }
+//    else:
+      else
+      {      
+//      mark asset as "erroneous"
+        
+      }
+    }
+  }
+//  else:
+  else
+  {
+//    for each asset file in assembly and on disk:
+//      load precompile data from asset into asset database
+  }
+
+  if (assNeedsToStore)
+  {
+    // now shit out your ass
+    storeAssFileContents(assPath);
+  }
+  
+  // At this point the working asset database is up to date, and we are clear to create vkImage and vkBuffer objects, and begin syncing the cache file. When cache file segments are compiled or transferred, they are checked for need to be loaded and maybe a transfer gets scheduled.
+
+  // This spawns an async thread and returns.
+  synchronizeCache();
+}
+
+
+void AssetManager::synchronizeCache()
+{
+  //  if cache file exists:
+  //    for each asset file in assembly and on disk:
+  //      stat cache file against asset file
+  //      
+  //      if cache file is up to date:
+  //      open cache file
+  //    
+}
+
+/*
 void AssetManager::trackAsset(string_view assetName, string_view tableauName, fs::path const & srcPath, fs::path const & assPath)
 {
   // If we have previously started tracking this asset,
@@ -90,7 +167,7 @@ void AssetManager::untrackTableau(string_view tableauName)
   for (auto & dump : dumps)
     { assetMap.erase(dump); }
 }
-
+*/
 
 void AssetManager::checkForUpdatedFiles() noexcept
 {

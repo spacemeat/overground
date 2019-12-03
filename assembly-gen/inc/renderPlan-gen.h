@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <variant>
+#include <unordered_set>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -248,10 +249,10 @@ namespace overground
     struct subpassDiffs_t
     {
       subpassMembers_e diffs;
-      std::vector<std::pair<size_t, subpassAttachmentDiffs_t>> inputAttachmentsDiffs;
-      std::vector<std::pair<size_t, subpassAttachmentDiffs_t>> colorAttachmentsDiffs;
-      std::vector<std::pair<size_t, subpassAttachmentDiffs_t>> resolveAttachmentsDiffs;
-      std::vector<size_t> preserveAttachmentsDiffs;
+      std::unordered_map<size_t, subpassAttachmentDiffs_t> inputAttachmentsDiffs;
+      std::unordered_map<size_t, subpassAttachmentDiffs_t> colorAttachmentsDiffs;
+      std::unordered_map<size_t, subpassAttachmentDiffs_t> resolveAttachmentsDiffs;
+      std::unordered_set<size_t> preserveAttachmentsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -277,13 +278,13 @@ namespace overground
           if (doPodsDiffer(lhs.inputAttachments[i], rhs.inputAttachments[i], diffsEntry))
           {
             subpass.diffs |= subpassMembers_e::inputAttachments;
-            subpass.inputAttachmentsDiffs.push_back({i, diffsEntry});
+            subpass.inputAttachmentsDiffs.insert_or_assign(i, diffsEntry);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
           subpassAttachmentDiffs_t diffsEntry = { .diffs = subpassAttachmentMembers_e::all };
-          subpass.inputAttachmentsDiffs.push_back({i, diffsEntry});
+          subpass.inputAttachmentsDiffs.insert_or_assign(i, diffsEntry);
         }
       }
       // diff member 'colorAttachments':
@@ -295,13 +296,13 @@ namespace overground
           if (doPodsDiffer(lhs.colorAttachments[i], rhs.colorAttachments[i], diffsEntry))
           {
             subpass.diffs |= subpassMembers_e::colorAttachments;
-            subpass.colorAttachmentsDiffs.push_back({i, diffsEntry});
+            subpass.colorAttachmentsDiffs.insert_or_assign(i, diffsEntry);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
           subpassAttachmentDiffs_t diffsEntry = { .diffs = subpassAttachmentMembers_e::all };
-          subpass.colorAttachmentsDiffs.push_back({i, diffsEntry});
+          subpass.colorAttachmentsDiffs.insert_or_assign(i, diffsEntry);
         }
       }
       // diff member 'resolveAttachments':
@@ -313,13 +314,13 @@ namespace overground
           if (doPodsDiffer(lhs.resolveAttachments[i], rhs.resolveAttachments[i], diffsEntry))
           {
             subpass.diffs |= subpassMembers_e::resolveAttachments;
-            subpass.resolveAttachmentsDiffs.push_back({i, diffsEntry});
+            subpass.resolveAttachmentsDiffs.insert_or_assign(i, diffsEntry);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
           subpassAttachmentDiffs_t diffsEntry = { .diffs = subpassAttachmentMembers_e::all };
-          subpass.resolveAttachmentsDiffs.push_back({i, diffsEntry});
+          subpass.resolveAttachmentsDiffs.insert_or_assign(i, diffsEntry);
         }
       }
       // diff member 'depthStencilAttachment':
@@ -333,12 +334,12 @@ namespace overground
           if (lhs.preserveAttachments[i] != rhs.preserveAttachments[i])
           {
             subpass.diffs |= subpassMembers_e::preserveAttachments;
-            subpass.preserveAttachmentsDiffs.push_back(i);
+            subpass.preserveAttachmentsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          subpass.preserveAttachmentsDiffs.push_back(i);
+          subpass.preserveAttachmentsDiffs.insert(i);
         }
       }
 
@@ -486,9 +487,9 @@ namespace overground
     struct renderPassDiffs_t
     {
       renderPassMembers_e diffs;
-      std::vector<std::pair<std::string, attachmentDiffs_t>> attachmentsDiffs;
-      std::vector<std::pair<std::string, subpassDiffs_t>> subpassesDiffs;
-      std::vector<std::pair<size_t, subpassDependencyDiffs_t>> dependenciesDiffs;
+      std::unordered_map<std::string, attachmentDiffs_t> attachmentsDiffs;
+      std::unordered_map<std::string, subpassDiffs_t> subpassesDiffs;
+      std::unordered_map<size_t, subpassDependencyDiffs_t> dependenciesDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -512,7 +513,7 @@ namespace overground
               { continue; }
           }
           renderPass.diffs |= renderPassMembers_e::attachments;
-          renderPass.attachmentsDiffs.push_back({lhsKey, diffsEntry});
+          renderPass.attachmentsDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.attachments.keys())
         {
@@ -520,7 +521,7 @@ namespace overground
             { continue; }
 
           attachmentDiffs_t diffsEntry = { .diffs = attachmentMembers_e::all };
-          renderPass.attachmentsDiffs.push_back({rhsKey, diffsEntry});
+          renderPass.attachmentsDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'subpasses':
@@ -536,7 +537,7 @@ namespace overground
               { continue; }
           }
           renderPass.diffs |= renderPassMembers_e::subpasses;
-          renderPass.subpassesDiffs.push_back({lhsKey, diffsEntry});
+          renderPass.subpassesDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.subpasses.keys())
         {
@@ -544,7 +545,7 @@ namespace overground
             { continue; }
 
           subpassDiffs_t diffsEntry = { .diffs = subpassMembers_e::all };
-          renderPass.subpassesDiffs.push_back({rhsKey, diffsEntry});
+          renderPass.subpassesDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'dependencies':
@@ -556,13 +557,13 @@ namespace overground
           if (doPodsDiffer(lhs.dependencies[i], rhs.dependencies[i], diffsEntry))
           {
             renderPass.diffs |= renderPassMembers_e::dependencies;
-            renderPass.dependenciesDiffs.push_back({i, diffsEntry});
+            renderPass.dependenciesDiffs.insert_or_assign(i, diffsEntry);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
           subpassDependencyDiffs_t diffsEntry = { .diffs = subpassDependencyMembers_e::all };
-          renderPass.dependenciesDiffs.push_back({i, diffsEntry});
+          renderPass.dependenciesDiffs.insert_or_assign(i, diffsEntry);
         }
       }
 
@@ -616,7 +617,7 @@ namespace overground
     struct identifyVisibleThingsDiffs_t
     {
       identifyVisibleThingsMembers_e diffs;
-      std::vector<size_t> tagsDiffs;
+      std::unordered_set<size_t> tagsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -635,12 +636,12 @@ namespace overground
           if (lhs.tags[i] != rhs.tags[i])
           {
             identifyVisibleThings.diffs |= identifyVisibleThingsMembers_e::tags;
-            identifyVisibleThings.tagsDiffs.push_back(i);
+            identifyVisibleThings.tagsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          identifyVisibleThings.tagsDiffs.push_back(i);
+          identifyVisibleThings.tagsDiffs.insert(i);
         }
       }
 
@@ -752,7 +753,7 @@ namespace overground
     struct computeShadowsDiffs_t
     {
       computeShadowsMembers_e diffs;
-      std::vector<size_t> tagsDiffs;
+      std::unordered_set<size_t> tagsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -771,12 +772,12 @@ namespace overground
           if (lhs.tags[i] != rhs.tags[i])
           {
             computeShadows.diffs |= computeShadowsMembers_e::tags;
-            computeShadows.tagsDiffs.push_back(i);
+            computeShadows.tagsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          computeShadows.tagsDiffs.push_back(i);
+          computeShadows.tagsDiffs.insert(i);
         }
       }
 
@@ -1068,7 +1069,7 @@ namespace overground
     struct computeDepthDiffs_t
     {
       computeDepthMembers_e diffs;
-      std::vector<size_t> tagsDiffs;
+      std::unordered_set<size_t> tagsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -1087,12 +1088,12 @@ namespace overground
           if (lhs.tags[i] != rhs.tags[i])
           {
             computeDepth.diffs |= computeDepthMembers_e::tags;
-            computeDepth.tagsDiffs.push_back(i);
+            computeDepth.tagsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          computeDepth.tagsDiffs.push_back(i);
+          computeDepth.tagsDiffs.insert(i);
         }
       }
 
@@ -1497,7 +1498,7 @@ namespace overground
     struct operationListDiffs_t
     {
       operationListMembers_e diffs;
-      std::vector<size_t> opsDiffs;
+      std::unordered_set<size_t> opsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -1519,12 +1520,12 @@ namespace overground
           if (lhs.ops[i] != rhs.ops[i])
           {
             operationList.diffs |= operationListMembers_e::ops;
-            operationList.opsDiffs.push_back(i);
+            operationList.opsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          operationList.opsDiffs.push_back(i);
+          operationList.opsDiffs.insert(i);
         }
       }
 
@@ -1581,8 +1582,8 @@ namespace overground
     struct renderPlanDiffs_t
     {
       renderPlanMembers_e diffs;
-      std::vector<std::pair<std::string, renderPassDiffs_t>> renderPassesDiffs;
-      std::vector<std::pair<std::string, operationListDiffs_t>> operationsDiffs;
+      std::unordered_map<std::string, renderPassDiffs_t> renderPassesDiffs;
+      std::unordered_map<std::string, operationListDiffs_t> operationsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -1606,7 +1607,7 @@ namespace overground
               { continue; }
           }
           renderPlan.diffs |= renderPlanMembers_e::renderPasses;
-          renderPlan.renderPassesDiffs.push_back({lhsKey, diffsEntry});
+          renderPlan.renderPassesDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.renderPasses.keys())
         {
@@ -1614,7 +1615,7 @@ namespace overground
             { continue; }
 
           renderPassDiffs_t diffsEntry = { .diffs = renderPassMembers_e::all };
-          renderPlan.renderPassesDiffs.push_back({rhsKey, diffsEntry});
+          renderPlan.renderPassesDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'operations':
@@ -1630,7 +1631,7 @@ namespace overground
               { continue; }
           }
           renderPlan.diffs |= renderPlanMembers_e::operations;
-          renderPlan.operationsDiffs.push_back({lhsKey, diffsEntry});
+          renderPlan.operationsDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.operations.keys())
         {
@@ -1638,7 +1639,7 @@ namespace overground
             { continue; }
 
           operationListDiffs_t diffsEntry = { .diffs = operationListMembers_e::all };
-          renderPlan.operationsDiffs.push_back({rhsKey, diffsEntry});
+          renderPlan.operationsDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
 

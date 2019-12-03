@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <variant>
+#include <unordered_set>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -63,7 +64,7 @@ namespace overground
     struct memoryTypeDiffs_t
     {
       memoryTypeMembers_e diffs;
-      std::vector<size_t> memoryPropsDiffs;
+      std::unordered_set<size_t> memoryPropsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -79,12 +80,12 @@ namespace overground
           if (lhs.memoryProps[i] != rhs.memoryProps[i])
           {
             memoryType.diffs |= memoryTypeMembers_e::memoryProps;
-            memoryType.memoryPropsDiffs.push_back(i);
+            memoryType.memoryPropsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          memoryType.memoryPropsDiffs.push_back(i);
+          memoryType.memoryPropsDiffs.insert(i);
         }
       }
       // diff member 'chunkSize':
@@ -144,7 +145,7 @@ namespace overground
     struct usageTypeDiffs_t
     {
       usageTypeMembers_e diffs;
-      std::vector<size_t> memoryPropsDiffs;
+      std::unordered_set<size_t> memoryPropsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -163,12 +164,12 @@ namespace overground
           if (lhs.memoryProps[i] != rhs.memoryProps[i])
           {
             usageType.diffs |= usageTypeMembers_e::memoryProps;
-            usageType.memoryPropsDiffs.push_back(i);
+            usageType.memoryPropsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          usageType.memoryPropsDiffs.push_back(i);
+          usageType.memoryPropsDiffs.insert(i);
         }
       }
 
@@ -234,8 +235,8 @@ namespace overground
     struct memoryPlanDiffs_t
     {
       memoryPlanMembers_e diffs;
-      std::vector<std::pair<size_t, memoryTypeDiffs_t>> memoryTypesDiffs;
-      std::vector<std::pair<std::string, usageTypeDiffs_t>> usageTypesDiffs;
+      std::unordered_map<size_t, memoryTypeDiffs_t> memoryTypesDiffs;
+      std::unordered_map<std::string, usageTypeDiffs_t> usageTypesDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -264,13 +265,13 @@ namespace overground
           if (doPodsDiffer(lhs.memoryTypes[i], rhs.memoryTypes[i], diffsEntry))
           {
             memoryPlan.diffs |= memoryPlanMembers_e::memoryTypes;
-            memoryPlan.memoryTypesDiffs.push_back({i, diffsEntry});
+            memoryPlan.memoryTypesDiffs.insert_or_assign(i, diffsEntry);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
           memoryTypeDiffs_t diffsEntry = { .diffs = memoryTypeMembers_e::all };
-          memoryPlan.memoryTypesDiffs.push_back({i, diffsEntry});
+          memoryPlan.memoryTypesDiffs.insert_or_assign(i, diffsEntry);
         }
       }
       // diff member 'usageTypes':
@@ -286,7 +287,7 @@ namespace overground
               { continue; }
           }
           memoryPlan.diffs |= memoryPlanMembers_e::usageTypes;
-          memoryPlan.usageTypesDiffs.push_back({lhsKey, diffsEntry});
+          memoryPlan.usageTypesDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.usageTypes.keys())
         {
@@ -294,7 +295,7 @@ namespace overground
             { continue; }
 
           usageTypeDiffs_t diffsEntry = { .diffs = usageTypeMembers_e::all };
-          memoryPlan.usageTypesDiffs.push_back({rhsKey, diffsEntry});
+          memoryPlan.usageTypesDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
 

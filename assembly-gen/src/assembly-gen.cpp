@@ -122,6 +122,13 @@ void overground::assembly::importPod(
     dst0 = (std::string) src0; // leaf
     dest.usingConfig = std::move(dst0);
   }
+  if (src % "usingMemoryPlan")
+  {
+    auto & src0 = src / "usingMemoryPlan";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.usingMemoryPlan = std::move(dst0);
+  }
   if (src % "usingTableauGroup")
   {
     auto & src0 = src / "usingTableauGroup";
@@ -279,6 +286,8 @@ std::string overground::assembly::print(
   ss << "\n" << indentIn << "}";
   ss << "\n" << indentIn << "usingConfig: ";
   ss << (src.usingConfig);
+  ss << "\n" << indentIn << "usingMemoryPlan: ";
+  ss << (src.usingMemoryPlan);
   ss << "\n" << indentIn << "usingTableauGroup: ";
   ss << (src.usingTableauGroup);
   ss << "\n" << prevIndentIn << "}";

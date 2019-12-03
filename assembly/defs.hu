@@ -502,7 +502,6 @@
         plugin: assets
         type: { type: string deserialized: false }
         format: { type: "vk::Format" }
-        compression: { type: "optional<string>" }
       }
 
       shader: {
@@ -515,9 +514,8 @@
       asset: {
         name: { type: string fromKey: true }
         srcFile: { type: "optional<string>" }
-        assFile: { type: "string" serialized: false }
         monitorFile: { type: bool default: true }
-        data: { type: "variant<plugins<assets>>" }
+        importData: { type: "variant<plugins<assets>>" }
       }
     }
 
@@ -586,11 +584,9 @@
         renderPlan: { type: string }
       }
 
+      # add new feature types here
+
       feature: {
-        renderPlanRefs: { type: size_t default: 0 }
-        modelRefs: { type: size_t default: 0 }
-        materialRefs: { type: size_t default: 0 }
-        assetRefs: { type: size_t default: 0 }
         featureData: { type: "variant<plugins<features>>" }
       }
 
@@ -624,6 +620,7 @@
         tableaux: { type: "stringDict<tableau::tableau>" }
         tableauGroups: { type: "stringDict<vector<string>>" }
         usingConfig: { type: string }
+        usingMemoryPlan: { type: string }
         usingTableauGroup: { type: "string" }
       }
     }

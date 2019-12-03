@@ -2,6 +2,8 @@
 #include "graphics.h"
 #include "assetManager.h"
 #include "feature.h"
+#include "assets.image.h"
+
 
 using namespace std;
 using namespace overground;
@@ -70,27 +72,29 @@ void MemoryPlan::addObjects(Feature * feature)
   // let's get all the asset objs
   vector<Asset *> assetPtrs;
   feature->forEachSubresourceNeeded([&](
-    auto & assetName, std::string_view usageType, 
+    Asset * asset, std::string_view usageType, 
     std::variant<vk::ImageCreateFlagBits, vk::BufferCreateFlagBits> createFlags, 
     std::variant<vk::ImageUsageFlagBits, vk::BufferUsageFlagBits> usageFlags)
   {
-    if (Asset * asset = assetMan->getAsset(assetName);
-        asset != nullptr)
+    MemoryUsageType & mut = memoryUsageTypes[usageType];
+    // We have to check each memory type for the asset. For small projects, this is probably one or two.
+    for (size_t memTypeIdx = 0; memTypeIdx < mut.memoryTypeIdxs.size(); ++memTypeIdx)
     {
+      MemoryType & mt = memoryTypes[mut.memoryTypeIdxs[memTypeIdx]];
+      if (mt.allocs.size() == 0)
+        { continue; }
+        
       // If asset is alredy where it should be, just addref it.
-      if (auto it = ut.assetAllocMap.find(asset->name);
-        it != ut.assetAllocMap.end())
+      if (auto it = mut.assetAllocMap.find(asset->name);
+        it != mut.assetAllocMap.end())
       {
         AllocAddress const & aa = it->second;
-        ut.allocs[aa.memoryAllocIdx].resources[aa.resourceIdx].subresources[aa.subresourceIdx].refCount += 1;
-      }
-      else
-      {
-        assetPtrs.push_back(asset);
+        mt.allocs[aa.memoryAllocIdx].resources[aa.resourceIdx].subresources[aa.subresourceIdx].refCount += 1;
+        return;
       }
     }
-    // TODO: else what?
-    log(thId, logTags::err, fmt::format("Catastrophe! Bad asset name: {}", assetName));
+
+    assetPtrs.push_back(asset);
   });
 
   // sort assetPtrs into groupable subresources for vkBuffers or vkImages. Try to combine images into an image array, but note that formats and sizes and such must be compatible.
@@ -100,11 +104,13 @@ void MemoryPlan::addObjects(Feature * feature)
     if (a->isImage() == false && b->isImage() == true ) { return false; }
     if (a->isImage())
     {
-
+      Image * ia = dynamic_cast<Image *>(a);
+      Image * ib = dynamic_cast<Image *>(b);
+      ia->
     }
     else
     {
-
+      return a->bufferSize < b->bufferSize;
     }
   });
 

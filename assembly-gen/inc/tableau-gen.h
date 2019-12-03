@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <variant>
+#include <unordered_set>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -60,7 +61,7 @@ namespace overground
     struct matrixTransformDiffs_t
     {
       matrixTransformMembers_e diffs;
-      std::vector<size_t> transformDiffs;
+      std::unordered_set<size_t> transformDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -77,7 +78,7 @@ namespace overground
         if (lhs.transform[i] != rhs.transform[i])
         {
           matrixTransform.diffs |= matrixTransformMembers_e::transform;
-          matrixTransform.transformDiffs.push_back(i);
+          matrixTransform.transformDiffs.insert(i);
         }
       }
 
@@ -137,9 +138,9 @@ namespace overground
     struct srtTransformDiffs_t
     {
       srtTransformMembers_e diffs;
-      std::vector<size_t> scaleDiffs;
-      std::vector<size_t> rotationDiffs;
-      std::vector<size_t> translateDiffs;
+      std::unordered_set<size_t> scaleDiffs;
+      std::unordered_set<size_t> rotationDiffs;
+      std::unordered_set<size_t> translateDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -156,7 +157,7 @@ namespace overground
         if (lhs.scale[i] != rhs.scale[i])
         {
           srtTransform.diffs |= srtTransformMembers_e::scale;
-          srtTransform.scaleDiffs.push_back(i);
+          srtTransform.scaleDiffs.insert(i);
         }
       }
       // diff member 'rotation':
@@ -165,7 +166,7 @@ namespace overground
         if (lhs.rotation[i] != rhs.rotation[i])
         {
           srtTransform.diffs |= srtTransformMembers_e::rotation;
-          srtTransform.rotationDiffs.push_back(i);
+          srtTransform.rotationDiffs.insert(i);
         }
       }
       // diff member 'translate':
@@ -174,7 +175,7 @@ namespace overground
         if (lhs.translate[i] != rhs.translate[i])
         {
           srtTransform.diffs |= srtTransformMembers_e::translate;
-          srtTransform.translateDiffs.push_back(i);
+          srtTransform.translateDiffs.insert(i);
         }
       }
 
@@ -231,7 +232,7 @@ namespace overground
     struct drawableSubmeshDiffs_t
     {
       drawableSubmeshMembers_e diffs;
-      std::vector<size_t> tagsDiffs;
+      std::unordered_set<size_t> tagsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -253,12 +254,12 @@ namespace overground
           if (lhs.tags[i] != rhs.tags[i])
           {
             drawableSubmesh.diffs |= drawableSubmeshMembers_e::tags;
-            drawableSubmesh.tagsDiffs.push_back(i);
+            drawableSubmesh.tagsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          drawableSubmesh.tagsDiffs.push_back(i);
+          drawableSubmesh.tagsDiffs.insert(i);
         }
       }
 
@@ -315,7 +316,7 @@ namespace overground
     struct drawableMeshDiffs_t
     {
       drawableMeshMembers_e diffs;
-      std::vector<std::pair<size_t, drawableSubmeshDiffs_t>> subMeshesDiffs;
+      std::unordered_map<size_t, drawableSubmeshDiffs_t> subMeshesDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -338,13 +339,13 @@ namespace overground
           if (doPodsDiffer(lhs.subMeshes[i], rhs.subMeshes[i], diffsEntry))
           {
             drawableMesh.diffs |= drawableMeshMembers_e::subMeshes;
-            drawableMesh.subMeshesDiffs.push_back({i, diffsEntry});
+            drawableMesh.subMeshesDiffs.insert_or_assign(i, diffsEntry);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
           drawableSubmeshDiffs_t diffsEntry = { .diffs = drawableSubmeshMembers_e::all };
-          drawableMesh.subMeshesDiffs.push_back({i, diffsEntry});
+          drawableMesh.subMeshesDiffs.insert_or_assign(i, diffsEntry);
         }
       }
 
@@ -398,7 +399,7 @@ namespace overground
     struct directionalLightDiffs_t
     {
       directionalLightMembers_e diffs;
-      std::vector<size_t> colorDiffs;
+      std::unordered_set<size_t> colorDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -415,7 +416,7 @@ namespace overground
         if (lhs.color[i] != rhs.color[i])
         {
           directionalLight.diffs |= directionalLightMembers_e::color;
-          directionalLight.colorDiffs.push_back(i);
+          directionalLight.colorDiffs.insert(i);
         }
       }
 
@@ -472,8 +473,8 @@ namespace overground
     struct pointLightDiffs_t
     {
       pointLightMembers_e diffs;
-      std::vector<size_t> attenuationDiffs;
-      std::vector<size_t> colorDiffs;
+      std::unordered_set<size_t> attenuationDiffs;
+      std::unordered_set<size_t> colorDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -490,7 +491,7 @@ namespace overground
         if (lhs.attenuation[i] != rhs.attenuation[i])
         {
           pointLight.diffs |= pointLightMembers_e::attenuation;
-          pointLight.attenuationDiffs.push_back(i);
+          pointLight.attenuationDiffs.insert(i);
         }
       }
       // diff member 'color':
@@ -499,7 +500,7 @@ namespace overground
         if (lhs.color[i] != rhs.color[i])
         {
           pointLight.diffs |= pointLightMembers_e::color;
-          pointLight.colorDiffs.push_back(i);
+          pointLight.colorDiffs.insert(i);
         }
       }
 
@@ -562,8 +563,8 @@ namespace overground
     struct spotLightDiffs_t
     {
       spotLightMembers_e diffs;
-      std::vector<size_t> attenuationDiffs;
-      std::vector<size_t> colorDiffs;
+      std::unordered_set<size_t> attenuationDiffs;
+      std::unordered_set<size_t> colorDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -580,7 +581,7 @@ namespace overground
         if (lhs.attenuation[i] != rhs.attenuation[i])
         {
           spotLight.diffs |= spotLightMembers_e::attenuation;
-          spotLight.attenuationDiffs.push_back(i);
+          spotLight.attenuationDiffs.insert(i);
         }
       }
       // diff member 'hotspot':
@@ -595,7 +596,7 @@ namespace overground
         if (lhs.color[i] != rhs.color[i])
         {
           spotLight.diffs |= spotLightMembers_e::color;
-          spotLight.colorDiffs.push_back(i);
+          spotLight.colorDiffs.insert(i);
         }
       }
 
@@ -877,8 +878,8 @@ namespace overground
     struct objectDiffs_t
     {
       objectMembers_e diffs;
-      std::vector<std::pair<size_t, objectDiffs_t>> childrenDiffs;
-      std::vector<std::pair<size_t, featureDiffs_t>> featuresDiffs;
+      std::unordered_map<size_t, objectDiffs_t> childrenDiffs;
+      std::unordered_map<size_t, featureDiffs_t> featuresDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -898,13 +899,13 @@ namespace overground
           if (doPodsDiffer(lhs.children[i], rhs.children[i], diffsEntry))
           {
             object.diffs |= objectMembers_e::children;
-            object.childrenDiffs.push_back({i, diffsEntry});
+            object.childrenDiffs.insert_or_assign(i, diffsEntry);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
           objectDiffs_t diffsEntry = { .diffs = objectMembers_e::all };
-          object.childrenDiffs.push_back({i, diffsEntry});
+          object.childrenDiffs.insert_or_assign(i, diffsEntry);
         }
       }
       // diff member 'features':
@@ -916,13 +917,13 @@ namespace overground
           if (doPodsDiffer(lhs.features[i], rhs.features[i], diffsEntry))
           {
             object.diffs |= objectMembers_e::features;
-            object.featuresDiffs.push_back({i, diffsEntry});
+            object.featuresDiffs.insert_or_assign(i, diffsEntry);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
           featureDiffs_t diffsEntry = { .diffs = featureMembers_e::all };
-          object.featuresDiffs.push_back({i, diffsEntry});
+          object.featuresDiffs.insert_or_assign(i, diffsEntry);
         }
       }
       // diff member 'data':
@@ -979,7 +980,7 @@ namespace overground
     struct tableauDiffs_t
     {
       tableauMembers_e diffs;
-      std::vector<std::pair<std::string, objectDiffs_t>> objectsDiffs;
+      std::unordered_map<std::string, objectDiffs_t> objectsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -1003,7 +1004,7 @@ namespace overground
               { continue; }
           }
           tableau.diffs |= tableauMembers_e::objects;
-          tableau.objectsDiffs.push_back({lhsKey, diffsEntry});
+          tableau.objectsDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.objects.keys())
         {
@@ -1011,7 +1012,7 @@ namespace overground
             { continue; }
 
           objectDiffs_t diffsEntry = { .diffs = objectMembers_e::all };
-          tableau.objectsDiffs.push_back({rhsKey, diffsEntry});
+          tableau.objectsDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
 

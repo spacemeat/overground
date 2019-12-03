@@ -1,5 +1,6 @@
 #include <iostream>
 #include <numeric>
+#include <unordered_set>
 #include "engine.h"
 #include "utils.h"
 #include "jobScheduler.h"
@@ -183,6 +184,186 @@ void Engine::performScheduledEvents()
 void Engine::checkForUpdatedFiles()
 {
   assemblyMan->checkForUpdatedFiles();
+}
+
+
+void Engine::checkForChanges()
+{
+  if (assetFilesChanged)
+  {
+    // non-blocking async process
+    assetMan->synchronizeCache();
+    assetFilesChanged = false;
+  }
+
+  if (assemblyFilesChanged)
+  {
+    // builds the _t structs (pods)
+    assemblyMan->buildworkingAssemblyDescs();
+    assemblyFilesChanged = false;
+  }
+
+  if (assemblyChangedDescs)
+  {
+    // builds the renderplans, memoryplans, materials, objtrees
+    buildWorkingAssemblyObjects();
+    assemblyChanged = false;
+  }
+
+  if (assetMan->isCacheUpToDate())
+  {
+    if (configChanged)
+    {
+      handleConfigChanges();
+    }
+
+    if (materialsChanged)
+    {
+      materialMan->buildWorkPalette();
+    }
+
+    if (adbChanged || memoryPlanChanged || objectTreeChanged || materialsChanged)
+    {
+      graphics->syncMemory();
+    }
+
+    if (...)
+    {
+    }
+
+    configChanged = false;
+    adbChanged = false;
+    memoryPlanChanged = false;
+    objectTreeChanged = false;
+    materialsChanged = false;
+  }
+
+  blessWorkingSets();
+}
+
+
+void Engine::buildWorkingAssemblyObjects()
+{
+  auto & currAsm = assemblyMan->getCurrentAssembly();
+  auto & workAsm = assemblyMan->getWorkingAssembly();
+  auto assemblyDiffs = assemblyMan->checkForUpdatedAssembly();
+  if (assemblyDiffs.has_value())
+  {
+    computeConfigDiffs(currAsm, workAsm, assemblyDiffs);
+    computeMemoryPlanDiffs(currAsm, workAsm, assemblyDiffs);
+    computeRenderPlanDiffs(currAsm, workAsm, assemblyDiffs);
+    computeAssetDiffs(currAsm, workAsm, assemblyDiffs);
+    computeMaterialDiffs(currAsm, workAsm, assemblyDiffs);
+    computeTableauDiffs(currAsm, workAsm, assemblyDiffs);
+  }
+}
+
+
+void Engine::computeConfigDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs)
+{
+  // If we change which config we're using, we need to modify the configsDiffs to contain the diffs between the current config and the new one. So if user changes both the config blocks and the usingConfig key, we will compare correctly.
+  if ((assemblyDiffs.diffs & assemblyMembers_e::usingConfig) != 0)
+  {
+    auto & currConfig = currAsm.configs[currAsm.usingConfig];
+    auto & workConfig = workAsm.configs[workAsm.usingConfig];
+    config::configDiffs_t configDiffs;
+    if (doPodsDiffer(currConfig, workConfig, configDiffs))
+    {
+      // Replace the configDiffs_t that matches, or add one if there isn't one. We use workAsm.usingConfig as the name so that when we look it up later, it'll match against workAsm.usingConfig which is all we care about when responding to changes.
+      assemblyDiffs.configsDiffs.insert_or_assign(workAsm.usingConfig, move(configDiffs));
+    }
+  }
+
+  // We can be confident due to the above that assemblyDiffs->configsDiffs[workAsm.usingConfig] is the changeset for the config we're on to the config we're ultimately going to match (workAsm.configs[workAsm.usingConfig]).
+  if (auto it = assemblyDiffs.configsDiffs.find(workAsm.usingConfig);
+      it != assemblyDiffs.configsDiffs.end())
+  {
+    configChanged = true;
+  }
+}
+
+
+void Engine::computeMemoryPlanDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs)
+{
+  if ((assemblyDiffs.diffs & assemblyMembers_e::usingMemoryPlan) != 0)
+  {
+    auto & currMemoryPlan = currAsm.memoryPlans[currAsm.usingMemoryPlan];
+    auto & workMemoryPlan = workAsm.memoryPlans[workAsm.usingMemoryPlan];
+    memoryPlan::memoryPlanDiffs_t memoryPlanDiffs;
+    if (doPodsDiffer(currMemoryPlan, workMemoryPlan, memoryPlanDiffs))
+    {
+      assemblyDiffs.memoryPlansDiffs.insert_or_assign(workAsm.usingMemoryPlan, move(memoryPlanDiffs));
+    }
+  }
+
+  if (auto it = assemblyDiffs.memoryPlansDiffs.find(workAsm.usingConfig);
+      it != assemblyDiffs.memoryPlansDiffs.end())
+  {
+    memoryPlanChanged = true;
+  }
+}
+
+
+void Engine::computeRenderPlanDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs)
+{
+}
+
+
+void Engine::computeAssetDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs)
+{
+  // build workCacheMap
+  assetMan->initWorkCacheMap(); // from initializeAssetDatabase()
+  // start building the cache file
+  assetMan->synchronizeCache();
+}
+
+
+void Engine::computeMaterialDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs)
+{
+}
+
+
+void Engine::computeTableauDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs)
+{
+  bool workingObjectTreeWasRebuilt = false;
+  if ((assemblyDiffs.diffs & assemblyMembers_e::usingTableauGroup) != 0 ||
+      (assemblyDiffs.diffs & assemblyMembers_e::tableauGroups) != 0 ||
+      (assemblyDiffs.diffs & assemblyMembers_e::tableaux) != 0)
+  {
+    // Build tableau groups and compare. Order does not matter so we'll use an unordered_set.
+    unordered_set<string> currTableaux;
+    unordered_set<string> workTableaux;
+
+    for (auto & tName: currAsm.tableauGroups[currAsm.usingTableauGroup])
+      { currTableaux.insert(tName); }
+
+    for (auto & tName: workAsm.tableauGroups[workAsm.usingTableauGroup])
+      { workTableaux.insert(tName); }
+
+    bool needToBuild = false;
+    if (currTableaux != workTableaux)
+      { needToBuild = true; }
+
+    if (needToBuild == false)
+    {
+      for (auto & tName: workTableaux)
+      {
+        if (auto it = assemblyDiffs.tableauxDiffs.find(tName);
+            it != assemblyDiffs.tableauxDiffs.end())
+        {
+          needToBuild = true;
+          break;
+        }
+      }
+    }
+
+    if (needToBuild)
+    {
+      // create workObjTree
+      assemblyMan->buildWorkObjectTree(workAsm);
+      objectTreeChanged = true;
+    }
+  }
 }
 
 

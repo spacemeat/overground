@@ -1,33 +1,35 @@
 {
   assets: {
     "cube-mesh": {
-      type: meshAsset
       srcFile: "cube.hu"
-      data: {
+      importData: {
+        type: mesh
       }
     }
 
     "cube-texture": {
-      type: imageAsset
       srcFile: "mathFace.png"
-      data: {
+      importData: {
+        type: image
         format: R8G8B8A8Unorm # there should be a way to say "whatever we're using, man" Maybe Unknown.
+        dims: ["*" "*" "*"]
+        mipLevels: all
       }
     }
 
     "diffuse-vshader": {
-      type: shaderAsset
       srcFile: "diffuse.vert"
-      data: {
+      importData: {
+        type: shader
         stage: Vertex # There's a shader stage enum that is appropriate
         entryPoint: vin
       }
     }
 
     "diffuse-fshader": {
-      type: shaderAsset
       srcFile: "diffuse.frag"
-      data: {
+      importData: {
+        type: shader
         stage: Fragment # There's a shader stage enum that is appropriate
         entryPoint: fin
       }

@@ -78,18 +78,6 @@ void overground::asset::importPod(
     dst0 = fromString<vk::Format>((std::string) src0); // leaf
     dest.format = std::move(dst0);
   }
-  if (src % "compression")
-  {
-    auto & src0 = src / "compression";
-    std::optional<std::string> dst0;
-    std::string dst1;
-    {
-      auto & src1 = src0;
-      dst1 = (std::string) src1; // leaf
-    }
-    dst0.emplace(std::move(dst1));
-    dest.compression = std::move(dst0);
-  }
 }
 
 void overground::asset::importPod(
@@ -127,15 +115,6 @@ std::string overground::asset::print(
   ss << (src.type);
   ss << "\n" << indentIn << "format: ";
   ss << to_string(src.format);
-  ss << "\n" << indentIn << "compression: ";
-
-  if ((bool) src.compression)
-  {
-    std::string const & src0 = * src.compression;
-    ss << (src0);
-  }
-  else
-    { ss << "<undefined>"; }
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
@@ -232,13 +211,6 @@ void overground::asset::importPod(
     dst0.emplace(std::move(dst1));
     dest.srcFile = std::move(dst0);
   }
-  if (src % "assFile")
-  {
-    auto & src0 = src / "assFile";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.assFile = std::move(dst0);
-  }
   if (src % "monitorFile")
   {
     auto & src0 = src / "monitorFile";
@@ -246,9 +218,9 @@ void overground::asset::importPod(
     dst0 = (bool) src0; // leaf
     dest.monitorFile = std::move(dst0);
   }
-  if (src % "data")
+  if (src % "importData")
   {
-    auto & src0 = src / "data";
+    auto & src0 = src / "importData";
     std::variant<mesh_t, image_t, shader_t> dst0;
     {
       auto & src1 = src0;
@@ -278,7 +250,7 @@ void overground::asset::importPod(
       }
       else { throw std::runtime_error("objects of variant type require a \"kind\" key."); }
     }
-    dest.data = std::move(dst0);
+    dest.importData = std::move(dst0);
   }
 }
 
@@ -324,29 +296,27 @@ std::string overground::asset::print(
   }
   else
     { ss << "<undefined>"; }
-  ss << "\n" << indentIn << "assFile: ";
-  ss << (src.assFile);
   ss << "\n" << indentIn << "monitorFile: ";
   ss << (src.monitorFile);
-  ss << "\n" << indentIn << "data: ";
+  ss << "\n" << indentIn << "importData: ";
 
-  if (src.data.valueless_by_exception())
+  if (src.importData.valueless_by_exception())
     { ss << "bad state\n"; }
-  else if (std::holds_alternative<mesh_t>(src.data))
+  else if (std::holds_alternative<mesh_t>(src.importData))
   {
-    mesh_t const & src0 = std::get<mesh_t>(src.data);
+    mesh_t const & src0 = std::get<mesh_t>(src.importData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<image_t>(src.data))
+  else if (std::holds_alternative<image_t>(src.importData))
   {
-    image_t const & src0 = std::get<image_t>(src.data);
+    image_t const & src0 = std::get<image_t>(src.importData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }
-  else if (std::holds_alternative<shader_t>(src.data))
+  else if (std::holds_alternative<shader_t>(src.importData))
   {
-    shader_t const & src0 = std::get<shader_t>(src.data);
+    shader_t const & src0 = std::get<shader_t>(src.importData);
     ss << "\n" << indentIn;
     ss << print(src0, depth + 1);
   }

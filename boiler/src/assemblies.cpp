@@ -27,6 +27,7 @@ R"(#ifndef {nsName}_GEN_H
 #include <vector>
 #include <optional>
 #include <variant>
+#include <unordered_set>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -92,7 +93,7 @@ map <string, ofstream> nsHeaderFiles;
 map <string, ofstream> nsCppFiles;
 map <string, ofstream> pluginCppFiles;
 map <string, vector<string>, std::less<>> plugins;
-
+ofstream plHeaderFile;
 
 void outputHeaderHeader(string_view nsName);
 structDef * findStructDef(string_view rhs);
@@ -409,6 +410,11 @@ static void openFiles(path_t const & podsDir, path_t const & pluginCentralDir)
   }
 
   // pluginzz
+  auto pluginHeaderPath = path_t(pluginCentralDir).append("inc").append("plugins-gen.h");
+  log(0, fmt::format("Generating {}{}.{}",
+    ansi::lightBlue, pluginHeaderPath, ansi::off));
+  plHeaderFile.open(pluginHeaderPath);
+
   for (auto & [pluginTypeName, _] : plugins)
   {
     auto pluginCentralCppFile = pluginTypeName + "-gen.cpp";
@@ -593,7 +599,7 @@ R"(      {memberType}Diffs_t {memberName};
       if (findStructDef(member.type.subTypes[0].name))
       {
         ofs << fmt::format(
-R"(      std::vector<std::pair<size_t, {memberSubType}Diffs_t>> {memberName}Diffs;
+R"(      std::unordered_map<size_t, {memberSubType}Diffs_t> {memberName}Diffs;
 )",
           fmt::arg("structName", stru.name),
           fmt::arg("memberSubType", member.type.subTypes[0].name),
@@ -604,7 +610,7 @@ R"(      std::vector<std::pair<size_t, {memberSubType}Diffs_t>> {memberName}Diff
         if (findStructDef(member.type.subTypes[0].subTypes[0].name))
         {
           ofs << fmt::format(
-  R"(      std::vector<std::pair<std::string, {memberSubType}Diffs_t>> {memberName}Diffs;
+  R"(      std::unordered_map<std::string, {memberSubType}Diffs_t> {memberName}Diffs;
   )",
             fmt::arg("structName", stru.name),
             fmt::arg("memberSubType", member.type.subTypes[0].subTypes[0].name),
@@ -614,7 +620,7 @@ R"(      std::vector<std::pair<size_t, {memberSubType}Diffs_t>> {memberName}Diff
       else
       {
         ofs << fmt::format(
-R"(      std::vector<size_t> {memberName}Diffs;
+R"(      std::unordered_set<size_t> {memberName}Diffs;
 )",
           fmt::arg("structName", stru.name),
           fmt::arg("memberName", member.name));
@@ -625,7 +631,7 @@ R"(      std::vector<size_t> {memberName}Diffs;
       if (findStructDef(member.type.subTypes[0].name))
       {
         ofs << fmt::format(
-R"(      std::vector<std::pair<std::string, {memberSubType}Diffs_t>> {memberName}Diffs;
+R"(      std::unordered_map<std::string, {memberSubType}Diffs_t> {memberName}Diffs;
 )",
           fmt::arg("structName", stru.name),
           fmt::arg("memberSubType", member.type.subTypes[0].name),
@@ -636,7 +642,7 @@ R"(      std::vector<std::pair<std::string, {memberSubType}Diffs_t>> {memberName
         if (findStructDef(member.type.subTypes[0].subTypes[0].name))
         {
           ofs << fmt::format(
-  R"(      std::vector<std::pair<std::string, {memberSubType}Diffs_t>> {memberName}Diffs;
+  R"(      std::unordered_map<std::string, {memberSubType}Diffs_t> {memberName}Diffs;
   )",
             fmt::arg("structName", stru.name),
             fmt::arg("memberSubType", member.type.subTypes[0].subTypes[0].name),
@@ -646,7 +652,7 @@ R"(      std::vector<std::pair<std::string, {memberSubType}Diffs_t>> {memberName
       else
       {
         ofs << fmt::format(
-R"(      std::vector<std::string> {memberName}Diffs;
+R"(      std::unordered_set<std::string> {memberName}Diffs;
 )",
           fmt::arg("structName", stru.name),
           fmt::arg("memberName", member.name));
@@ -688,7 +694,7 @@ R"(        {memberSubType}Diffs_t diffsEntry;
         if (doPodsDiffer(lhs.{memberName}[i], rhs.{memberName}[i], diffsEntry))
         {{
           {structName}.diffs |= {structName}Members_e::{memberName};
-          {structName}.{memberName}Diffs.push_back({{i, diffsEntry}});
+          {structName}.{memberName}Diffs.insert_or_assign(i, diffsEntry);
         }}
 )",
           fmt::arg("structName", stru.name),
@@ -701,7 +707,7 @@ R"(        {memberSubType}Diffs_t diffsEntry;
 R"(        if (lhs.{memberName}[i] != rhs.{memberName}[i])
         {{
           {structName}.diffs |= {structName}Members_e::{memberName};
-          {structName}.{memberName}Diffs.push_back(i);
+          {structName}.{memberName}Diffs.insert(i);
         }}
 )",
           fmt::arg("structName", stru.name),
@@ -725,13 +731,13 @@ R"(      {{
           if (doPodsDiffer(lhs.{memberName}[i], rhs.{memberName}[i], diffsEntry))
           {{
             {structName}.diffs |= {structName}Members_e::{memberName};
-            {structName}.{memberName}Diffs.push_back({{i, diffsEntry}});
+            {structName}.{memberName}Diffs.insert_or_assign(i, diffsEntry);
           }}
         }}
         for (size_t i = mn; i < mx; ++i)
         {{
           {memberSubType}Diffs_t diffsEntry = {{ .diffs = {memberSubType}Members_e::all }};
-          {structName}.{memberName}Diffs.push_back({{i, diffsEntry}});
+          {structName}.{memberName}Diffs.insert_or_assign(i, diffsEntry);
         }}
       }}
 )",
@@ -749,12 +755,12 @@ R"(      {{
           if (lhs.{memberName}[i] != rhs.{memberName}[i])
           {{
             {structName}.diffs |= {structName}Members_e::{memberName};
-            {structName}.{memberName}Diffs.push_back(i);
+            {structName}.{memberName}Diffs.insert(i);
           }}
         }}
         for (size_t i = mn; i < mx; ++i)
         {{
-          {structName}.{memberName}Diffs.push_back(i);
+          {structName}.{memberName}Diffs.insert(i);
         }}
       }}
 )",
@@ -776,13 +782,13 @@ R"(      {{
                 doPodsDiffer(* lhs.{memberName}[i], * rhs.{memberName}[i], diffsEntry))
             {{
               {structName}.diffs |= {structName}Members_e::{memberName};
-              {structName}.{memberName}Diffs.push_back({{i, diffsEntry}});
+              {structName}.{memberName}Diffs.insert_or_assign(i, diffsEntry);
             }}
           }}
           for (size_t i = mn; i < mx; ++i)
           {{
             {memberSubType}Diffs_t diffsEntry = {{ .diffs = {memberSubType}Members_e::all }};
-            {structName}.{memberName}Diffs.push_back({{i, diffsEntry}});
+            {structName}.{memberName}Diffs.insert_or_assign(i, diffsEntry);
           }}
         }}
   )",
@@ -801,12 +807,12 @@ R"(      {{
           if (lhs.{memberName}[i] != rhs.{memberName}[i])
           {{
             {structName}.diffs |= {structName}Members_e::{memberName};
-            {structName}.{memberName}Diffs.push_back(i);
+            {structName}.{memberName}Diffs.insert(i);
           }}
         }}
         for (size_t i = mn; i < mx; ++i)
         {{
-          {structName}.{memberName}Diffs.push_back(i);
+          {structName}.{memberName}Diffs.insert(i);
         }}
       }}
 )",
@@ -831,7 +837,7 @@ R"(      {{
               {{ continue; }}
           }}
           {structName}.diffs |= {structName}Members_e::{memberName};
-          {structName}.{memberName}Diffs.push_back({{lhsKey, diffsEntry}});
+          {structName}.{memberName}Diffs.insert_or_assign(lhsKey, diffsEntry);
         }}
         for (auto const & [rhsKey, rhsIdx] : rhs.{memberName}.keys())
         {{
@@ -839,7 +845,7 @@ R"(      {{
             {{ continue; }}
 
           {memberSubType}Diffs_t diffsEntry = {{ .diffs = {memberSubType}Members_e::all }};
-          {structName}.{memberName}Diffs.push_back({{rhsKey, diffsEntry}});
+          {structName}.{memberName}Diffs.insert_or_assign(rhsKey, diffsEntry);
         }}
       }}
 )",
@@ -869,7 +875,7 @@ R"(      {{
                   {{ continue; }}
           }}
           {structName}.diffs |= {structName}Members_e::{memberName};
-          {structName}.{memberName}Diffs.push_back({{lhsKey, diffsEntry}});
+          {structName}.{memberName}Diffs.insert_or_assign(lhsKey, diffsEntry);
         }}
         for (auto const & [rhsKey, rhsIdx] : rhs.{memberName}.keys())
         {{
@@ -877,7 +883,7 @@ R"(      {{
             {{ continue; }}
 
           {memberSubType}Diffs_t diffsEntry = {{ .diffs = {memberSubType}Members_e::all }};
-          {structName}.{memberName}Diffs.push_back({{rhsKey, diffsEntry}});
+          {structName}.{memberName}Diffs.insert_or_assign(rhsKey, diffsEntry);
         }}
       }}
   )",
@@ -900,13 +906,13 @@ R"(      {{
               {{ continue; }}
           }}
           {structName}.diffs |= {structName}Members_e::{memberName};
-          {structName}.{memberName}Diffs.push_back(lhsKey);
+          {structName}.{memberName}Diffs.insert(lhsKey);
         }}
         for (auto const & [rhsKey, rhsIdx] : rhs.{memberName}.keys())
         {{
           if (auto it = lhs.{memberName}.keys.find(rhsKey); it != lhs.{memberName}.keys.end())
             {{ continue; }}
-          {structName}.{memberName}Diffs.push_back(rhsKey);
+          {structName}.{memberName}Diffs.insert(rhsKey);
         }}
       }}
 )",
@@ -942,6 +948,79 @@ R"(
 )",
     fmt::arg("structName", stru.name));
 }
+
+
+void outputPluginDefs(ofstream & ofs)
+{
+  ofs << 
+R"(#ifndef PLUGINS_GEN_H
+#define PLUGINS_GEN_H
+
+
+#include <string_view>
+)";
+
+  for (auto & [pluginName, pluginTypes] : plugins)
+  {
+    for (auto & pluginType : pluginTypes)
+    {
+      ofs << fmt::format(
+R"(#include "{}.{}.h"
+)", pluginName, pluginType);
+    }
+  }
+
+  ofs << 
+R"(
+namespace overground
+{
+)";
+
+  for (auto & [pluginName, pluginTypes] : plugins)
+  {
+    ofs << fmt::format(
+R"(  enum class {pluginName}PluginTypes_e
+  {{
+)",
+      fmt::arg("pluginName", pluginName));
+
+    for (auto & pluginType : pluginTypes)
+    {
+      ofs << fmt::format(
+R"(    {},
+)",
+        fmt::arg("pluginType", pluginType));
+    }
+
+    ofs << fmt::format(
+R"(  }};
+
+  constexpr std::string_view {pluginName}PluginTypes[] = 
+  {{
+)",
+      fmt::arg("pluginName", pluginName));
+
+    for (auto & pluginType : pluginTypes)
+    {
+      ofs << fmt::format(
+R"(    "{}"sv,
+)",
+        fmt::arg("pluginType", pluginType));
+    }
+
+    ofs << fmt::format(
+R"(  }};
+
+)");
+  }
+
+  ofs << 
+R"(}
+
+#endif // #ifndef PLUGINS_GEN_H
+)";
+}
+
 
 constexpr auto importPreamble = R"(
 void overground::{nsName}::importPod(
@@ -1748,7 +1827,7 @@ Output base: {}{}{}",
   }
 
   parseDefsFile(defsPath);
-  openFiles(outputPodsDir, outputPluginsDir);
+  openFiles(outputPodsDir, outputPluginsDir);  
 
   for (auto & ns : nss)
   {
@@ -1766,6 +1845,8 @@ Output base: {}{}{}",
       outputPrint(nsName, stru, ofsC);
     }
   }
+
+  outputPluginDefs(plHeaderFile);
   
   outputPluginCentralStation("asset", "assets", "asset", "Asset", pluginCppFiles["assets"]);
   outputPluginCentralStation("tableau", "features", "feature", "Feature", pluginCppFiles["features"]);

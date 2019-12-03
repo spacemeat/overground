@@ -1,15 +1,15 @@
 #ifndef FEATURES_DRAWABLEMODEL_H
 #define FEATURES_DRAWABLEMODEL_H
 
-#include "feature.h"
+#include "tableau-gen.h"
 
 namespace overground
 {
-  class DrawableModel : public Feature
+  class DrawableMesh : public Feature
   {
   public:
-    DrawableModel(tableaux::feature_t const & desc);
-    virtual ~DrawableModel();
+    DrawableMesh(tableau::feature_t const & desc);
+    virtual ~DrawableMesh();
   };
 }
 

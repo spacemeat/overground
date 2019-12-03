@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <variant>
+#include <unordered_set>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -379,7 +380,7 @@ namespace overground
     struct blendStateAttachmentDiffs_t
     {
       blendStateAttachmentMembers_e diffs;
-      std::vector<size_t> colorWriteMaskDiffs;
+      std::unordered_set<size_t> colorWriteMaskDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -413,12 +414,12 @@ namespace overground
           if (lhs.colorWriteMask[i] != rhs.colorWriteMask[i])
           {
             blendStateAttachment.diffs |= blendStateAttachmentMembers_e::colorWriteMask;
-            blendStateAttachment.colorWriteMaskDiffs.push_back(i);
+            blendStateAttachment.colorWriteMaskDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          blendStateAttachment.colorWriteMaskDiffs.push_back(i);
+          blendStateAttachment.colorWriteMaskDiffs.insert(i);
         }
       }
 
@@ -472,7 +473,7 @@ namespace overground
     struct blendStateDiffs_t
     {
       blendStateMembers_e diffs;
-      std::vector<std::pair<size_t, blendStateAttachmentDiffs_t>> attachmentsDiffs;
+      std::unordered_map<size_t, blendStateAttachmentDiffs_t> attachmentsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -492,13 +493,13 @@ namespace overground
           if (doPodsDiffer(lhs.attachments[i], rhs.attachments[i], diffsEntry))
           {
             blendState.diffs |= blendStateMembers_e::attachments;
-            blendState.attachmentsDiffs.push_back({i, diffsEntry});
+            blendState.attachmentsDiffs.insert_or_assign(i, diffsEntry);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
           blendStateAttachmentDiffs_t diffsEntry = { .diffs = blendStateAttachmentMembers_e::all };
-          blendState.attachmentsDiffs.push_back({i, diffsEntry});
+          blendState.attachmentsDiffs.insert_or_assign(i, diffsEntry);
         }
       }
 
@@ -822,13 +823,13 @@ namespace overground
     struct materialDiffs_t
     {
       materialMembers_e diffs;
-      std::vector<std::pair<std::string, stageDiffs_t>> stagesDiffs;
+      std::unordered_map<std::string, stageDiffs_t> stagesDiffs;
       rasterizationStateDiffs_t rasterizationState;
       multisampleStateDiffs_t multisampleState;
       blendStateDiffs_t blendState;
       tesselationStateDiffs_t tesselationState;
       depthStencilStateDiffs_t depthStencilState;
-      std::vector<size_t> dynamicStatesDiffs;
+      std::unordered_set<size_t> dynamicStatesDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -849,7 +850,7 @@ namespace overground
               { continue; }
           }
           material.diffs |= materialMembers_e::stages;
-          material.stagesDiffs.push_back({lhsKey, diffsEntry});
+          material.stagesDiffs.insert_or_assign(lhsKey, diffsEntry);
         }
         for (auto const & [rhsKey, rhsIdx] : rhs.stages.keys())
         {
@@ -857,7 +858,7 @@ namespace overground
             { continue; }
 
           stageDiffs_t diffsEntry = { .diffs = stageMembers_e::all };
-          material.stagesDiffs.push_back({rhsKey, diffsEntry});
+          material.stagesDiffs.insert_or_assign(rhsKey, diffsEntry);
         }
       }
       // diff member 'rasterizationState':
@@ -883,12 +884,12 @@ namespace overground
           if (lhs.dynamicStates[i] != rhs.dynamicStates[i])
           {
             material.diffs |= materialMembers_e::dynamicStates;
-            material.dynamicStatesDiffs.push_back(i);
+            material.dynamicStatesDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          material.dynamicStatesDiffs.push_back(i);
+          material.dynamicStatesDiffs.insert(i);
         }
       }
 

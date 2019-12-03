@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <variant>
+#include <unordered_set>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -77,7 +78,6 @@ namespace overground
     {
       std::string type;
       vk::Format format;
-      std::optional<std::string> compression;
     };
 
     void importPod(
@@ -101,16 +101,14 @@ namespace overground
       none = 0,
       type = 1 << 0,
       format = 1 << 1,
-      compression = 1 << 2,
-      all = type | format | compression
+      all = type | format
     };
 
     inline bool operator == (image_t const & lhs, image_t const & rhs) noexcept
     {
       return
         lhs.type == rhs.type &&
-        lhs.format == rhs.format &&
-        lhs.compression == rhs.compression;
+        lhs.format == rhs.format;
     };
 
     inline bool operator != (image_t const & lhs, image_t const & rhs) noexcept
@@ -134,9 +132,6 @@ namespace overground
       // diff member 'format':
       if (lhs.format != rhs.format)
         { image.diffs |= imageMembers_e::format; }
-      // diff member 'compression':
-      if (lhs.compression != rhs.compression)
-        { image.diffs |= imageMembers_e::compression; }
 
       return image.diffs != imageMembers_e::none;
     };
@@ -211,9 +206,8 @@ namespace overground
     {
       std::string name;
       std::optional<std::string> srcFile;
-      std::string assFile;
       bool monitorFile;
-      std::variant<mesh_t, image_t, shader_t> data;
+      std::variant<mesh_t, image_t, shader_t> importData;
     };
 
     void importPod(
@@ -237,10 +231,9 @@ namespace overground
       none = 0,
       name = 1 << 0,
       srcFile = 1 << 1,
-      assFile = 1 << 2,
-      monitorFile = 1 << 3,
-      data = 1 << 4,
-      all = name | srcFile | assFile | monitorFile | data
+      monitorFile = 1 << 2,
+      importData = 1 << 3,
+      all = name | srcFile | monitorFile | importData
     };
 
     inline bool operator == (asset_t const & lhs, asset_t const & rhs) noexcept
@@ -248,9 +241,8 @@ namespace overground
       return
         lhs.name == rhs.name &&
         lhs.srcFile == rhs.srcFile &&
-        lhs.assFile == rhs.assFile &&
         lhs.monitorFile == rhs.monitorFile &&
-        lhs.data == rhs.data;
+        lhs.importData == rhs.importData;
     };
 
     inline bool operator != (asset_t const & lhs, asset_t const & rhs) noexcept
@@ -274,15 +266,12 @@ namespace overground
       // diff member 'srcFile':
       if (lhs.srcFile != rhs.srcFile)
         { asset.diffs |= assetMembers_e::srcFile; }
-      // diff member 'assFile':
-      if (lhs.assFile != rhs.assFile)
-        { asset.diffs |= assetMembers_e::assFile; }
       // diff member 'monitorFile':
       if (lhs.monitorFile != rhs.monitorFile)
         { asset.diffs |= assetMembers_e::monitorFile; }
-      // diff member 'data':
-      if (lhs.data != rhs.data)
-        { asset.diffs |= assetMembers_e::data; }
+      // diff member 'importData':
+      if (lhs.importData != rhs.importData)
+        { asset.diffs |= assetMembers_e::importData; }
 
       return asset.diffs != assetMembers_e::none;
     };

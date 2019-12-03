@@ -4,8 +4,8 @@ using namespace std;
 using namespace overground;
 
 
-Asset::Asset(string_view name)
-: name_(name)
+Asset::Asset(asset::asset_t const & desc)
+: desc(desc)
 {
 }
 
@@ -16,18 +16,17 @@ Asset::~Asset()
 }
 
 
-void Asset::loadAssetInfo(asset::asset_t const & asset)
+/*
+void Asset::loadAssetInfo()
 {
-  bool needsSrc = asset.srcFile.has_value();
+  bool needsSrc = desc.srcFile.has_value();
 
   // TODO: prepend the paths here with apt directories
   if (needsSrc)
-    { srcFile_ = FileRef(asset.srcFile.value()); }
-  assFile_ = FileRef(asset.assFile);
+    { srcFile = FileRef(desc.srcFile.value()); }
 
-  bool hasSrc = needsSrc && fs::is_regular_file(srcFile().value().path());
-  bool hasAss = fs::is_regular_file(assFile().path());
-  bool isSrcNewer = hasSrc && hasAss && srcFile().value().isNewerThan(assFile());
+  bool hasSrc = needsSrc && fs::is_regular_file(srcFile.value().path());
+  bool isSrcNewer = hasSrc && srcFile.value().isNewerThan(assFile());
 
   bool needsToCompileSrc = (hasSrc && ! hasAss) || isSrcNewer;
 
@@ -47,11 +46,17 @@ void Asset::loadAssetInfo(asset::asset_t const & asset)
     loadAssetInfo_impl(assFile_.path(), false, asset);
   }
 }
+*/
 
-
-void Asset::compileToAss()
+std::string Asset::getAssetType() const noexcept
 {
-  compileToAss_impl();
+  return getAssetType_impl();
+}
+
+
+void Asset::computeImportData()
+{
+  computeImportData_impl();
 }
 
 
@@ -61,19 +66,27 @@ void Asset::compileToBuffer(std::byte * buffer)
 }
 
 
-void Asset::loadAssetInfo_impl(path_t file, bool loadFromSrc, asset::asset_t const & asset)
+std::string Asset::getAssetType_impl() const noexcept
 {
-  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'loadAssetInfo_impl'.", name_));
+  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'loadAssetInfo_impl'.", desc.name));
 }
 
 
-void Asset::compileToAss_impl()
+/*
+void Asset::loadAssetInfo_impl(path_t file, bool loadFromSrc)
 {
-  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'compileToAss_impl'.", name_));
+  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'loadAssetInfo_impl'.", desc.name));
+}
+*/
+
+
+void Asset::computeImportData_impl()
+{
+  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'compileToAss_impl'.", desc.name));
 }
 
 
 void Asset::compileToBuffer_impl(std::byte * buffer)
 {
-  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'compileToBuffer_impl'.", name_));
+  log(thId, logTags::err, fmt::format("Asset plugin '{}' does not implement required virtual function 'compileToBuffer_impl'.", desc.name));
 }

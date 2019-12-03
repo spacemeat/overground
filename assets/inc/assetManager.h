@@ -11,6 +11,7 @@
 #include "graphicsUtils.h"
 #include "asset-gen.h"
 #include "asset.h"
+#include "allocDesc.h"
 
 
 namespace overground
@@ -18,23 +19,29 @@ namespace overground
   class AssetManager
   {
   public:
-    void trackAsset(std::string_view assetName, std::string_view tableauName, fs::path const & srcPath, fs::path const & cmpPath);
-    void untrackAsset(std::string_view assetName, std::string_view tableauName);
-    void untrackTableau(std::string_view tableauName);
+
+    void initializeAssetDatabase();
+    void synchronizeCache();
+
+    // void trackAsset(std::string_view assetName, std::string_view tableauName, fs::path const & srcPath, fs::path const & cmpPath);
+    // void untrackAsset(std::string_view assetName, std::string_view tableauName);
+    // void untrackTableau(std::string_view tableauName);
     void checkForUpdatedFiles() noexcept;
     
-    void installPlugin(std::string_view name, makeAssetFn_t plugin);
-
-    std::unordered_map<std::string, std::unique_ptr<Asset>> const & assets() const noexcept;
+    std::unordered_map<std::string, std::unique_ptr<Asset>> const & getAssets() const noexcept;
 
   private:
     void compileAssets(std::vector<std::string> const & assets);
-    std::unordered_map<std::string, std::unique_ptr<Asset>> assetMap;
 
-    std::unordered_map<std::string, makeAssetFn_t> assetPlugins;
+    bool assNeedsToStore = false;
+    std::unordered_map<std::string, std::unique_ptr<Asset>> currAssetMap;
+    std::unordered_map<std::string, std::unique_ptr<Asset>> workAssetMap;
+
+    AllocDesc currCacheMap;
+    AllocDesc workCacheMap;
   }; 
   
-  std::unordered_map<std::string, std::unique_ptr<Asset>> const & AssetManager::assets() const noexcept
+  std::unordered_map<std::string, std::unique_ptr<Asset>> const & AssetManager::getAssets() const noexcept
   {
     return assetMap;
   }

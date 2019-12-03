@@ -5,6 +5,7 @@
 #include <vector>
 #include <optional>
 #include <variant>
+#include <unordered_set>
 #include "utils.h"
 #include "graphicsUtils.h"
 #include "enumParsers.h"
@@ -63,7 +64,7 @@ namespace overground
     struct generalDiffs_t
     {
       generalMembers_e diffs;
-      std::vector<size_t> versionDiffs;
+      std::unordered_set<size_t> versionDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -80,7 +81,7 @@ namespace overground
         if (lhs.version[i] != rhs.version[i])
         {
           general.diffs |= generalMembers_e::version;
-          general.versionDiffs.push_back(i);
+          general.versionDiffs.insert(i);
         }
       }
       // diff member 'numWorkerThreads':
@@ -140,7 +141,7 @@ namespace overground
     struct swapchainImageViewDiffs_t
     {
       swapchainImageViewMembers_e diffs;
-      std::vector<size_t> componentsDiffs;
+      std::unordered_set<size_t> componentsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -157,7 +158,7 @@ namespace overground
         if (lhs.components[i] != rhs.components[i])
         {
           swapchainImageView.diffs |= swapchainImageViewMembers_e::components;
-          swapchainImageView.componentsDiffs.push_back(i);
+          swapchainImageView.componentsDiffs.insert(i);
         }
       }
       // diff member 'aspectMask':
@@ -235,9 +236,9 @@ namespace overground
     struct swapchainDiffs_t
     {
       swapchainMembers_e diffs;
-      std::vector<size_t> formatPrioritiesDiffs;
-      std::vector<size_t> imageUsagesDiffs;
-      std::vector<size_t> presentModePrioritiesDiffs;
+      std::unordered_set<size_t> formatPrioritiesDiffs;
+      std::unordered_set<size_t> imageUsagesDiffs;
+      std::unordered_set<size_t> presentModePrioritiesDiffs;
       swapchainImageViewDiffs_t imageView;
     };
 
@@ -254,12 +255,12 @@ namespace overground
           if (lhs.formatPriorities[i] != rhs.formatPriorities[i])
           {
             swapchain.diffs |= swapchainMembers_e::formatPriorities;
-            swapchain.formatPrioritiesDiffs.push_back(i);
+            swapchain.formatPrioritiesDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          swapchain.formatPrioritiesDiffs.push_back(i);
+          swapchain.formatPrioritiesDiffs.insert(i);
         }
       }
       // diff member 'numViews':
@@ -273,12 +274,12 @@ namespace overground
           if (lhs.imageUsages[i] != rhs.imageUsages[i])
           {
             swapchain.diffs |= swapchainMembers_e::imageUsages;
-            swapchain.imageUsagesDiffs.push_back(i);
+            swapchain.imageUsagesDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          swapchain.imageUsagesDiffs.push_back(i);
+          swapchain.imageUsagesDiffs.insert(i);
         }
       }
       // diff member 'imageSharing':
@@ -298,12 +299,12 @@ namespace overground
           if (lhs.presentModePriorities[i] != rhs.presentModePriorities[i])
           {
             swapchain.diffs |= swapchainMembers_e::presentModePriorities;
-            swapchain.presentModePrioritiesDiffs.push_back(i);
+            swapchain.presentModePrioritiesDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          swapchain.presentModePrioritiesDiffs.push_back(i);
+          swapchain.presentModePrioritiesDiffs.insert(i);
         }
       }
       // diff member 'clipped':
@@ -417,12 +418,12 @@ namespace overground
     struct graphicsDiffs_t
     {
       graphicsMembers_e diffs;
-      std::vector<size_t> vulkanValidationLayersDiffs;
-      std::vector<size_t> vulkanValidationReportsDiffs;
-      std::vector<size_t> vulkanExtensionsDiffs;
-      std::vector<size_t> deviceExtensionsDiffs;
-      std::vector<size_t> minDeviceFeaturesDiffs;
-      std::vector<size_t> desiredDeviceFeaturesDiffs;
+      std::unordered_set<size_t> vulkanValidationLayersDiffs;
+      std::unordered_set<size_t> vulkanValidationReportsDiffs;
+      std::unordered_set<size_t> vulkanExtensionsDiffs;
+      std::unordered_set<size_t> deviceExtensionsDiffs;
+      std::unordered_set<size_t> minDeviceFeaturesDiffs;
+      std::unordered_set<size_t> desiredDeviceFeaturesDiffs;
       swapchainDiffs_t swapchain;
     };
 
@@ -457,12 +458,12 @@ namespace overground
           if (lhs.vulkanValidationLayers[i] != rhs.vulkanValidationLayers[i])
           {
             graphics.diffs |= graphicsMembers_e::vulkanValidationLayers;
-            graphics.vulkanValidationLayersDiffs.push_back(i);
+            graphics.vulkanValidationLayersDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          graphics.vulkanValidationLayersDiffs.push_back(i);
+          graphics.vulkanValidationLayersDiffs.insert(i);
         }
       }
       // diff member 'vulkanValidationReports':
@@ -473,12 +474,12 @@ namespace overground
           if (lhs.vulkanValidationReports[i] != rhs.vulkanValidationReports[i])
           {
             graphics.diffs |= graphicsMembers_e::vulkanValidationReports;
-            graphics.vulkanValidationReportsDiffs.push_back(i);
+            graphics.vulkanValidationReportsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          graphics.vulkanValidationReportsDiffs.push_back(i);
+          graphics.vulkanValidationReportsDiffs.insert(i);
         }
       }
       // diff member 'vulkanExtensions':
@@ -489,12 +490,12 @@ namespace overground
           if (lhs.vulkanExtensions[i] != rhs.vulkanExtensions[i])
           {
             graphics.diffs |= graphicsMembers_e::vulkanExtensions;
-            graphics.vulkanExtensionsDiffs.push_back(i);
+            graphics.vulkanExtensionsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          graphics.vulkanExtensionsDiffs.push_back(i);
+          graphics.vulkanExtensionsDiffs.insert(i);
         }
       }
       // diff member 'deviceExtensions':
@@ -505,12 +506,12 @@ namespace overground
           if (lhs.deviceExtensions[i] != rhs.deviceExtensions[i])
           {
             graphics.diffs |= graphicsMembers_e::deviceExtensions;
-            graphics.deviceExtensionsDiffs.push_back(i);
+            graphics.deviceExtensionsDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          graphics.deviceExtensionsDiffs.push_back(i);
+          graphics.deviceExtensionsDiffs.insert(i);
         }
       }
       // diff member 'minGraphicsQueues':
@@ -539,12 +540,12 @@ namespace overground
           if (lhs.minDeviceFeatures[i] != rhs.minDeviceFeatures[i])
           {
             graphics.diffs |= graphicsMembers_e::minDeviceFeatures;
-            graphics.minDeviceFeaturesDiffs.push_back(i);
+            graphics.minDeviceFeaturesDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          graphics.minDeviceFeaturesDiffs.push_back(i);
+          graphics.minDeviceFeaturesDiffs.insert(i);
         }
       }
       // diff member 'desiredDeviceFeatures':
@@ -555,12 +556,12 @@ namespace overground
           if (lhs.desiredDeviceFeatures[i] != rhs.desiredDeviceFeatures[i])
           {
             graphics.diffs |= graphicsMembers_e::desiredDeviceFeatures;
-            graphics.desiredDeviceFeaturesDiffs.push_back(i);
+            graphics.desiredDeviceFeaturesDiffs.insert(i);
           }
         }
         for (size_t i = mn; i < mx; ++i)
         {
-          graphics.desiredDeviceFeaturesDiffs.push_back(i);
+          graphics.desiredDeviceFeaturesDiffs.insert(i);
         }
       }
       // diff member 'swapchain':
