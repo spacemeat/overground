@@ -7,6 +7,10 @@
         programName: { type: string }
         version: { type: "array<int, 3>" }
         numWorkerThreads: { type: int }
+        adbDir: { type: string }
+        cacheDir: { type: string }
+        adbFile: { type: string }
+        cacheFile: { type: string }
       }
 
       swapchainImageView: {
@@ -501,6 +505,8 @@
       image: {
         plugin: assets
         type: { type: string deserialized: false }
+        dims: { type: "array<size_t, 3>" }
+        numMipLevels: { type: size_t }
         format: { type: "vk::Format" }
       }
 

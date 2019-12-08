@@ -60,14 +60,18 @@ MemoryPlan::MemoryPlan(memoryPlan::memoryPlan_t const & data)
       }
     }
   }
+}
 
-  // Next, find the staging type, and allocate blocks sufficient for staging with n threads.
+
+// Start using GPU resources. Training is over. Today the real work begins. Go with Dog.
+void MemoryPlan::beBlessed()
+{
   allocateStagingMemory();
 }
 
 
-// This is called by Feature instances. Some usage info may come from them, but hmmm.
-void MemoryPlan::addObjects(Feature * feature)
+// This is called by Feature instances passing 'this'. Some usage info may come from them, but hmmm.
+void MemoryPlan::addObjects(Feature * feature, bool priority)
 {
   // let's get all the asset objs
   vector<Asset *> assetPtrs;
@@ -83,9 +87,9 @@ void MemoryPlan::addObjects(Feature * feature)
       MemoryType & mt = memoryTypes[mut.memoryTypeIdxs[memTypeIdx]];
       if (mt.allocs.size() == 0)
         { continue; }
-        
+      
       // If asset is alredy where it should be, just addref it.
-      if (auto it = mut.assetAllocMap.find(asset->name);
+      if (auto it = mut.assetAllocMap.find((string)asset->getName());
         it != mut.assetAllocMap.end())
       {
         AllocAddress const & aa = it->second;

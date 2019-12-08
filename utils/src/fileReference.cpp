@@ -6,26 +6,53 @@ using namespace std;
 using namespace overground;
 
 FileRef::FileRef(path_t const & path, fileTime_t modTime)
-: filePath(path), modTime(modTime)
+: filePath(path), currModTime(modTime)
 {
 }
 
 
-bool FileRef::hasBeenModified() const
+bool FileRef::exists() const
 {
-  auto newModTime = fs::last_write_time(filePath);
-  if (modTime != newModTime)
+  return fs::is_regular_file(filePath);  
+}
+
+
+bool FileRef::didFileChange() const
+{
+  workModTime = fs::last_write_time(filePath);
+  if (currModTime != workModTime)
   {
-    modTime = newModTime;
     return true;
   }
 
   return false;
 }
 
+
+bool FileRef::didFileChange(bool forgetTheChange)
+{
+  workModTime = fs::last_write_time(filePath);
+  if (currModTime != workModTime)
+  {
+    if (forgetTheChange)
+      { forgetFileChanged(); }
+
+    return true;
+  }
+
+  return false;
+}
+
+
+void FileRef::forgetFileChanged()
+{
+  currModTime = workModTime;
+}
+
+
 bool FileRef::isNewerThan(FileRef const & rhs) const
 {
-  return modTime > rhs.modTime;
+  return currModTime > rhs.currModTime;
 }
 
 

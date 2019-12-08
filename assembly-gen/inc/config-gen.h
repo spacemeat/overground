@@ -21,6 +21,10 @@ namespace overground
       std::string programName;
       std::array<int, 3> version;
       int numWorkerThreads;
+      std::string adbDir;
+      std::string cacheDir;
+      std::string adbFile;
+      std::string cacheFile;
     };
 
     void importPod(
@@ -45,7 +49,11 @@ namespace overground
       programName = 1 << 0,
       version = 1 << 1,
       numWorkerThreads = 1 << 2,
-      all = programName | version | numWorkerThreads
+      adbDir = 1 << 3,
+      cacheDir = 1 << 4,
+      adbFile = 1 << 5,
+      cacheFile = 1 << 6,
+      all = programName | version | numWorkerThreads | adbDir | cacheDir | adbFile | cacheFile
     };
 
     inline bool operator == (general_t const & lhs, general_t const & rhs) noexcept
@@ -53,7 +61,11 @@ namespace overground
       return
         lhs.programName == rhs.programName &&
         lhs.version == rhs.version &&
-        lhs.numWorkerThreads == rhs.numWorkerThreads;
+        lhs.numWorkerThreads == rhs.numWorkerThreads &&
+        lhs.adbDir == rhs.adbDir &&
+        lhs.cacheDir == rhs.cacheDir &&
+        lhs.adbFile == rhs.adbFile &&
+        lhs.cacheFile == rhs.cacheFile;
     };
 
     inline bool operator != (general_t const & lhs, general_t const & rhs) noexcept
@@ -87,6 +99,18 @@ namespace overground
       // diff member 'numWorkerThreads':
       if (lhs.numWorkerThreads != rhs.numWorkerThreads)
         { general.diffs |= generalMembers_e::numWorkerThreads; }
+      // diff member 'adbDir':
+      if (lhs.adbDir != rhs.adbDir)
+        { general.diffs |= generalMembers_e::adbDir; }
+      // diff member 'cacheDir':
+      if (lhs.cacheDir != rhs.cacheDir)
+        { general.diffs |= generalMembers_e::cacheDir; }
+      // diff member 'adbFile':
+      if (lhs.adbFile != rhs.adbFile)
+        { general.diffs |= generalMembers_e::adbFile; }
+      // diff member 'cacheFile':
+      if (lhs.cacheFile != rhs.cacheFile)
+        { general.diffs |= generalMembers_e::cacheFile; }
 
       return general.diffs != generalMembers_e::none;
     };

@@ -1,274 +1,361 @@
 #include <unordered_set>
 #include <stack>
 #include <queue>
+#include <mutex>
+#include <fstream>
 #include "assetManager.h"
 #include "assemblyManager.h"
 #include "assembly-gen.h"
+#include "engine.h"
 
 
 using namespace std;
 using namespace overground;
 
 
-// Called when cache is initialized and ready to use for data sourcing. Implicitly, 
-void AssetManager::initializeAssetDatabase(path_t const & assemblyDir, path_t const & cacheDir, string_view assFile)
+AssetManager::AssetManager()
 {
-  workAssetMap.clear();
-  workCacheMap.reset(false);
+  checkForFileChangesThread = thread ([this]{ checkForFileChanges(); });
+  synchronizeCacheThread = thread ([this]{ synchronizeCache(); });
+}
 
-  bool assNeedsToStore = false;
-  path_t assPath = fmt::format("{}\\{}", cacheDir, assFile);
-//if ass file exists:
-  if (fs::is_regular_file(assPath))
+
+AssetManager::~AssetManager()
+{
+  dying = true;
+
+  if (checkForFileChangesThread.joinable())
+    { checkForFileChangesThread.join(); }
+  
+  if (synchronizeCacheThread.joinable())
+    { synchronizeCacheThread.join(); }
+}
+
+
+void AssetManager::handleConfigChanges(config::config_t const & config)
+{
+  if (adbDir != config.general.adbDir ||
+      adbFile != config.general.adbFile)
   {
-//  load the ass file contents
-    loadAssFileContents(assPath);
-    auto assMtime = fs::last_write_time(assPath);
-//  for each asset in assembly:
-    for (auto & assetDesc : assemblyMan->getWorkingAssembly().assets.vect())
+    adbDir = config.general.adbDir;
+    adbFile = config.general.adbFile;
+    adbFileRef = FileRef(adbDir.append(adbFile));
+    adbFileChanged = true;
+  }
+
+  if (cacheDir != config.general.cacheDir ||
+      cacheFile != config.general.cacheFile)
+  {
+    cacheDir = config.general.cacheDir;
+    cacheFile = config.general.cacheFile;
+    cacheFileRef = FileRef(findCacheFile());
+    cacheFileChanged = true;
+  }
+}
+
+
+path_t AssetManager::findCacheFile()
+{
+  // look through the cacheDir for all the files, and find the best number.
+  path_t bestFile = fmt::format("{}-00000000.adb", cacheFile);
+  size_t bestFileNum = 0;
+  for (auto & de : fs::directory_iterator(cacheDir))
+  {
+    string const & name = de.path().filename();
+    if (de.path().extension() == "adb" &&
+        name.size() == cacheFile.size() + 9 &&
+        name.rfind(cacheFile, 0) == 0)
     {
-//    if asset's file is_regular_file:
-      path_t assetPath = fmt::format("{}\\assets\\{}", assemblyDir, assetDesc.srcFile);
-      if (fs::is_regular_file(assetPath))
+      if (name[cacheFile.size()] == '-')
       {
-//      stat ass file against asset file
-        auto assetMtime = fs::last_write_time(assetPath);
-//      if ass file is not up to date:
-        if (assMtime < assetMtime)
+        size_t stoulPos = 0;
+        size_t vn = stoul(name.substr(cacheFile.size() + 1), & stoulPos);
+        if (stoulPos == 8 && 
+            vn >= bestFileNum &&
+            de.is_regular_file())
         {
-//        create plugin asset type object
-          auto newAssetObj = makeAsset(assetDesc);
-//        track dat ass
-          workAssetMap.emplace(pair {assetDesc.name, move(newAssetObj)});
-//        compute essentials like compile size and image dims
-          newAssetObj->computeImportData();
-          assNeedsToStore = true;
+          bestFileNum = vn;
+          bestFile = de.path();
         }
-//      mark asset as "ass up to date"
-      }
-//    else:
-      else
-      {      
-//      mark asset as "erroneous"
-        
       }
     }
   }
-//  else:
-  else
+
+  return bestFile;
+}
+
+
+void AssetManager::heyCheckForFileChanges()
+{
+  if (checkingForFileChanges == false)
   {
-//    for each asset file in assembly and on disk:
-//      load precompile data from asset into asset database
+    checkingForFileChanges = true;
+    checkForFileChangesCv.notify_one();
+  }
+}
+
+
+void AssetManager::heySynchronizeCache()
+{
+  if (synchronizingCache == false)
+  {
+    synchronizingCache = true;
+    synchronizeCacheCv.notify_one();
+  }
+}
+
+
+void AssetManager::checkForFileChanges()
+{
+  while (dying == false)
+  {
+    {
+      unique_lock lock(checkForFileChangesMx);
+      // TODO: Am I yeeting this right? Like, using atomics in sane ways at all?
+      checkForFileChangesCv.wait(lock, [this]
+        { return dying || checkingForFileChanges ? true : false; });
+    }
+
+    shouldCheckFiles = false;
+    checkForUpdatedFiles();
+
+    if (adbFileChanged)
+    {
+      adbFileChanged = false;
+      loadAdbFile();
+      synchronizeCacheCv.notify_one();
+    }
+
+    if (cacheFileChanged)
+    {
+      cacheFileChanged = false;
+      synchronizeCacheCv.notify_one();
+    }
+
+    if (assetFilesChanged)
+    {
+      assetFilesChanged = false;
+      synchronizeCacheCv.notify_one();
+    }
+
+    checkingForFileChanges = false;
+  }
+}
+
+
+void AssetManager::checkForUpdatedFiles()
+{
+  if (checkingAssetFiles)
+    { return; }
+
+  checkingAssetFiles = true;
+  // clear the flag on fn exit
+  FlagRaiiser fr(checkingAssetFiles, false);
+
+  bool filesChanged = false;
+
+  // Just set a flag if any files have changed
+  for (auto & [assetName, asset] : currAssetMap)
+  {
+    if (asset->getSrcFile().has_value() &&
+        (asset->getSrcFile()->exists() == false ||
+         asset->getSrcFile()->didFileChange()))
+    {
+      filesChanged = true;
+      asset->setNeedToCompile();
+    }
   }
 
-  if (assNeedsToStore)
+  assetFilesChanged = filesChanged;
+  adbFileChanged = 
+    adbFileRef.exists() == false ||
+    adbFileRef.didFileChange();
+  cacheFileChanged = 
+    cacheFileRef.exists() == false ||
+    cacheFileRef.didFileChange();
+}
+
+
+void AssetManager::loadAdbFile()
+{
+  auto huNode = loadHumonDataFromFile(adbFileRef.path());
+
+  if (huNode->isDict())
   {
-    // now shit out your ass
-    storeAssFileContents(assPath);
+    for (size_t idx = 0; idx < huNode->size(); ++idx)
+    {
+      auto & assetName = huNode->keyAt(idx);
+      auto & assetNode = * huNode / idx;
+
+      size_t cacheOffset = 0;
+      size_t cacheSize = 0;
+      size_t x = 0, y = 0, z = 0;
+      size_t numMipLevels = 0;
+      vk::Format format = vk::Format::eUndefined;
+
+      if (assetNode % "cacheOffset")
+        { cacheOffset = assetNode / "cacheOffset"; }
+      if (assetNode % "cacheSize")
+        { cacheSize = assetNode / "cacheSize"; }
+
+      if (assetNode % "dims")
+      {
+        auto & dimsNode = assetNode / "cacheOffset";
+        if (dimsNode % 0)
+          { x = dimsNode / 0; }
+        if (dimsNode % 1)
+          { y = dimsNode / 1; }
+        if (dimsNode % 2)
+          { z = dimsNode / 2; }
+      }
+
+      if (assetNode % "numMipLevels")
+        { numMipLevels = assetNode / "cacheOffset"; }
+      if (assetNode % "format")
+        { format = fromString<vk::Format>((string) (assetNode / "format")); }
+
+      if (format == vk::Format::eUndefined)
+        { workCacheMap.trackAsset(assetName, cacheOffset, cacheSize); }
+      else
+        { workCacheMap.trackAsset(assetName, cacheOffset, cacheSize, {x, y, z}, numMipLevels, format); }
+    }
   }
+}
+
+
+void AssetManager::storeAdbFile()
+{
+  ofstream ofs(adbFileRef.path());
+  ofs << 
+R"({
+  assetDb: {
+)";
+
+  for (auto bd : currCacheMap.getBufferDesc().vect())
+  {
+    ofs << fmt::format(
+R"(    {assetName}: {{
+      cacheOffset: {cacheOffset}
+      cacheSize: {cacheSize}
+)",
+      fmt::arg("cacheOffset", bd.offset),
+      fmt::arg("cacheSize", bd.size));
+
+    if (bd.imageData.has_value())
+    {
+      AllocDescImageData const & bdid = bd.imageData.value();
+      ofs << fmt::format(
+R"(      dims: [{dims.x} {dims.y} {dims.z}]
+      numMipLevels: {numMipLevels}
+      format: {format}
+)", 
+        fmt::arg("dims.x", bdid.dims[0]),
+        fmt::arg("dims.y", bdid.dims[1]),
+        fmt::arg("dims.z", bdid.dims[2]),
+        fmt::arg("numMipLevels", bdid.numMipLevels),
+        fmt::arg("format", to_string(bdid.format)));
+    }    
+
+    ofs << 
+R"(    }
+)";
+  }
+
+  ofs << 
+R"(
+  }
+}
+)";
+
+  // let's not reload it.
+  adbFileRef.didFileChange(true);
+}
+
+
+void AssetManager::buildWorkCacheMap(
+  assembly::assembly_t const & workAsm, 
+  assembly::assemblyDiffs_t & assemblyDiffs)
+{
+  // I could be working off the diffs, but really it's probably as fast to recreate them all. That's my excuse.
+  workAssetMap.clear();
+  workCacheMap.reset(false);
+//for each asset in assembly:
+  // TODO: parallelize this
+  size_t totalSize = 0;
+  for (auto & assetDesc : workAsm.assets.vect())
+  {
+    // assemblyDiffs.assetsDiffs contains entries that are either new or deleted or changed
+    bool assetDescTouched = (assemblyDiffs.diffs & assembly::assemblyMembers_e::assets) != 0 &&
+        assemblyDiffs.assetsDiffs.find(assetDesc.name) != assemblyDiffs.assetsDiffs.end();
+
+    auto itCurrAsset = currAssetMap.find(assetDesc.name);
+    bool assetPreviouslyLoaded = (itCurrAsset != currAssetMap.end());
+    
+    if (assetDescTouched || assetPreviouslyLoaded == false)
+    {
+  //  create plugin asset type object
+      auto assetObj = makeAsset(assetDesc);
+  //  compute essentials like compile size and image dims
+      assetObj->computeImportData();
+  //  track dat ass
+      workAssetMap.emplace(pair {assetDesc.name, move(assetObj)});
+      totalSize += assetObj->getCacheSize();
+      assetObj->setCacheOffset(totalSize);
   
-  // At this point the working asset database is up to date, and we are clear to create vkImage and vkBuffer objects, and begin syncing the cache file. When cache file segments are compiled or transferred, they are checked for need to be loaded and maybe a transfer gets scheduled.
+      workCacheMap.trackAsset(assetObj.get());
+    }
+    else
+    {
+      auto currAssetObj = itCurrAsset->second;
+      workAssetMap.emplace(pair {assetDesc.name, currAssetObj});
+      totalSize += currAssetObj->getCacheSize();
+      currAssetObj->setCacheOffset(totalSize);
 
-  // This spawns an async thread and returns.
-  synchronizeCache();
+      workCacheMap.trackAsset(currAssetObj.get());
+    }
+  }
+
+  storeAdbFile();
 }
 
 
 void AssetManager::synchronizeCache()
 {
+  while (dying == false)
+  {
+    unique_lock lock(synchronizeCacheMx);
+    // TODO: Am I yeeting this right? Like, using atomics in sane ways at all?
+    synchronizeCacheCv.wait(lock, [this]
+      { return dying || synchronizingCache ? true : false; });
+    
+    // TODO NEXT: Synchronize caches!
+
   //  if cache file exists:
   //    for each asset file in assembly and on disk:
   //      stat cache file against asset file
   //      
   //      if cache file is up to date:
   //      open cache file
-  //    
-}
 
-/*
-void AssetManager::trackAsset(string_view assetName, string_view tableauName, fs::path const & srcPath, fs::path const & assPath)
-{
-  // If we have previously started tracking this asset,
-  if (auto mit = assetMap.find(string {assetName}); 
-      mit != assetMap.end())
-  {
-    Asset & ass = * mit->second;
-    auto & referencingTableaux = ass.referencingTableaux();
-    // If the tableau name is not part of the tracking,
-    if (auto vit = find(referencingTableaux.begin(), 
-        referencingTableaux.end(), tableauName); 
-        vit == referencingTableaux.end())
-    {
-      referencingTableaux.push_back(string {tableauName});
-    }
-  }
-
-  else
-  {
-    // Get the appropriate plugin class for the asset type.
-    if (auto it = assetPlugins.find(string(assetName));
-        it != assetPlugins.end())
-    {
-      // Create the asset object through its plugin.
-      auto asset = it->second(assetName);
-      asset->referencingTableaux().push_back(string(tableauName));
-      // Add asset to tracking.
-      assetMap.insert({string {assetName}, move(asset)});
-    }
-  }  
-}
-
-
-void AssetManager::untrackAsset(string_view assetName, string_view tableauName)
-{
-  if (auto mit = assetMap.find(string {assetName}); 
-      mit != assetMap.end())
-  {
-    Asset & ass = * mit->second;
-    auto & referencingTableaux = ass.referencingTableaux();
-
-    // If the tableau name is not part of the tracking,
-    if (auto vit = find(referencingTableaux.begin(), 
-        referencingTableaux.end(), tableauName); 
-        vit != referencingTableaux.end())
-    {
-      referencingTableaux.erase(remove(referencingTableaux.begin(), referencingTableaux.end(), tableauName), referencingTableaux.end());
-    }
-
-    // If no other tableaux are using the asset, dump it.
-    if (referencingTableaux.size() == 0)
-    {
-      assetMap.erase(string {assetName});
-    }
+    synchronizingCache = false;
   }
 }
 
 
-void AssetManager::untrackTableau(string_view tableauName)
+void fillWorkCache()
 {
-  vector<string> dumps;
-  for (auto mit = assetMap.begin(); mit != assetMap.end(); ++ mit)
-  {
-    Asset & ass = * mit->second;
-    auto & referencingTableaux = ass.referencingTableaux();
-    // If the tableau name is not part of the tracking,
-    if (auto vit = find(referencingTableaux.begin(), 
-        referencingTableaux.end(), tableauName); 
-        vit != referencingTableaux.end())
-    {
-      ass.removeReferencingTableau(tableauName);
-    }
-
-    // If no other tableaux are using the asset, dump it.
-    if (referencingTableaux.size() == 0)
-      { dumps.push_back(mit->first); }
-  }
-
-  for (auto & dump : dumps)
-    { assetMap.erase(dump); }
-}
-*/
-
-void AssetManager::checkForUpdatedFiles() noexcept
-{
-  vector<string> assetsToCompile;
-  vector<string> assetsToLoad;
-
-  for (auto & [assetName, asset] : assetMap)
-  {
-    auto & assFile = asset->assFile();
-    
-    bool needsSrc = asset->srcFile().has_value;
-    bool hasSrc = needsSrc && 
-      fs::is_regular_file(asset->srcFile().value.path());
-    bool hasAss = 
-      fs::is_regular_file(assFile.path());
-
-    // Ensure the ass is still shakin'.
-    if (! hasAss && ! hasSrc)
-    {
-      log(thId, logTags::err, fmt::format("Asset '{}': assFile  {} was not found.", assetName, assFile));
-      asset->erroneous() = true;
-      continue;
-    }
-
-    if (needsSrc && hasSrc)
-    {
-      auto & srcFile = asset->srcFile().value();
-      if (hasSrc == false)
-      {
-        log(thId, logTags::err, fmt::format("Asset '{}': srcFile '{}' was not found.", assetName, asset->srcFile().value()));
-        asset->erroneous() = true;
-        continue;
-      }
-
-      if (srcFile.hasBeenModified() ||
-          hasAss == false ||
-          srcFile.isNewerThan(assFile))
-        { assetsToCompile.push_back(assetName); }
-    }
-  }
-
-  compileAssets(assetsToCompile);
-}
-
-
-struct AssetDesc
-{
-  size_t offset;
-  size_t size;
-};
-
-struct BufferDesc
-{
-  stringDict<AssetDesc> assets;
-};
-
-auto packingDesc = stringDict<BufferDesc> {};
-
-
-void AssetManager::compileAssets(vector<string> const & assets)
-{
-  /*  Compute all the sizes for each asset:
-        determine packing (how to back buffers) according to tableaux and config
-        for each asset,
-          compute the size
-          add to appropriate pack
-      Compare old packing to new packing:
-        for each buffer we need to make,
-          if buffer needs to grow,
-            make a new buffer
-        copy all assets that don't have to compile
-        compile assets that need it
+  /*
+    for each w.window:
+      awlist = w.assets in w.window
+      cwlist.clear()
+      for each a in aslist:
+        if a not in c.assets:
+          compile a
+        else:
+          add c.assets.a.address to cwlist
+      cwlist.sort by address
+      for each e in cwlist:
+        move c.window to e.address if needed
+        copy e.a
   */
-  
-  assembly::assembly_t const & assembly = engine->getNewAssembly();
-  auto const & config = assembly.configs[assembly.usingConfig];
-  auto const & tableauGroup = assembly.tableauGroups[assembly.usingTableauGroup];
-
-  if (config.graphics.bufferStrategy == BufferStrategy::randomTableaux)
-  {
-    for (int i = 0; i < tableauGroup.size(); ++i)
-    {
-      // Run through the object tree breadth-firsrt. Any features we encounter will reference assets by name; that is an asset that needs to be loaded into the appropriate buffer.
-      auto const & tableau = assembly.tableaux[tableauGroup[i]];
-      queue<tableau::object_t const *> objs;
-      for (auto const & obj : tableau.objects)
-        { objs.push(& obj); }
-
-      while (objs.size())
-      {
-        auto pobj = objs.front();
-        objs.pop();
-
-        for (auto const & kid : pobj->children)
-          { objs.push(& kid); }
-
-        for (auto const & feature : pobj->features)
-        {
-          // TODO: Features! Where are they stored, and how are they accessed and indexed?
-        }
-      }
-    }
-  }
 }

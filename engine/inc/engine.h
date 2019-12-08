@@ -72,6 +72,20 @@ namespace overground
     void performScheduledEvents();
     // timed events
     void checkForUpdatedFiles();
+
+    void checkForChanges();
+  private:
+    void buildWorkingAssemblyObjects();
+    void computeConfigDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs);
+    void computeMemoryPlanDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs);
+    void computeRenderPlanDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs);
+    void computeAssetDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs);
+    void computeMaterialDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs);
+    void computeTableauDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs);
+    void handleConfigChanges();
+    void blessWorkingSets();
+
+  public:
     void checkForUpdatedAssembly();
 
     //void checkForDataUpdates();
@@ -118,12 +132,21 @@ namespace overground
     std::vector<engineTimeDuration> eventPeriods;
     std::vector<engineTimePoint> lastEventTimes;
 
+    bool assemblyFilesChanged = false;
+    bool assetFilesChanged = false;
+    bool assemblyDescsChanged = false;
+    bool configChanged = false;
+    bool materialsChanged = false;
+    bool adbChanged = false;
+    bool memoryPlanChanged = false;
+    bool objectTreeChanged = false;
+
+
 //    DataObjectKindFlags updatedObjectKinds = 
 //      DataObjectKindFlags::none;
   };
 
-//  extern Engine * engine;
-  static inline std::optional<Engine> engine;
+  inline std::optional<Engine> engine;
 }
 
 #endif // #ifndef ENGINE_H

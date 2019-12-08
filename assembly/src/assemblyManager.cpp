@@ -1,5 +1,6 @@
 #include "assemblyManager.h"
 #include <unordered_set>
+#include <thread>
 
 
 using namespace std;
@@ -14,7 +15,6 @@ void mergeAssemblies(assembly::assembly_t & dest, assembly::assembly_t && src)
   dest.assets.merge(move(src.assets));
 
   dest.materials.merge(move(src.materials));
-  dest.models.merge(move(src.models));
   dest.tableaux.merge(move(src.tableaux));
 
   if (dest.usingConfig.size() == 0)
@@ -24,19 +24,67 @@ void mergeAssemblies(assembly::assembly_t & dest, assembly::assembly_t && src)
 }
 
 
+AssemblyManager::AssemblyManager()
+{
+  bgThread = thread([this](){ checkForFileChanges(); });
+}
+
+
+AssemblyManager::~AssemblyManager()
+{
+  if (bgThread.joinable())
+    { bgThread.join(); }
+}
+
+
 void AssemblyManager::setAssemblyDir(fs::path const & dir)
 {
   assert(fs::is_directory(dir));
 
   if (assemblyDir != dir)
   {
-    loadAssemblySet();
+    assemblyFilesChanged = true;
   }
 }
 
 
-bool AssemblyManager::checkForUpdatedFiles() noexcept
+// Call this once every n00 ms.
+void AssemblyManager::heyCheckFiles()
 {
+  shouldCheckFiles = true;
+}
+
+
+void AssemblyManager::checkForFileChanges()
+{
+  while (dying == false)
+  {
+    if (shouldCheckFiles)
+    {
+      shouldCheckFiles = false;
+      checkForUpdatedFiles();
+
+      if (assemblyFilesChanged)
+      {
+        assemblyFilesChanged = false;
+        // builds the _t structs (pods)
+        buildWorkAssemblyDescs();
+      }
+    }
+  }
+}
+
+
+// Runs in its own thread. Can take its time.
+void AssemblyManager::checkForUpdatedFiles()
+{
+  if (checkingAssemblyFiles)
+    { return; }
+
+  checkingAssemblyFiles = true;
+  // clear the flag on fn exit
+  FlagRaiiser fr(checkingAssemblyFiles, false);
+
   // get existing assembly file set
   std::unordered_map<string, fileTime_t> extantFiles;
   for (auto & de : fs::directory_iterator(assemblyDir))
@@ -48,23 +96,24 @@ bool AssemblyManager::checkForUpdatedFiles() noexcept
     }
   }
 
-  bool shouldLoad = false;
+  bool filesChanged = false;
 
-  // If any files have been deleted, we need to start from scratch. This is because we don't track which assembly objects or assets came from which files. I'm frankly okay with this, as it's a rare event.
-  for (auto & pathRef : assemblyPaths)
+  // If any files have been deleted, we need to start from scratch. This is because we don't track which assembly objects or assets came from which files. I'm mildly okay with this, as it's a rare event.
+  for (auto & pathRef : loadedAsmPaths)
   {
     // If a file has been deleted, reload.
     if (auto it = extantFiles.find(pathRef.path()); 
         it == extantFiles.end())
     { 
-      shouldLoad = true;
+      filesChanged = true;
       break;
     }
 
     // If a file has been modified, reload.
-    if (pathRef.hasBeenModified())
+    if (pathRef.didFileChange())
     {
-      shouldLoad = true;
+      pathRef.forgetFileChanged();
+      filesChanged = true;
       break;
     }
 
@@ -72,64 +121,26 @@ bool AssemblyManager::checkForUpdatedFiles() noexcept
     extantFiles.erase(pathRef.path());
   }
 
-  // For modifications or deletions, we reload.
-  if (shouldLoad)
-  {
-    loadAssemblySet();
-    return true;
-  }
-
-  // For only additions, we append.
-  else
-  {
-    // TODO: parallelize.
-    for (auto & [path, modTime] : extantFiles)
-    {
-      appendAssembly(path, modTime);
-    }
-
-    return extantFiles.size() > 0;
-  }
+  // We also need to rebuld if new files have been added.
+  assemblyFilesChanged = filesChanged || 
+    extantFiles.size() > 0;
 }
 
 
-bool AssemblyManager::isAssemblyChanged() const noexcept
+void AssemblyManager::buildWorkAssemblyDescs()
 {
-  return assemblyChanged;
-}
+  if (buildingWorkAssemblySet)
+    { return; }
 
+  buildingWorkAssemblySet = true;
+  // clear the flag on fn exit
+  FlagRaiiser fr(buildingWorkAssemblySet, false);
 
-void AssemblyManager::setIsAssemblyChanged(bool forcedValue) noexcept
-{
-  assemblyChanged = forcedValue;
-}
-
-
-optional<assembly::assemblyDiffs_t> AssemblyManager::checkForUpdatedAssembly() noexcept
-{
-  if (assemblyChanged)
-  {
-    assemblyChanged = false;
-
-    assembly::assemblyDiffs_t assemblyDiffs {};
-    if (doPodsDiffer(*oldAssemblyPtr, *newAssemblyPtr, assemblyDiffs))
-    {
-      // assembblyDiffs now contains all the info about what has changed.
-      return { assemblyDiffs };
-    }
-  }
-
-  return {};
-}
-
-
-bool AssemblyManager::loadAssemblySet()
-{
-  * newAssemblyPtr = { };
-  assemblyPaths.clear();
+  loadedAsmPaths.clear();
 
   // Load all assembly files.
-  // TODO: parallelize.
+  // Not parallelizing since we're a background thread.
+  // TODO: parallelize on the up-front load case.
   for (auto & de : fs::directory_iterator(assemblyDir))
   {
     auto s = de.symlink_status();
@@ -138,17 +149,46 @@ bool AssemblyManager::loadAssemblySet()
       appendAssembly(de.path(), fs::last_write_time(de));
     }
   }
+
+  assemblyDescsChanged = true;
 }
 
 
 bool AssemblyManager::appendAssembly(fs::path const & path, fileTime_t modTime)
 {
-  assemblyPaths.emplace_back(path, modTime);
+  loadedAsmPaths.emplace_back(path, modTime);
   auto huNode = loadHumonDataFromFile(path);
   assembly::assembly_t newAssemblyLocal;
   assembly::importPod(*huNode, newAssemblyLocal);
-  mergeAssemblies(*newAssemblyPtr, move(newAssemblyLocal));
+  mergeAssemblies(workAssemblyDesc, move(newAssemblyLocal));
+}
 
-  // Notify checkForUpdatedAssembly(), which runs every frame, that assembly or assets need to be updated.
-  assemblyChanged = true;
+
+bool AssemblyManager::didAssemblyFilesChange() const noexcept
+{
+  return assemblyFilesChanged;
+}
+
+
+void AssemblyManager::forgetAssemblyFilesChanged()
+{
+  assemblyFilesChanged = false;
+}
+
+
+bool AssemblyManager::didAssemblyDescsChange() const noexcept
+{
+  return assemblyDescsChanged;
+}
+
+
+void AssemblyManager::forgetAssemblyDescsChanged()
+{
+  assemblyDescsChanged = false;
+}
+
+
+void AssemblyManager::latchAssembblyDescChanges()
+{
+  assemblyDescsChanged = true;
 }

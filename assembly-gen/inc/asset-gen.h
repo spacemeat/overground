@@ -77,6 +77,8 @@ namespace overground
     struct image_t
     {
       std::string type;
+      std::array<size_t, 3> dims;
+      size_t numMipLevels;
       vk::Format format;
     };
 
@@ -100,14 +102,18 @@ namespace overground
     {
       none = 0,
       type = 1 << 0,
-      format = 1 << 1,
-      all = type | format
+      dims = 1 << 1,
+      numMipLevels = 1 << 2,
+      format = 1 << 3,
+      all = type | dims | numMipLevels | format
     };
 
     inline bool operator == (image_t const & lhs, image_t const & rhs) noexcept
     {
       return
         lhs.type == rhs.type &&
+        lhs.dims == rhs.dims &&
+        lhs.numMipLevels == rhs.numMipLevels &&
         lhs.format == rhs.format;
     };
 
@@ -119,6 +125,7 @@ namespace overground
     struct imageDiffs_t
     {
       imageMembers_e diffs;
+      std::unordered_set<size_t> dimsDiffs;
     };
 
     inline bool doPodsDiffer(
@@ -129,6 +136,18 @@ namespace overground
       // diff member 'type':
       if (lhs.type != rhs.type)
         { image.diffs |= imageMembers_e::type; }
+      // diff member 'dims':
+      for (size_t i = 0; i < lhs.dims.size(); ++i)
+      {
+        if (lhs.dims[i] != rhs.dims[i])
+        {
+          image.diffs |= imageMembers_e::dims;
+          image.dimsDiffs.insert(i);
+        }
+      }
+      // diff member 'numMipLevels':
+      if (lhs.numMipLevels != rhs.numMipLevels)
+        { image.diffs |= imageMembers_e::numMipLevels; }
       // diff member 'format':
       if (lhs.format != rhs.format)
         { image.diffs |= imageMembers_e::format; }

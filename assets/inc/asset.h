@@ -37,13 +37,20 @@ namespace overground
     inline std::unordered_map<std::string, size_t> const & getTableauRefCounts() const noexcept;
     inline bool isErroneous() const noexcept;
     inline bool & isErroneous() noexcept;
+    inline size_t getCacheOffset() const noexcept;
+    inline size_t getCacheSize() const noexcept;
+    inline void setCacheOffset(size_t size) noexcept;
     inline size_t getBufferOffset() const noexcept;
     inline size_t getBufferSize() const noexcept;
+
+    void setNeedToCompile();
   
   private:
     asset::asset_t const & desc;
     std::optional<FileRef> srcFile;
     bool erroneous = false;
+    size_t cacheOffset;
+    size_t cacheSize;
     size_t bufferOffset;
     size_t bufferSize;
   };
@@ -64,6 +71,21 @@ namespace overground
   inline bool Asset::isErroneous() const noexcept
   {
     return erroneous;
+  }
+
+  inline size_t Asset::getCacheOffset() const noexcept
+  {
+    return cacheOffset;
+  }
+
+  inline size_t Asset::getCacheSize() const noexcept
+  {
+    return cacheSize;
+  }
+
+  inline void Asset::setCacheOffset(size_t offset) noexcept
+  {
+    cacheOffset = offset;
   }
 
   inline size_t Asset::getBufferOffset() const noexcept

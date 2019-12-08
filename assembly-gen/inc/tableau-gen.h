@@ -689,10 +689,6 @@ namespace overground
 
     struct feature_t
     {
-      size_t renderPlanRefs;
-      size_t modelRefs;
-      size_t materialRefs;
-      size_t assetRefs;
       std::variant<matrixTransform_t, srtTransform_t, drawableMesh_t, directionalLight_t, pointLight_t, spotLight_t, camera_t> featureData;
     };
 
@@ -715,21 +711,13 @@ namespace overground
     enum class featureMembers_e : int 
     {
       none = 0,
-      renderPlanRefs = 1 << 0,
-      modelRefs = 1 << 1,
-      materialRefs = 1 << 2,
-      assetRefs = 1 << 3,
-      featureData = 1 << 4,
-      all = renderPlanRefs | modelRefs | materialRefs | assetRefs | featureData
+      featureData = 1 << 0,
+      all = featureData
     };
 
     inline bool operator == (feature_t const & lhs, feature_t const & rhs) noexcept
     {
       return
-        lhs.renderPlanRefs == rhs.renderPlanRefs &&
-        lhs.modelRefs == rhs.modelRefs &&
-        lhs.materialRefs == rhs.materialRefs &&
-        lhs.assetRefs == rhs.assetRefs &&
         lhs.featureData == rhs.featureData;
     };
 
@@ -748,18 +736,6 @@ namespace overground
       feature_t const & rhs,
       featureDiffs_t & feature) noexcept
     {
-      // diff member 'renderPlanRefs':
-      if (lhs.renderPlanRefs != rhs.renderPlanRefs)
-        { feature.diffs |= featureMembers_e::renderPlanRefs; }
-      // diff member 'modelRefs':
-      if (lhs.modelRefs != rhs.modelRefs)
-        { feature.diffs |= featureMembers_e::modelRefs; }
-      // diff member 'materialRefs':
-      if (lhs.materialRefs != rhs.materialRefs)
-        { feature.diffs |= featureMembers_e::materialRefs; }
-      // diff member 'assetRefs':
-      if (lhs.assetRefs != rhs.assetRefs)
-        { feature.diffs |= featureMembers_e::assetRefs; }
       // diff member 'featureData':
       if (lhs.featureData != rhs.featureData)
         { feature.diffs |= featureMembers_e::featureData; }

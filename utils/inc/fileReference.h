@@ -21,13 +21,17 @@ namespace overground
 
     path_t const & path() const { return filePath; }
 
-    bool hasBeenModified() const;
+    bool exists() const;
+    bool didFileChange() const;
+    bool didFileChange(bool forgetTheChange = false);
+    void forgetFileChanged();
     bool isNewerThan(FileRef const & rhs) const;
 
   private:
     path_t filePath;
     // This is one of those cases where I feel mutable is appropriate. It's under control, folks.
-    mutable fileTime_t modTime;
+    mutable fileTime_t currModTime;
+    mutable fileTime_t workModTime;
   };
 
   class FileReference

@@ -12,7 +12,7 @@
       importData: {
         type: image
         format: R8G8B8A8Unorm # there should be a way to say "whatever we're using, man" Maybe Unknown.
-        dims: ["*" "*" "*"]
+        dims: [-1 -1 -1]
         mipLevels: all
       }
     }

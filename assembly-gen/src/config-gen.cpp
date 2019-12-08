@@ -36,6 +36,34 @@ void overground::config::importPod(
     dst0 = (int) src0; // leaf
     dest.numWorkerThreads = std::move(dst0);
   }
+  if (src % "adbDir")
+  {
+    auto & src0 = src / "adbDir";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.adbDir = std::move(dst0);
+  }
+  if (src % "cacheDir")
+  {
+    auto & src0 = src / "cacheDir";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.cacheDir = std::move(dst0);
+  }
+  if (src % "adbFile")
+  {
+    auto & src0 = src / "adbFile";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.adbFile = std::move(dst0);
+  }
+  if (src % "cacheFile")
+  {
+    auto & src0 = src / "cacheFile";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.cacheFile = std::move(dst0);
+  }
 }
 
 void overground::config::importPod(
@@ -86,6 +114,14 @@ std::string overground::config::print(
   ss << "\n" << indentIn << "]";
   ss << "\n" << indentIn << "numWorkerThreads: ";
   ss << (src.numWorkerThreads);
+  ss << "\n" << indentIn << "adbDir: ";
+  ss << (src.adbDir);
+  ss << "\n" << indentIn << "cacheDir: ";
+  ss << (src.cacheDir);
+  ss << "\n" << indentIn << "adbFile: ";
+  ss << (src.adbFile);
+  ss << "\n" << indentIn << "cacheFile: ";
+  ss << (src.cacheFile);
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }

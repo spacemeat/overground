@@ -71,6 +71,26 @@ void overground::asset::importPod(
     dst0 = (std::string) src0; // leaf
     dest.type = std::move(dst0);
   }
+  if (src % "dims")
+  {
+    auto & src0 = src / "dims";
+    std::array<size_t, 3> dst0;
+    for (size_t i0 = 0; i0 < 3; ++i0)
+    {
+      auto & src1 = src0 / i0;
+      size_t dst1;
+      dst1 = (size_t) src1; // leaf
+      dst0[i0] = std::move(dst1);
+    }
+    dest.dims = std::move(dst0);
+  }
+  if (src % "numMipLevels")
+  {
+    auto & src0 = src / "numMipLevels";
+    size_t dst0;
+    dst0 = (size_t) src0; // leaf
+    dest.numMipLevels = std::move(dst0);
+  }
   if (src % "format")
   {
     auto & src0 = src / "format";
@@ -113,6 +133,21 @@ std::string overground::asset::print(
   ss << "{";
   ss << "\n" << indentIn << "type: ";
   ss << (src.type);
+  ss << "\n" << indentIn << "dims: ";
+  ss << "[";
+  for (size_t i0 = 0; i0 < src.dims.size(); ++i0)
+  {
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    size_t const & src0 = src.dims[i0];
+    ss << "\n" << indentIn;
+    ss << (src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "]";
+  ss << "\n" << indentIn << "numMipLevels: ";
+  ss << (src.numMipLevels);
   ss << "\n" << indentIn << "format: ";
   ss << to_string(src.format);
   ss << "\n" << prevIndentIn << "}";

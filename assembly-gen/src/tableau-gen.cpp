@@ -811,34 +811,6 @@ ostream & overground::tableau::operator << (ostream & stream, camera_t const & r
 void overground::tableau::importPod(
   humon::HuNode const & src, feature_t & dest)
 {
-  if (src % "renderPlanRefs")
-  {
-    auto & src0 = src / "renderPlanRefs";
-    size_t dst0;
-    dst0 = (size_t) src0; // leaf
-    dest.renderPlanRefs = std::move(dst0);
-  }
-  if (src % "modelRefs")
-  {
-    auto & src0 = src / "modelRefs";
-    size_t dst0;
-    dst0 = (size_t) src0; // leaf
-    dest.modelRefs = std::move(dst0);
-  }
-  if (src % "materialRefs")
-  {
-    auto & src0 = src / "materialRefs";
-    size_t dst0;
-    dst0 = (size_t) src0; // leaf
-    dest.materialRefs = std::move(dst0);
-  }
-  if (src % "assetRefs")
-  {
-    auto & src0 = src / "assetRefs";
-    size_t dst0;
-    dst0 = (size_t) src0; // leaf
-    dest.assetRefs = std::move(dst0);
-  }
   if (src % "featureData")
   {
     auto & src0 = src / "featureData";
@@ -930,14 +902,6 @@ std::string overground::tableau::print(
   string indentIn(2 + depth * 2, ' ');
   std::ostringstream ss;
   ss << "{";
-  ss << "\n" << indentIn << "renderPlanRefs: ";
-  ss << (src.renderPlanRefs);
-  ss << "\n" << indentIn << "modelRefs: ";
-  ss << (src.modelRefs);
-  ss << "\n" << indentIn << "materialRefs: ";
-  ss << (src.materialRefs);
-  ss << "\n" << indentIn << "assetRefs: ";
-  ss << (src.assetRefs);
   ss << "\n" << indentIn << "featureData: ";
 
   if (src.featureData.valueless_by_exception())

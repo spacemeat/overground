@@ -7,6 +7,7 @@
 #include "assemblyManager.h"
 #include "config-gen.h"
 #include "objectTree.h"
+#include "memoryPlan.h"
 
 
 using namespace std;
@@ -189,25 +190,9 @@ void Engine::checkForUpdatedFiles()
 
 void Engine::checkForChanges()
 {
-  if (assetFilesChanged)
+  if (assemblyMan->didAssemblyDescsChange())
   {
-    // non-blocking async process
-    assetMan->synchronizeCache();
-    assetFilesChanged = false;
-  }
-
-  if (assemblyFilesChanged)
-  {
-    // builds the _t structs (pods)
-    assemblyMan->buildworkingAssemblyDescs();
-    assemblyFilesChanged = false;
-  }
-
-  if (assemblyChangedDescs)
-  {
-    // builds the renderplans, memoryplans, materials, objtrees
     buildWorkingAssemblyObjects();
-    assemblyChanged = false;
   }
 
   if (assetMan->isCacheUpToDate())
@@ -236,26 +221,38 @@ void Engine::checkForChanges()
     memoryPlanChanged = false;
     objectTreeChanged = false;
     materialsChanged = false;
-  }
 
-  blessWorkingSets();
+    blessWorkingSets();
+  }
 }
 
 
 void Engine::buildWorkingAssemblyObjects()
 {
-  auto & currAsm = assemblyMan->getCurrentAssembly();
-  auto & workAsm = assemblyMan->getWorkingAssembly();
-  auto assemblyDiffs = assemblyMan->checkForUpdatedAssembly();
-  if (assemblyDiffs.has_value())
-  {
-    computeConfigDiffs(currAsm, workAsm, assemblyDiffs);
-    computeMemoryPlanDiffs(currAsm, workAsm, assemblyDiffs);
-    computeRenderPlanDiffs(currAsm, workAsm, assemblyDiffs);
-    computeAssetDiffs(currAsm, workAsm, assemblyDiffs);
-    computeMaterialDiffs(currAsm, workAsm, assemblyDiffs);
-    computeTableauDiffs(currAsm, workAsm, assemblyDiffs);
-  }
+  auto & currAsm = assemblyMan->getCurrAssemblyDesc();
+  auto & workAsm = assemblyMan->getWorkAssemblyDesc();
+  auto & assemblyDiffs = assemblyMan->getWorkAssemblyDescDiffs();
+  if ((assemblyDiffs.diffs & assembly::assemblyMembers_e::configs) != 0 ||
+      (assemblyDiffs.diffs & assembly::assemblyMembers_e::usingConfig) != 0)
+    { computeConfigDiffs(currAsm, workAsm, assemblyDiffs); }
+
+  if ((assemblyDiffs.diffs & assembly::assemblyMembers_e::memoryPlans) != 0 ||
+      (assemblyDiffs.diffs & assembly::assemblyMembers_e::usingMemoryPlan) != 0)
+    { computeMemoryPlanDiffs(currAsm, workAsm, assemblyDiffs); }
+
+  if ((assemblyDiffs.diffs & assembly::assemblyMembers_e::renderPlans) != 0)
+    { computeRenderPlanDiffs(currAsm, workAsm, assemblyDiffs); }
+
+  if ((assemblyDiffs.diffs & assembly::assemblyMembers_e::assets) != 0)
+    { computeAssetDiffs(currAsm, workAsm, assemblyDiffs); }
+
+  if ((assemblyDiffs.diffs & assembly::assemblyMembers_e::materials) != 0)
+    { computeMaterialDiffs(currAsm, workAsm, assemblyDiffs); }
+
+  if ((assemblyDiffs.diffs & assembly::assemblyMembers_e::usingTableauGroup) != 0 ||
+      (assemblyDiffs.diffs & assembly::assemblyMembers_e::tableauGroups) != 0 ||
+      (assemblyDiffs.diffs & assembly::assemblyMembers_e::tableaux) != 0)
+    { computeTableauDiffs(currAsm, workAsm, assemblyDiffs); }
 }
 
 
@@ -299,6 +296,8 @@ void Engine::computeMemoryPlanDiffs(assembly::assembly_t const & currAsm, assemb
   if (auto it = assemblyDiffs.memoryPlansDiffs.find(workAsm.usingConfig);
       it != assemblyDiffs.memoryPlansDiffs.end())
   {
+    graphics->buildWorkMemoryPlan(workAsm.memoryPlans[workAsm.usingMemoryPlan]);
+
     memoryPlanChanged = true;
   }
 }
@@ -311,9 +310,7 @@ void Engine::computeRenderPlanDiffs(assembly::assembly_t const & currAsm, assemb
 
 void Engine::computeAssetDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs)
 {
-  // build workCacheMap
-  assetMan->initWorkCacheMap(); // from initializeAssetDatabase()
-  // start building the cache file
+  assetMan->buildWorkCacheMap(workAsm, assemblyDiffs);
   assetMan->synchronizeCache();
 }
 
@@ -326,47 +323,64 @@ void Engine::computeMaterialDiffs(assembly::assembly_t const & currAsm, assembly
 void Engine::computeTableauDiffs(assembly::assembly_t const & currAsm, assembly::assembly_t const & workAsm, assembly::assemblyDiffs_t & assemblyDiffs)
 {
   bool workingObjectTreeWasRebuilt = false;
-  if ((assemblyDiffs.diffs & assemblyMembers_e::usingTableauGroup) != 0 ||
-      (assemblyDiffs.diffs & assemblyMembers_e::tableauGroups) != 0 ||
-      (assemblyDiffs.diffs & assemblyMembers_e::tableaux) != 0)
+  // Build tableau groups and compare. Order does not matter so we'll use an unordered_set.
+  unordered_set<string> currTableaux;
+  unordered_set<string> workTableaux;
+
+  for (auto & tName: currAsm.tableauGroups[currAsm.usingTableauGroup])
+    { currTableaux.insert(tName); }
+
+  for (auto & tName: workAsm.tableauGroups[workAsm.usingTableauGroup])
+    { workTableaux.insert(tName); }
+
+  bool needToBuild = false;
+  if (currTableaux != workTableaux)
+    { needToBuild = true; }
+
+  if (needToBuild == false)
   {
-    // Build tableau groups and compare. Order does not matter so we'll use an unordered_set.
-    unordered_set<string> currTableaux;
-    unordered_set<string> workTableaux;
-
-    for (auto & tName: currAsm.tableauGroups[currAsm.usingTableauGroup])
-      { currTableaux.insert(tName); }
-
-    for (auto & tName: workAsm.tableauGroups[workAsm.usingTableauGroup])
-      { workTableaux.insert(tName); }
-
-    bool needToBuild = false;
-    if (currTableaux != workTableaux)
-      { needToBuild = true; }
-
-    if (needToBuild == false)
+    for (auto & tName: workTableaux)
     {
-      for (auto & tName: workTableaux)
+      if (auto it = assemblyDiffs.tableauxDiffs.find(tName);
+          it != assemblyDiffs.tableauxDiffs.end())
       {
-        if (auto it = assemblyDiffs.tableauxDiffs.find(tName);
-            it != assemblyDiffs.tableauxDiffs.end())
-        {
-          needToBuild = true;
-          break;
-        }
+        needToBuild = true;
+        break;
       }
     }
+  }
 
-    if (needToBuild)
-    {
-      // create workObjTree
-      assemblyMan->buildWorkObjectTree(workAsm);
-      objectTreeChanged = true;
-    }
+  if (needToBuild)
+  {
+    // create workObjTree
+    assemblyMan->buildWorkObjectTree(workAsm);
+    objectTreeChanged = true;
   }
 }
 
 
+void Engine::handleConfigChanges()
+{
+  auto & asmb = assemblyMan->getWorkAssemblyDesc();
+  auto & config = asmb.configs[asmb.usingConfig];
+
+
+  assetMan->handleConfigChanges(config);
+  assemblyMan->handleConfigChanges(config);
+  graphics->handleConfigChanges(config);
+}
+
+
+void Engine::blessWorkingSets()
+{
+  assemblyMan->blessWorkingSets();
+  assetMan->blessWorkingSets();
+  materialMan->blessWorkingSets();
+  graphics->blessWorkingSets();
+
+}
+
+/*
 void Engine::checkForUpdatedAssembly()
 {
   auto & currAsm = assemblyMan->getCurrentAssembly();
@@ -535,7 +549,7 @@ void Engine::checkForUpdatedAssembly()
     }
   }
 }
-
+*/
 
 // Here, config must match what configDiffs claims. In general, it's always workAsm.configs[workAsm.usingConfig], and we're just passing it around so we don't have to find it again and again.
 void Engine::updateConfig(config::config_t & config, 

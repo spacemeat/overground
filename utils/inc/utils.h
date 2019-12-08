@@ -6,7 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <mutex>
-#include <experimental/filesystem>
+#include <filesystem>
 #include "ansiTerm.h"
 #include "humon.h"
 #include "logger.h"
@@ -23,9 +23,9 @@ namespace overground
 
   constexpr auto assetFileExtension = ".ass";
 
-  namespace fs = std::experimental::filesystem;
-  using fileTime_t = std::experimental::filesystem::file_time_type;
-  using path_t = std::experimental::filesystem::path;
+  namespace fs = std::filesystem;
+  using fileTime_t = std::filesystem::file_time_type;
+  using path_t = std::filesystem::path;
 
   /*
   template <class RetObj>
@@ -38,6 +38,23 @@ namespace overground
     std::optional<RetObj> && obj() const && noexcept { return obj_; }
   };
   */
+
+  template <class T, class U>
+  class FlagRaiiser // requires U be convertible to T
+  {
+  public:
+    FlagRaiiser(T & flag, U value)
+    : flag(flag), value(value)
+    { }
+
+    ~FlagRaiiser()
+    {
+      flag = value;
+    }
+
+    T & flag;
+    U value;
+  };
 
 
   class Asset;

@@ -68,9 +68,11 @@ namespace overground
 
     stringDict<MemoryUsageType> const & getMemoryUsageTypes() const noexcept;
 
-    void addObjects(std::string_view usageType, std::vector<std::string> assets, bool priority);
-    void reprioritize(std::string_view usageType, std::vector<std::string> assets, bool priority);
-    void removeObjects(std::string_view usageType, std::vector<std::string> assets);
+    void beBlessed();
+
+    void addObjects(Feature * feature, bool priority);
+    void reprioritize(Feature * feature, bool priority);
+    void removeObjects(Feature * feature);
     void moop();
 
   private:
