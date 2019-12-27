@@ -7,6 +7,7 @@
 #include <iostream>
 #include <mutex>
 #include <filesystem>
+
 #include "ansiTerm.h"
 #include "humon.h"
 #include "logger.h"
@@ -26,6 +27,13 @@ namespace overground
   namespace fs = std::filesystem;
   using fileTime_t = std::filesystem::file_time_type;
   using path_t = std::filesystem::path;
+
+  constexpr size_t cacheLineSizeDestructive = 128;
+  constexpr size_t cacheLineSizeConstructive = 64;
+
+  // TODO: Use the system-specific call like
+  // sysconf(_SC_PAGE_SIZE)
+  constexpr size_t pageLineSize = 512;
 
   /*
   template <class RetObj>

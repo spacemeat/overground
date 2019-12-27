@@ -15,7 +15,7 @@
                 mesh: "cubeMesh"
                 subMeshes: [ {
                     subset: cubeFaces
-                    material: brushedSteel
+                    material: brick
                   }
                 ]
               }

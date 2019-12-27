@@ -37,11 +37,10 @@ namespace overground
     inline std::unordered_map<std::string, size_t> const & getTableauRefCounts() const noexcept;
     inline bool isErroneous() const noexcept;
     inline bool & isErroneous() noexcept;
-    inline size_t getCacheOffset() const noexcept;
-    inline size_t getCacheSize() const noexcept;
-    inline void setCacheOffset(size_t size) noexcept;
-    inline size_t getBufferOffset() const noexcept;
-    inline size_t getBufferSize() const noexcept;
+    inline size_t getDataOffset() const noexcept;
+    inline size_t getDataSize() const noexcept;
+    inline void setDataOffset(size_t size) noexcept;
+    inline vk::Format getFormat() const;
 
     void setNeedToCompile();
   
@@ -49,10 +48,9 @@ namespace overground
     asset::asset_t const & desc;
     std::optional<FileRef> srcFile;
     bool erroneous = false;
-    size_t cacheOffset;
-    size_t cacheSize;
-    size_t bufferOffset;
-    size_t bufferSize;
+    size_t dataOffset;
+    size_t dataSize;
+    vk::Format format = vk::Format::eUndefined;
   };
 
 
@@ -73,31 +71,20 @@ namespace overground
     return erroneous;
   }
 
-  inline size_t Asset::getCacheOffset() const noexcept
+  inline size_t Asset::getDataOffset() const noexcept
   {
-    return cacheOffset;
+    return dataOffset;
   }
 
-  inline size_t Asset::getCacheSize() const noexcept
+  inline size_t Asset::getDataSize() const noexcept
   {
-    return cacheSize;
+    return dataSize;
   }
 
-  inline void Asset::setCacheOffset(size_t offset) noexcept
+  inline void Asset::setDataOffset(size_t offset) noexcept
   {
-    cacheOffset = offset;
+    dataOffset = offset;
   }
-
-  inline size_t Asset::getBufferOffset() const noexcept
-  {
-    return bufferOffset;
-  }
-
-  inline size_t Asset::getBufferSize() const noexcept
-  {
-    return bufferSize;
-  }
-
 
   #pragma endregion
 

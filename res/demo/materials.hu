@@ -1,6 +1,6 @@
 {
   materials: {
-    defaultMaterial: {
+    brick: {
 
       # This should be replaced by the data in a mesh that uses this material. That means a different material for each mesh that has a different format. This is handled internally, but it informs the following truism: One material may generate many pipeline objects. One mesh will only ever generate one vb/ib set.
 #      vertexDecl: [ {
@@ -14,18 +14,24 @@
 #          format: R32G32_SFLOAT
 #        }
 #      ]
+      descriptors: {
+        diffuseMap: { descType: combinedImageSampler asset: brick_diffuse }
+        normalMap: { descType: combinedImageSampler asset: brick_normal }
+        lights: { descType: uniformBuffer buffer: lights }
+        camera: { declType: uniformBuffer buffer: camera }
+        object: { declType: pushConstants pushConstants: object } #?
+      }
       tags: [opaqueMesh]
       stages: {
         vertex: {
           shaderAsset: "diffuse-vshader"
           entry: main
-          # TODO: modifiers? Precompile params? Maybe not
+          # TODO: modifiers? Precompile params?
         }
         fragment: {
           shaderAsset: "diffuse-fshader"
           entry: main
-          # TODO: modifiers? Precompile params? Maybe not
-          # TODO: texture / sampler info here?
+          # TODO: modifiers? Precompile params?
         }
       }
       rasterizationState: {

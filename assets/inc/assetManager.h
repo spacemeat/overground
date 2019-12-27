@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <atomic>
 #include <memory>
+#include <new>
 #include "utils.h"
 #include "fileReference.h"
 #include "graphicsUtils.h"
@@ -26,8 +27,11 @@ namespace overground
     AssetManager();
     ~AssetManager();
 
+    Asset * getAsset(std::string_view name);
+
     void handleConfigChanges(config::config_t const & config);
-    path_t findCacheFile();
+    path_t findCacheFile() const;
+    path_t getNextCacheFileName() const;
 
     void heyCheckForFileChanges();
     void heySynchronizeCache();
@@ -44,18 +48,22 @@ namespace overground
 
     void synchronizeCache();
 
+    void fillWorkCache(int cFd, int wFd);
+
+    void rebuildWorkCache(int wFd);
+
     std::unordered_map<std::string, std::shared_ptr<Asset>> const & getCurrAssets() const noexcept;
     std::unordered_map<std::string, std::shared_ptr<Asset>> const & getWorkAssets() const noexcept;
 
   private:
     bool dying = false;
 
-    path_t adbDir;
+    path_t adbPath;
     path_t cacheDir;
-    std::string adbFile;
     std::string cacheFile;
     FileRef adbFileRef;
     FileRef cacheFileRef;
+    size_t cacheMapWindowSize;
 
     fs::file_time_type lastAdbLoadTime;
 
@@ -73,14 +81,22 @@ namespace overground
     std::mutex synchronizeCacheMx;
     std::condition_variable synchronizeCacheCv;
 
+    // TODO: Interleave above things in here to save memory
+    alignas(cacheLineSizeDestructive)
     std::atomic<bool> checkingForFileChanges = false;
+    alignas(cacheLineSizeDestructive)
     std::atomic<bool> synchronizingCache = false;
+    alignas(cacheLineSizeDestructive)
     std::atomic<bool> shouldCheckFiles = false;
+    alignas(cacheLineSizeDestructive)
     std::atomic<bool> checkingAssetFiles = false;
+    alignas(cacheLineSizeDestructive)
     std::atomic<bool>
     assetFilesChanged = false;
+    alignas(cacheLineSizeDestructive)
     std::atomic<bool>
     adbFileChanged = false;
+    alignas(cacheLineSizeDestructive)
     std::atomic<bool>
     cacheFileChanged = false;
   };

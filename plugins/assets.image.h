@@ -13,20 +13,23 @@ namespace overground
     Image(asset::asset_t const & desc);
     virtual ~Image();
 
-    std::array<size_t, 3> const & getDims() const;
+    std::array<size_t, 3> const & getExtents() const;
     size_t getNumMipLevels() const;
-    vk::Format getFormat() const;
+
+    vk::ComponentMapping getComponentMapping() const noexcept;
 
   protected:
-    virtual void loadAssetInfo_impl(path_t file, bool loadFromSrc) override;
+    virtual std::string getAssetType_impl() const noexcept;
+//    virtual void loadAssetInfo_impl(path_t file, bool loadFromSrc) override;
 
-    virtual void compileToAss_impl() override;
+    virtual void computeImportData_impl() override;
     virtual void compileToBuffer_impl(std::byte * buffer) override;
 
   private:
-    std::array<size_t, 3> dims;
+    size_t numImages = 1;
+    vk::Extent3D extents;
     size_t numMipLevels;
-    vk::Format format;
+    vk::ComponentMapping componentMapping;
   };
 
   Image::Image(asset::asset_t const & desc)
@@ -34,9 +37,9 @@ namespace overground
   {
     auto & descData = std::get<asset::image_t>(desc.importData);
 
-    dims = descData.dims;
+//    descData.type
+    extents = vk::Extent3D(descData.dims[0], descData.dims[1], descData.dims[2]);
     numMipLevels = descData.numMipLevels;
-    format = descData.format;
   }
 }
 

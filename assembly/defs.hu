@@ -7,10 +7,13 @@
         programName: { type: string }
         version: { type: "array<int, 3>" }
         numWorkerThreads: { type: int }
-        adbDir: { type: string }
+      }
+
+      assetDatabase: {
+        adbPath: { type: string }
         cacheDir: { type: string }
-        adbFile: { type: string }
         cacheFile: { type: string }
+        cacheMapWindowSize: { type: int } # in MB
       }
 
       swapchainImageView: {
@@ -56,6 +59,7 @@
 
       config: {
         general: { type: general }
+        assetDatabase: { type: assetDatabase }
         graphics: { type: graphics }
       }
     }
@@ -406,6 +410,13 @@
     }
 
     material: {
+      descriptor: { 
+        descType: { type: "stringDict<vk::DescriptorType>" }
+        asset: { type: "optional<string>" }
+        
+
+      }
+      
       shaderModule: {
         name: { type: string }
         shaderName: { type: string }
@@ -502,12 +513,20 @@
         type: { type: string deserialized: false }
       }
 
+      componentMapping: {
+        r: { type: "vk::ComponentSwizzle" }
+        g: { type: "vk::ComponentSwizzle" }
+        b: { type: "vk::ComponentSwizzle" }
+        a: { type: "vk::ComponentSwizzle" }
+      }
+
       image: {
         plugin: assets
         type: { type: string deserialized: false }
-        dims: { type: "array<size_t, 3>" }
+        imageType: { type: "vk::ImageType" }
+        extents: { type: "array<size_t, 3>" }
         numMipLevels: { type: size_t }
-        format: { type: "vk::Format" }
+        componentMapping: { type: "optional<componentMapping>" }
       }
 
       shader: {
@@ -522,6 +541,7 @@
         srcFile: { type: "optional<string>" }
         monitorFile: { type: bool default: true }
         importData: { type: "variant<plugins<assets>>" }
+        format: { type: "optional<vk::Format>" }
       }
     }
 

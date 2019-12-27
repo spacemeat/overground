@@ -36,34 +36,6 @@ void overground::config::importPod(
     dst0 = (int) src0; // leaf
     dest.numWorkerThreads = std::move(dst0);
   }
-  if (src % "adbDir")
-  {
-    auto & src0 = src / "adbDir";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.adbDir = std::move(dst0);
-  }
-  if (src % "cacheDir")
-  {
-    auto & src0 = src / "cacheDir";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.cacheDir = std::move(dst0);
-  }
-  if (src % "adbFile")
-  {
-    auto & src0 = src / "adbFile";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.adbFile = std::move(dst0);
-  }
-  if (src % "cacheFile")
-  {
-    auto & src0 = src / "cacheFile";
-    std::string dst0;
-    dst0 = (std::string) src0; // leaf
-    dest.cacheFile = std::move(dst0);
-  }
 }
 
 void overground::config::importPod(
@@ -114,19 +86,93 @@ std::string overground::config::print(
   ss << "\n" << indentIn << "]";
   ss << "\n" << indentIn << "numWorkerThreads: ";
   ss << (src.numWorkerThreads);
-  ss << "\n" << indentIn << "adbDir: ";
-  ss << (src.adbDir);
-  ss << "\n" << indentIn << "cacheDir: ";
-  ss << (src.cacheDir);
-  ss << "\n" << indentIn << "adbFile: ";
-  ss << (src.adbFile);
-  ss << "\n" << indentIn << "cacheFile: ";
-  ss << (src.cacheFile);
   ss << "\n" << prevIndentIn << "}";
   return ss.str();
 }
 
 ostream & overground::config::operator << (ostream & stream, general_t const & rhs)
+{
+  stream << print(rhs);
+  return stream;
+}
+
+void overground::config::importPod(
+  humon::HuNode const & src, assetDatabase_t & dest)
+{
+  if (src % "adbPath")
+  {
+    auto & src0 = src / "adbPath";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.adbPath = std::move(dst0);
+  }
+  if (src % "cacheDir")
+  {
+    auto & src0 = src / "cacheDir";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.cacheDir = std::move(dst0);
+  }
+  if (src % "cacheFile")
+  {
+    auto & src0 = src / "cacheFile";
+    std::string dst0;
+    dst0 = (std::string) src0; // leaf
+    dest.cacheFile = std::move(dst0);
+  }
+  if (src % "cacheMapWindowSize")
+  {
+    auto & src0 = src / "cacheMapWindowSize";
+    int dst0;
+    dst0 = (int) src0; // leaf
+    dest.cacheMapWindowSize = std::move(dst0);
+  }
+}
+
+void overground::config::importPod(
+std::vector<uint8_t> const & src, assetDatabase_t & dest)
+{
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
+}
+
+void overground::config::exportPod(assetDatabase_t const & src,
+humon::HuNode & dest, int depth)
+{
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
+}
+
+void overground::config::exportPod(
+assetDatabase_t const & src, std::vector<uint8_t> & dest)
+{
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
+}
+
+std::string overground::config::print(
+  assetDatabase_t const & src, int depth)
+{
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
+  std::ostringstream ss;
+  ss << "{";
+  ss << "\n" << indentIn << "adbPath: ";
+  ss << (src.adbPath);
+  ss << "\n" << indentIn << "cacheDir: ";
+  ss << (src.cacheDir);
+  ss << "\n" << indentIn << "cacheFile: ";
+  ss << (src.cacheFile);
+  ss << "\n" << indentIn << "cacheMapWindowSize: ";
+  ss << (src.cacheMapWindowSize);
+  ss << "\n" << prevIndentIn << "}";
+  return ss.str();
+}
+
+ostream & overground::config::operator << (ostream & stream, assetDatabase_t const & rhs)
 {
   stream << print(rhs);
   return stream;
@@ -822,6 +868,13 @@ void overground::config::importPod(
     importPod(src0, dst0);
     dest.general = std::move(dst0);
   }
+  if (src % "assetDatabase")
+  {
+    auto & src0 = src / "assetDatabase";
+    assetDatabase_t dst0;
+    importPod(src0, dst0);
+    dest.assetDatabase = std::move(dst0);
+  }
   if (src % "graphics")
   {
     auto & src0 = src / "graphics";
@@ -864,6 +917,8 @@ std::string overground::config::print(
   ss << "{";
   ss << "\n" << indentIn << "general: ";
   ss << print(src.general, depth + 1);
+  ss << "\n" << indentIn << "assetDatabase: ";
+  ss << print(src.assetDatabase, depth + 1);
   ss << "\n" << indentIn << "graphics: ";
   ss << print(src.graphics, depth + 1);
   ss << "\n" << prevIndentIn << "}";

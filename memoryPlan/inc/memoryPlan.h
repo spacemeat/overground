@@ -4,11 +4,25 @@
 #include <vector>
 #include "memoryPlan-gen.h"
 #include "graphicsUtils.h"
+#include "feature.h"
 
 namespace overground
 {
-  struct MemorySubresource
+  size_t padTo(size_t value, size_t alignment)
+  {
+    auto rem = value % alignment;
+    if (rem > 0)
+    {
+      value = alignment * (value / alignment + 1);
+    }
+
+    return value;
+  }
+
+
+  struct Subresource
   { // size and offset into vkBuffer / vkImage
+    std::variant<vk::BufferView, vk::ImageView> vulkanSubresource;
     std::string assetName;
     size_t offset;
     size_t size;
@@ -18,13 +32,11 @@ namespace overground
   // TODO: There's a vk enum for this. Need it even? Have the variant.
 //  enum class ResourceType { buffer, image };
 
-  struct MemoryBackedResource
+  struct Resource
   {
 //    ResourceType type;   // buffer or image or ...
     std::variant<vk::Buffer, vk::Image> vulkanResource;
-    std::vector<MemorySubresource> subresources;
-    size_t offset;
-    size_t size;
+    std::vector<Subresource> subresources;
     bool priority;
   };
 
@@ -35,15 +47,16 @@ namespace overground
     size_t freeSize;
     vk::DeviceMemory alloc;
 
-    std::vector<MemoryBackedResource> resources;
+    std::vector<Resource> resources;
   };
 
   struct MemoryType
   {
     vk::MemoryPropertyFlags memoryProps;
     size_t allocChunkSize;
-    bool mappable;
     std::vector<MemoryAlloc> allocs;
+
+    MemoryAlloc & getAlloc(vk::MemoryRequirements const & reqs);
   };
 
   struct AllocAddress
@@ -77,6 +90,8 @@ namespace overground
 
   private:
     void allocateStagingMemory();
+    Resource & allocateResource(std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryRequirements const & reqs);
+    void registerSubresource(Resource & ogResource, std::variant<vk::BufferView, vk::ImageView> subresourceView);
 
     size_t numAllocRetries;
     size_t stagingSize;

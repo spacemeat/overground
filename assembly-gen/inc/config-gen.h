@@ -21,10 +21,6 @@ namespace overground
       std::string programName;
       std::array<int, 3> version;
       int numWorkerThreads;
-      std::string adbDir;
-      std::string cacheDir;
-      std::string adbFile;
-      std::string cacheFile;
     };
 
     void importPod(
@@ -49,11 +45,7 @@ namespace overground
       programName = 1 << 0,
       version = 1 << 1,
       numWorkerThreads = 1 << 2,
-      adbDir = 1 << 3,
-      cacheDir = 1 << 4,
-      adbFile = 1 << 5,
-      cacheFile = 1 << 6,
-      all = programName | version | numWorkerThreads | adbDir | cacheDir | adbFile | cacheFile
+      all = programName | version | numWorkerThreads
     };
 
     inline bool operator == (general_t const & lhs, general_t const & rhs) noexcept
@@ -61,11 +53,7 @@ namespace overground
       return
         lhs.programName == rhs.programName &&
         lhs.version == rhs.version &&
-        lhs.numWorkerThreads == rhs.numWorkerThreads &&
-        lhs.adbDir == rhs.adbDir &&
-        lhs.cacheDir == rhs.cacheDir &&
-        lhs.adbFile == rhs.adbFile &&
-        lhs.cacheFile == rhs.cacheFile;
+        lhs.numWorkerThreads == rhs.numWorkerThreads;
     };
 
     inline bool operator != (general_t const & lhs, general_t const & rhs) noexcept
@@ -99,20 +87,84 @@ namespace overground
       // diff member 'numWorkerThreads':
       if (lhs.numWorkerThreads != rhs.numWorkerThreads)
         { general.diffs |= generalMembers_e::numWorkerThreads; }
-      // diff member 'adbDir':
-      if (lhs.adbDir != rhs.adbDir)
-        { general.diffs |= generalMembers_e::adbDir; }
-      // diff member 'cacheDir':
-      if (lhs.cacheDir != rhs.cacheDir)
-        { general.diffs |= generalMembers_e::cacheDir; }
-      // diff member 'adbFile':
-      if (lhs.adbFile != rhs.adbFile)
-        { general.diffs |= generalMembers_e::adbFile; }
-      // diff member 'cacheFile':
-      if (lhs.cacheFile != rhs.cacheFile)
-        { general.diffs |= generalMembers_e::cacheFile; }
 
       return general.diffs != generalMembers_e::none;
+    };
+
+    // assetDatabase things
+
+    struct assetDatabase_t
+    {
+      std::string adbPath;
+      std::string cacheDir;
+      std::string cacheFile;
+      int cacheMapWindowSize;
+    };
+
+    void importPod(
+      humon::HuNode const & src, assetDatabase_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, assetDatabase_t & dest);
+
+    void exportPod(assetDatabase_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      assetDatabase_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(assetDatabase_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, assetDatabase_t const & src);
+
+    enum class assetDatabaseMembers_e : int 
+    {
+      none = 0,
+      adbPath = 1 << 0,
+      cacheDir = 1 << 1,
+      cacheFile = 1 << 2,
+      cacheMapWindowSize = 1 << 3,
+      all = adbPath | cacheDir | cacheFile | cacheMapWindowSize
+    };
+
+    inline bool operator == (assetDatabase_t const & lhs, assetDatabase_t const & rhs) noexcept
+    {
+      return
+        lhs.adbPath == rhs.adbPath &&
+        lhs.cacheDir == rhs.cacheDir &&
+        lhs.cacheFile == rhs.cacheFile &&
+        lhs.cacheMapWindowSize == rhs.cacheMapWindowSize;
+    };
+
+    inline bool operator != (assetDatabase_t const & lhs, assetDatabase_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct assetDatabaseDiffs_t
+    {
+      assetDatabaseMembers_e diffs;
+    };
+
+    inline bool doPodsDiffer(
+      assetDatabase_t const & lhs,
+      assetDatabase_t const & rhs,
+      assetDatabaseDiffs_t & assetDatabase) noexcept
+    {
+      // diff member 'adbPath':
+      if (lhs.adbPath != rhs.adbPath)
+        { assetDatabase.diffs |= assetDatabaseMembers_e::adbPath; }
+      // diff member 'cacheDir':
+      if (lhs.cacheDir != rhs.cacheDir)
+        { assetDatabase.diffs |= assetDatabaseMembers_e::cacheDir; }
+      // diff member 'cacheFile':
+      if (lhs.cacheFile != rhs.cacheFile)
+        { assetDatabase.diffs |= assetDatabaseMembers_e::cacheFile; }
+      // diff member 'cacheMapWindowSize':
+      if (lhs.cacheMapWindowSize != rhs.cacheMapWindowSize)
+        { assetDatabase.diffs |= assetDatabaseMembers_e::cacheMapWindowSize; }
+
+      return assetDatabase.diffs != assetDatabaseMembers_e::none;
     };
 
     // swapchainImageView things
@@ -603,6 +655,7 @@ namespace overground
     struct config_t
     {
       general_t general;
+      assetDatabase_t assetDatabase;
       graphics_t graphics;
     };
 
@@ -626,14 +679,16 @@ namespace overground
     {
       none = 0,
       general = 1 << 0,
-      graphics = 1 << 1,
-      all = general | graphics
+      assetDatabase = 1 << 1,
+      graphics = 1 << 2,
+      all = general | assetDatabase | graphics
     };
 
     inline bool operator == (config_t const & lhs, config_t const & rhs) noexcept
     {
       return
         lhs.general == rhs.general &&
+        lhs.assetDatabase == rhs.assetDatabase &&
         lhs.graphics == rhs.graphics;
     };
 
@@ -646,6 +701,7 @@ namespace overground
     {
       configMembers_e diffs;
       generalDiffs_t general;
+      assetDatabaseDiffs_t assetDatabase;
       graphicsDiffs_t graphics;
     };
 
@@ -657,6 +713,9 @@ namespace overground
       // diff member 'general':
       if (doPodsDiffer(lhs.general, rhs.general, config.general))
         { config.diffs |= configMembers_e::general; }
+      // diff member 'assetDatabase':
+      if (doPodsDiffer(lhs.assetDatabase, rhs.assetDatabase, config.assetDatabase))
+        { config.diffs |= configMembers_e::assetDatabase; }
       // diff member 'graphics':
       if (doPodsDiffer(lhs.graphics, rhs.graphics, config.graphics))
         { config.diffs |= configMembers_e::graphics; }

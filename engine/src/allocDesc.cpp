@@ -1,4 +1,5 @@
 #include <numeric>
+#include <new>
 #include "allocDesc.h"
 #include "assetManager.h"
 #include "graphics.h"
@@ -8,117 +9,116 @@ using namespace std;
 using namespace overground;
 
 
-void AllocDesc::reset(bool computeAlignments)
+AllocDesc::AllocDesc(alignmentRule align)
 {
-  this->computeAlignments = computeAlignments;
+  reset(align);
+}
+
+
+void AllocDesc::reset(alignmentRule align = alignmentRule::none)
+{
+  this->align = align;
+
+  switch (align)
+  {
+  case alignmentRule::none:
+    alignmentValue = 1;
+    verbotenAlignmentValue = std::numeric_limits<size_t>::max();
+    break;
+  case alignmentRule::cacheLine:
+    alignmentValue = cacheLineSizeDestructive;
+    verbotenAlignmentValue = std::numeric_limits<size_t>::max();
+    break;
+  case alignmentRule::cacheMap:
+    alignmentValue = cacheLineSizeDestructive;
+    verbotenAlignmentValue = pageLineSize;
+    break;
+  }
 
   totalAllocSize = 0;
-  bufferDesc.clear();
+  allocDescEntries.clear();
 }
 
 
-void AllocDesc::trackAsset(string_view assetName, size_t cacheOffset, size_t cacheSize)
+void AllocDesc::track(string_view assetName, size_t dataSize)
 {
-  bufferDesc.push_back(assetName, AllocDescEntry { string(assetName), cacheOffset, cacheSize });
-
-  // This will get recompued if computeMap() is used.
-  if (this->computeAlignments == false)
-    { totalAllocSize = max(totalAllocSize, cacheOffset + cacheSize); }
+  if (dataSize > verbotenAlignmentValue)
+  {
+    log(thId, logTags::err, fmt::format("asset '{assetName}' size {} is larger than the map window size {}.", assetName, dataSize, verbotenAlignmentValue));
+    return;
+  }
+  auto offset = totalAllocSize;
+  auto storageSize = alignSize(dataSize);
+  offset = skipVerbotenAlignments(offset, storageSize);
+  allocDescEntries.push_back(assetName, AllocDescEntry { 
+    string(assetName), offset, dataSize, storageSize } );
 }
 
 
-void AllocDesc::trackAsset(string_view assetName, size_t cacheOffset, size_t cacheSize, array<size_t, 3> const & dims, size_t numMipLevels, vk::Format format)
+void AllocDesc::track(std::string_view assetName, size_t offset, size_t dataSize, size_t storageSize)
 {
-  bufferDesc.push_back(assetName, AllocDescEntry { string(assetName), cacheOffset, cacheSize, AllocDescImageData { dims, numMipLevels, format } });
-
-  if (this->computeAlignments == false)
-    { totalAllocSize = max(totalAllocSize, cacheOffset + cacheSize); }
+  allocDescEntries.push_back(assetName, AllocDescEntry { 
+    string(assetName), offset, dataSize, storageSize } );
 }
 
 
-void AllocDesc::trackAsset(Asset * asset)
+void AllocDesc::track(std::string_view assetName, size_t offset, size_t dataSize, size_t storageSize, std::array<size_t, 3> dims,size_t numMipLevels, vk::Format format)
 {
+  allocDescEntries.push_back(assetName, AllocDescEntry { 
+    string(assetName), offset, dataSize, storageSize, 
+    AllocDescImageData { dims, numMipLevels, format } } );
+}
+
+
+void AllocDesc::track(Asset * asset)
+{
+  auto offset = totalAllocSize;
+  auto dataSize = asset->getDataSize();
+  auto storageSize = alignSize(dataSize);
+  offset = skipVerbotenAlignments(offset, storageSize);
+
   if (asset->isImage())
   {
     Image * image = dynamic_cast<Image *>(asset);
-    bufferDesc.push_back(asset->getName(), AllocDescEntry { 
-      string(asset->getName()), 
-      asset->getCacheOffset(), 
-      asset->getCacheSize(), 
-      AllocDescImageData { 
-        image->getDims(), 
-        image->getNumMipLevels(), 
-        image->getFormat() } } );
+    allocDescEntries.push_back(asset->getName(), AllocDescEntry { 
+      string(asset->getName()), offset, dataSize, storageSize,
+        AllocDescImageData { image->getDims(), image->getNumMipLevels(), image->getFormat() } } );
   }
   else
   {
-    bufferDesc.push_back(asset->getName(), AllocDescEntry {
-      string(asset->getName()), 
-      asset->getCacheOffset(), 
-      asset->getCacheSize() } );
+    allocDescEntries.push_back(asset->getName(), AllocDescEntry { 
+      string(asset->getName()), offset, dataSize, storageSize } );
   }
 }
 
 
-/*
-void AllocDesc::computeMap()
+size_t AllocDesc::alignSize(size_t size)
 {
-  if (this->computeAlignments == false)
-    { return; }
-
-  bool prevBufferWasImage = false;
-
-  // compute buffer/image offsets
-
-  totalAllocSize = accumulate(bufferDesc.vect().begin(), bufferDesc.vect().end(), 0, 
-    [&](size_t lhs, AllocDescEntry & rhs)
+  switch (align)
   {
-    // lhs is the total buffer size so far. It must be rounded up to the next alignmet multiple that rhs's asset type requires. That sets the offset for rhs, and then we compute rhs's asset size and end-of-block alignment. That's also the new end-of-buffer size we return.
+    case alignmentRule::none:
+      return size;
 
-    Asset * rhsAsset = assetMan->getAsset(rhs.assetName);
-    size_t sizeAlignment = 0;
-    size_t offsetAlignment = 0;
-    // Calc the starting alignment.
-    if (rhsAsset->isImage())
+    case alignmentRule::cacheLine:
+    case alignmentRule::cacheMap:
     {
+      auto b = (size % alignmentValue) > 0 ? 1 : 0;
+      return size / alignmentValue + b * (alignmentValue - size % alignmentValue);
     }
-    else
-    {
-      
-    }
-    
-    sizeAlignment = rhsAsset->
-      getDeviceMemoryRequirements().alignment;
-    offsetAlignment = sizeAlignment;
-    if (rhsAsset->isImage() != prevBufferWasImage)
-    {
-      vk::PhysicalDeviceLimits pdl;
-      graphics->getPhysicalDeviceLimits(pdl);
-      offsetAlignment = max(offsetAlignment, pdl.bufferImageGranularity);
-    }
-
-    // round up the offset
-    rhs.offset = lhs;
-    if (offsetAlignment > 0 && rhs.offset % offsetAlignment > 0)
-      { rhs.offset += offsetAlignment - (rhs.offset % offsetAlignment); }
-
-    // round up the size
-    rhs.size = rhsAsset->getCacheSize();
-    if (sizeAlignment > 0 && rhs.size % sizeAlignment > 0)
-      { rhs.size += sizeAlignment - (rhs.size % sizeAlignment); }
-
-    prevBufferWasImage = rhsAsset->isImage();
-
-    return rhs.offset + rhs.size;
-  });
+  }
 }
-*/
 
 
-//void AllocDesc::setAssetOffset(string_view assetName, size_t offset)
-//{
-//  bufferDesc[assetName].offset = offset;
-//}
+size_t AllocDesc::skipVerbotenAlignments(size_t offset, size_t size)
+{
+  // if the alloc straddles a forbidden alignment,
+  if (offset / verbotenAlignmentValue < 
+      (offset + size) / verbotenAlignmentValue)
+  {
+    return (offset / verbotenAlignmentValue) + 1 * verbotenAlignmentValue;
+  }
+  return offset;
+}
 
 
 size_t AllocDesc::getAllocSize()
@@ -127,7 +127,7 @@ size_t AllocDesc::getAllocSize()
 }
 
 
-stringDict<AllocDescEntry> const & AllocDesc::getBufferDesc() const noexcept
+stringDict<AllocDescEntry> const & AllocDesc::getAllocDescEntries() const noexcept
 {
-  return bufferDesc;
+  return allocDescEntries;
 }

@@ -63,7 +63,8 @@
     "random": "cpp",
     "set": "cpp",
     "variant": "cpp",
-    "bit": "cpp"
+    "bit": "cpp",
+    "iomanip": "cpp"
   },
   "files.useExperimentalFileWatcher": true
 }
