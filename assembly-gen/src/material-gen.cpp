@@ -7,6 +7,102 @@ using namespace std;
 
 
 void overground::material::importPod(
+  humon::HuNode const & src, descriptor_t & dest)
+{
+  if (src % "descType")
+  {
+    auto & src0 = src / "descType";
+    stringDict<vk::DescriptorType> dst0;
+    for (size_t i0 = 0; i0 < src0.size(); ++i0)
+    {
+      auto & src1 = src0 / i0;
+      auto const & key = src0.keyAt(i0);
+      vk::DescriptorType dst1;
+      dst1 = fromString<vk::DescriptorType>((std::string) src1); // leaf
+      dst0.push_back(key, std::move(dst1));
+    }
+    dest.descType = std::move(dst0);
+  }
+  if (src % "asset")
+  {
+    auto & src0 = src / "asset";
+    std::optional<std::string> dst0;
+    std::string dst1;
+    {
+      auto & src1 = src0;
+      dst1 = (std::string) src1; // leaf
+    }
+    dst0.emplace(std::move(dst1));
+    dest.asset = std::move(dst0);
+  }
+}
+
+void overground::material::importPod(
+std::vector<uint8_t> const & src, descriptor_t & dest)
+{
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
+}
+
+void overground::material::exportPod(descriptor_t const & src,
+humon::HuNode & dest, int depth)
+{
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
+}
+
+void overground::material::exportPod(
+descriptor_t const & src, std::vector<uint8_t> & dest)
+{
+  log(0, logTags::warn, "This operation has not been implemented yet.");
+
+  // NOTE: This operation has not been implemented yet. If you need it, find boiler/src/assets.cpp, and good luck.
+}
+
+std::string overground::material::print(
+  descriptor_t const & src, int depth)
+{
+  string prevIndentIn(depth * 2, ' ');
+  string indentIn(2 + depth * 2, ' ');
+  std::ostringstream ss;
+  ss << "{";
+  ss << "\n" << indentIn << "descType: ";
+  ss << "{";
+  for (size_t i0 = 0; i0 < src.descType.size(); ++i0)
+  {
+    auto const & [key, idx] = src.descType.keys[i0];
+    depth += 1;
+    string prevIndentIn(depth * 2, ' ');
+    string indentIn(2 + depth * 2, ' ');
+    vk::DescriptorType const & src0 = src.descType[idx];
+    ss << indentIn << key << ": ";
+    ss << "\n" << indentIn;
+    ss << to_string(src0);
+    depth -= 1;
+  }
+  ss << "\n" << indentIn << "}";
+  ss << "\n" << indentIn << "asset: ";
+
+  if ((bool) src.asset)
+  {
+    std::string const & src0 = * src.asset;
+    ss << (src0);
+  }
+  else
+    { ss << "<undefined>"; }
+  ss << "\n" << prevIndentIn << "}";
+  return ss.str();
+}
+
+ostream & overground::material::operator << (ostream & stream, descriptor_t const & rhs)
+{
+  stream << print(rhs);
+  return stream;
+}
+
+void overground::material::importPod(
   humon::HuNode const & src, shaderModule_t & dest)
 {
   if (src % "name")

@@ -20,13 +20,26 @@ namespace overground
   }
 
 
+  struct VertexBufferView
+  {
+  };
+
+
+  struct IndexBufferView
+  {
+  };
+
+
+  using subresourceVariant = variant<vk::BufferView, vk::ImageView, VertexBufferView, IndexBufferView>;
+
+
   struct Subresource
   { // size and offset into vkBuffer / vkImage
-    std::variant<vk::BufferView, vk::ImageView> vulkanSubresource;
-    std::string assetName;
+    subresourceVariant vulkanSubresource;
+    std::string subresourceName;
     size_t offset;
     size_t size;
-    size_t refCount = 0;
+    size_t refCount = 1;
   };
 
   // TODO: There's a vk enum for this. Need it even? Have the variant.
@@ -36,6 +49,8 @@ namespace overground
   {
 //    ResourceType type;   // buffer or image or ...
     std::variant<vk::Buffer, vk::Image> vulkanResource;
+    size_t offset;
+    size_t size;
     std::vector<Subresource> subresources;
     bool priority;
   };
@@ -44,19 +59,26 @@ namespace overground
   {
 //    size_t memoryTypeIdx;
     size_t size;
-    size_t freeSize;
+    size_t usedSize;
     vk::DeviceMemory alloc;
 
     std::vector<Resource> resources;
+
+    size_t getNextImageOffset(size_t imageAlignment);
+    size_t getNextBufferOffset(size_t bufferAlignment);
+
+    size_t getFreeImageSize(size_t imageAlignment);
+    size_t getFreeBufferSize(size_t bufferAlignment);
   };
 
   struct MemoryType
   {
+    size_t memoryTypeIdx;
     vk::MemoryPropertyFlags memoryProps;
     size_t allocChunkSize;
     std::vector<MemoryAlloc> allocs;
 
-    MemoryAlloc & getAlloc(vk::MemoryRequirements const & reqs);
+    std::optional<Resource &> allocateResource(std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryRequirements const & reqs);
   };
 
   struct AllocAddress
@@ -67,48 +89,36 @@ namespace overground
     size_t subresourceIdx;
   };
 
-  struct MemoryUsageType
-  {
-    std::vector<size_t> memoryTypeIdxs;
-    std::unordered_map<std::string, AllocAddress> assetAllocMap; 
-  };
-
   class MemoryPlan
   {
   public:
     MemoryPlan(memoryPlan::memoryPlan_t const & data);
     ~MemoryPlan();
 
-    stringDict<MemoryUsageType> const & getMemoryUsageTypes() const noexcept;
-
     void beBlessed();
 
-    void addObjects(Feature * feature, bool priority);
-    void reprioritize(Feature * feature, bool priority);
-    void removeObjects(Feature * feature);
+    void addResources(Feature * feature, bool priority);
+    void reprioritizeResources(Feature * feature, bool priority);
+    void removeResources(Feature * feature);
     void moop();
+    optional<Subresource &> getSubresource(AllocAddress const & address);
 
   private:
     void allocateStagingMemory();
-    Resource & allocateResource(std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryRequirements const & reqs);
-    void registerSubresource(Resource & ogResource, std::variant<vk::BufferView, vk::ImageView> subresourceView);
+    std::optional<Resource &> allocateResource(std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryRequirements const & reqs);
+    void registerSubresource(Resource & ogResource, subresourceVariant subresourceView, std::string_view subresourceName, size_t offset = 0, size_t size = 0);
 
     size_t numAllocRetries;
     size_t stagingSize;
     std::vector<MemoryType> memoryTypes;
-    stringDict<MemoryUsageType> memoryUsageTypes;
     vk::PhysicalDeviceMemoryProperties deviceMemProps;
-    std::vector<MemoryType> memoryTypes;
 
     vk::DeviceMemory stagingAlloc;
     size_t stagingSize = 0;
+    void * mappedStagingMemory;
+
+    std::unordered_map<std::string, AllocAddress> assetAllocMap;
   };
-
-
-  stringDict<MemoryUsageType> const & MemoryPlan::getMemoryUsageTypes() const noexcept
-  {
-    return memoryUsageTypes;
-  }
 }
 
 #endif // #ifndef MEMORYPLAN_H

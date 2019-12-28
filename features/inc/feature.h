@@ -13,6 +13,11 @@ namespace overground
     Feature(tableau::feature_t const & desc);
     virtual ~Feature();
 
+    void error();
+
+    template <typename Fn>
+    void forEachGraphicsSubresourceNeeded(Fn && visitor);
+ 
     template <typename Fn>
     void forEachFeature(Fn && visitor);
     template <typename Fn>

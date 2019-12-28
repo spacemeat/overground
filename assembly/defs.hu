@@ -524,9 +524,25 @@
         plugin: assets
         type: { type: string deserialized: false }
         imageType: { type: "vk::ImageType" }
+        numLayers: { type: size_t default: 1 }
         extents: { type: "array<size_t, 3>" }
         numMipLevels: { type: size_t }
         componentMapping: { type: "optional<componentMapping>" }
+      }
+
+      partition: {
+        numSrcFiles: { type: size_t }
+        faceLayout: { type: string }  # TODO: Enum for face layout
+      }
+
+      cubeMapImage: {
+        plugin: assets
+        type: { type: string deserialized: false }
+        numCubes: { type: size_t default: 1 }
+        extents: { type: "array<size_t, 3>" }
+        numMipLevels: { type: size_t }
+        componentMapping: { type: "optional<componentMapping>" }
+        partitions: { type: "vector<partition>" }
       }
 
       shader: {
@@ -538,7 +554,7 @@
 
       asset: {
         name: { type: string fromKey: true }
-        srcFile: { type: "optional<string>" }
+        src: { type: "vector<string>" }
         monitorFile: { type: bool default: true }
         importData: { type: "variant<plugins<assets>>" }
         format: { type: "optional<vk::Format>" }

@@ -3,6 +3,7 @@
 #include "asset.h"
 #include "assets.mesh.h"
 #include "assets.image.h"
+#include "assets.cubeMapImage.h"
 #include "assets.shader.h"
 
 using namespace std;
@@ -20,7 +21,9 @@ std::unique_ptr<Asset> makeAsset(asset::asset_t const & desc)
       return std::make_unique<Mesh>(desc);
     case 1: // Image
       return std::make_unique<Image>(desc);
-    case 2: // Shader
+    case 2: // CubeMapImage
+      return std::make_unique<CubeMapImage>(desc);
+    case 3: // Shader
       return std::make_unique<Shader>(desc);
     }
   }

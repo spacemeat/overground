@@ -15,8 +15,8 @@
 #        }
 #      ]
       descriptors: {
-        diffuseMap: { descType: combinedImageSampler asset: brick_diffuse }
-        normalMap: { descType: combinedImageSampler asset: brick_normal }
+        diffuseMap: { descType: combinedImageSampler asset: brick-diffuse }
+        normalMap: { descType: combinedImageSampler asset: brick-normal }
         lights: { descType: uniformBuffer buffer: lights }
         camera: { declType: uniformBuffer buffer: camera }
         object: { declType: pushConstants pushConstants: object } #?

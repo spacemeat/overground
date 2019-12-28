@@ -44,7 +44,7 @@ namespace overground
 
     void reset();
 
-    void getPhysicalDeviceLimits(vk::PhysicalDeviceLimits & pdl);
+    vk::PhysicalDeviceLimits const & getPhysicalDeviceLimits() { return physicalDeviceLimits; }
 
     void checkForDataUpdates();
     
@@ -120,7 +120,6 @@ namespace overground
     void resetFramebuffer(RenderPass * renderPass);
     void destroyFramebuffer(size_t framebufferIdx);
 
-
   private:
     GLFWwindow * mainWindow = nullptr;
     uint32_t diWidth = 0;   // device-indep. units
@@ -154,6 +153,7 @@ namespace overground
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
     std::vector<float> queuePriorities;
     std::vector<size_t> queuePriorityStarts;
+    vk::PhysicalDeviceLimits physicalDeviceLimits;
 
     vk::Device vulkanDevice;
 

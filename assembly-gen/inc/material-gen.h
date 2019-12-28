@@ -14,6 +14,89 @@ namespace overground
 {
   namespace material
   {
+    // descriptor things
+
+    struct descriptor_t
+    {
+      stringDict<vk::DescriptorType> descType;
+      std::optional<std::string> asset;
+    };
+
+    void importPod(
+      humon::HuNode const & src, descriptor_t & dest);
+
+    void importPod(
+      std::vector<uint8_t> const & src, descriptor_t & dest);
+
+    void exportPod(descriptor_t const & src, 
+      humon::HuNode & dest, int depth);
+
+    void exportPod(
+      descriptor_t const & src, std::vector<uint8_t> & dest);
+
+    std::string print(descriptor_t const & src, int depth = 0);
+
+    std::ostream & operator << (std::ostream & stream, descriptor_t const & src);
+
+    enum class descriptorMembers_e : int 
+    {
+      none = 0,
+      descType = 1 << 0,
+      asset = 1 << 1,
+      all = descType | asset
+    };
+
+    inline bool operator == (descriptor_t const & lhs, descriptor_t const & rhs) noexcept
+    {
+      return
+        lhs.descType == rhs.descType &&
+        lhs.asset == rhs.asset;
+    };
+
+    inline bool operator != (descriptor_t const & lhs, descriptor_t const & rhs) noexcept
+    {
+      return ! (lhs == rhs);
+    };
+
+    struct descriptorDiffs_t
+    {
+      descriptorMembers_e diffs;
+      std::unordered_set<std::string> descTypeDiffs;
+    };
+
+    inline bool doPodsDiffer(
+      descriptor_t const & lhs,
+      descriptor_t const & rhs,
+      descriptorDiffs_t & descriptor) noexcept
+    {
+      // diff member 'descType':
+      {
+        for (auto const & [lhsKey, lhsIdx] : lhs.descType.keys)
+        {
+          if (auto it = rhs.descType.keys().find(lhsKey); it != rhs.descType.keys().end())
+          {
+            auto const & [rhsKey, rhsIdx] = *it;
+            if (lhsIdx == rhsIdx &&
+                lhs.descType[lhsIdx] == rhs.descType[rhsIdx])
+              { continue; }
+          }
+          descriptor.diffs |= descriptorMembers_e::descType;
+          descriptor.descTypeDiffs.insert(lhsKey);
+        }
+        for (auto const & [rhsKey, rhsIdx] : rhs.descType.keys())
+        {
+          if (auto it = lhs.descType.keys.find(rhsKey); it != lhs.descType.keys.end())
+            { continue; }
+          descriptor.descTypeDiffs.insert(rhsKey);
+        }
+      }
+      // diff member 'asset':
+      if (lhs.asset != rhs.asset)
+        { descriptor.diffs |= descriptorMembers_e::asset; }
+
+      return descriptor.diffs != descriptorMembers_e::none;
+    };
+
     // shaderModule things
 
     struct shaderModule_t

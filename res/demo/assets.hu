@@ -1,24 +1,58 @@
 {
   assets: {
     "cube-mesh": {
-      srcFile: "cube.hu"
+      src: ["cube.hu"]
       importData: {
         type: mesh
       }
     }
 
-    "cube-texture": {
-      srcFile: "mathFace.png"
+    "brick-diffuse": {
+      src: ["brick-diffuse.png"]
       importData: {
         type: image
-        dims: [0 0 0]         # extract from src
-        numMipLevels: 0       # all the mips
+        extents: [0 0 0]   # extract from src
+        numMipLevels: 0    # all the mips
         format: R8G8B8A8Unorm # there should be a way to say "whatever we're using, man" Maybe Unknown.
       }
     }
 
+    "brick-normal": {
+      src: ["brick-normal.png"]
+      importData: {
+        type: image
+        extents: [0 0 0]
+        numMipLevels: 0
+        format: R32G32B32Sfloat
+      }
+    }
+
+    "someCubeMaps": {
+      srcFiles: [
+        "mathFace.png" 
+        "env-X.png" "env+X.png" 
+        "env-Y.png" "env+Y.png" 
+        "env-Z.png" "env+Z.png"
+      ]
+      importData: {
+        type: cubeMapImage
+        numCubes: 2
+        extents: [0 0 0] # all cube maps must still have the same extents. Deviants will be scaled to match the first one.
+        numMipLevels: 0
+        format: R8G8B8A8Unorm
+        partitions: [ {
+            numSrcFiles: 1
+            faceLayout: linearX
+          } {
+            numSrcFils: 6
+            faceLayout: oneToOne
+          }
+        ]
+      }
+    }
+
     "diffuse-vshader": {
-      srcFile: "diffuse.vert"
+      src: ["diffuse.vert"]
       importData: {
         type: shader
         stage: Vertex # There's a shader stage enum that is appropriate
@@ -27,7 +61,7 @@
     }
 
     "diffuse-fshader": {
-      srcFile: "diffuse.frag"
+      src: ["diffuse.frag"]
       importData: {
         type: shader
         stage: Fragment # There's a shader stage enum that is appropriate

@@ -5,6 +5,7 @@
 #include <string_view>
 #include "assets.mesh.h"
 #include "assets.image.h"
+#include "assets.cubeMapImage.h"
 #include "assets.shader.h"
 #include "features.matrixTransform.h"
 #include "features.srtTransform.h"
@@ -21,6 +22,7 @@ namespace overground
   {
     mesh,
     image,
+    cubeMapImage,
     shader,
   };
 
@@ -28,6 +30,7 @@ namespace overground
   {
     "mesh"sv,
     "image"sv,
+    "cubeMapImage"sv,
     "shader"sv,
   };
 

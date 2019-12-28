@@ -48,7 +48,7 @@ namespace overground
     std::optional<T &> operator[](std::string_view key) const noexcept
     {
       auto it = keyMap.find((std::string) key);
-      if (it != keyMapend())
+      if (it != keyMap.end())
         { return dataVect.at(it->second); }
       else
         { return {}; }
