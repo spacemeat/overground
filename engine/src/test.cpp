@@ -3,6 +3,7 @@
 #include "engine.h"
 #include "assetManager.h"
 #include "assemblyManager.h"
+#include "materialManager.h"
 
 using namespace std;
 using namespace overground;
@@ -27,7 +28,8 @@ void overground::initGlobals()
   engine.emplace();
   graphics.emplace();
   assetMan.emplace();
-  assemblyMan.emplace();  
+  assemblyMan.emplace();
+  materialMan.emplace();
 }
 
 

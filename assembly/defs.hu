@@ -413,8 +413,8 @@
       descriptor: { 
         descType: { type: "stringDict<vk::DescriptorType>" }
         asset: { type: "optional<string>" }
-        
-
+        buffer: { type: "optional<string>" }
+        pushConstants: { type: "optional<string>" }
       }
       
       shaderModule: {

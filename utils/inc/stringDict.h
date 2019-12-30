@@ -45,21 +45,21 @@ namespace overground
       { return keyMap.find((std::string)key) != keyMap.end(); }
 
     // TODO: Remove this ridic. cast when std=c++20
-    std::optional<T &> operator[](std::string_view key) const noexcept
+    T const & operator[](std::string_view key) const noexcept
     {
       auto it = keyMap.find((std::string) key);
       if (it != keyMap.end())
         { return dataVect.at(it->second); }
       else
-        { return {}; }
+        { return dataVect.back(); }
     }
 
-    std::optional<T &> operator[](size_t idx) const noexcept
+    T const & operator[](size_t idx) const noexcept
     {
       if (idx < dataVect.size())
         { return dataVect[idx]; }
       else
-        { return {}; }
+        { return dataVect.back(); }
     }
     
     std::unordered_map<std::string, size_t> const & keys() const noexcept

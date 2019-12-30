@@ -330,6 +330,7 @@ struct FeatureResource
   Asset * assetPtr;
   std::variant<vk::ImageCreateFlagBits, vk::BufferCreateFlagBits> createFlags; 
   std::variant<vk::ImageUsageFlagBits, vk::BufferUsageFlagBits> usageFlags;
+  vk::MemoryPropertyFlagBits additionalMemoryProps;
   std::vector<int32_t> sortedQueueFamilyIndices;
 };
 
@@ -479,6 +480,7 @@ void MemoryPlan::addResources(Feature * feature, bool priority)
     Asset * asset, 
     variant<vk::ImageCreateFlagBits, vk::BufferCreateFlagBits> createFlags, 
     variant<vk::ImageUsageFlagBits, vk::BufferUsageFlagBits> usageFlags,
+    vk::MemoryPropertyFlagBits additionalMemoryProps,
     vector<int32_t> && sortedQueueFamilyIndices)
   {
     if (auto it = assetAllocMap.find(string(asset->getName()));
@@ -486,20 +488,20 @@ void MemoryPlan::addResources(Feature * feature, bool priority)
     {
       AllocAddress & aa = it->second;
       auto subresource = getSubresource(aa);
-      if (subresource.has_value())
+      if (subresource != nullptr)
       {
         subresource->refCount += 1;
         return;
       }
     }
 
-    featureResources.emplace_back(asset, createFlags, usageFlags, move(sortedQueueFamilyIndices) );
+    featureResources.emplace_back(asset, createFlags, usageFlags, additionalMemoryProps, move(sortedQueueFamilyIndices) );
   });
 
   // sort assetPtrs into groupable subresources for vkBuffers or vkImages. Try to combine images into an image array, but note that formats and sizes and such must be compatible.
   std::sort(featureResources.begin(), featureResources.end());
 
-  // Determine the subresource packing. Optimize packing for compatible dims|mipLevels|formats.
+  // Determine the subresource packing. Optimize packing for compatible dims|mipLevels|formats|etc.
   vector<size_t> resourceGroups;
   resourceGroups.reserve(featureResources.size());  // at worst, one each
 
@@ -524,7 +526,6 @@ void MemoryPlan::addResources(Feature * feature, bool priority)
   // Now make the ROs
   if (resourceGroups.size() > 0)
   {
-    Resource resource;
     size_t firstIdx = 0;
 
     for (auto & resourceGroupSize : resourceGroups)
@@ -543,8 +544,10 @@ void MemoryPlan::addResources(Feature * feature, bool priority)
           break;
         case vk::ImageViewType::e3D:
           vkImageType = vk::ImageType::e3D;
+          break;
         default: 
           vkImageType = vk::ImageType::e2D;
+          break;
         }
         
         auto extents = firstImage->getExtents();
@@ -574,8 +577,8 @@ void MemoryPlan::addResources(Feature * feature, bool priority)
         auto reqs = dev.getImageMemoryRequirements(vkImage);
 
         // make the Resource object
-        auto ogResource = allocateResource(vkImage, reqs);
-        if (ogResource.has_value())
+        auto ogResource = allocateResource(vkImage, featureResource.additionalMemoryProps, reqs);
+        if (ogResource != nullptr)
         {
           // make the Subresource objects
           size_t layer = 0;
@@ -629,8 +632,8 @@ void MemoryPlan::addResources(Feature * feature, bool priority)
         auto reqs = dev.getBufferMemoryRequirements(vkBuffer);
 
         // make the Resource object
-        auto ogResource = allocateResource(vkBuffer, reqs);
-        if (ogResource.has_value())
+        auto ogResource = allocateResource(vkBuffer, featureResource.additionalMemoryProps, reqs);
+        if (ogResource != nullptr)
         {
           // make the Subresource objects
           size_t offset = 0;
@@ -644,10 +647,16 @@ void MemoryPlan::addResources(Feature * feature, bool priority)
             });
 
             // make the Subresource object
-            registerSubresource(*ogResource, bufferView, asset->getName());
+            auto & subresource = registerSubresource(*ogResource, bufferView, asset->getName());
 
             offset += asset->getDataSize();
             offset = padTo(offset, cacheLineSizeConstructive);
+
+            // Schedule loading the resource from a source.
+            if (subresource.loadFromAsset)
+            {
+              // TODO NOW: Schedule it 
+            }
           }
         }
         else
@@ -667,23 +676,23 @@ void MemoryPlan::addResources(Feature * feature, bool priority)
 
 void MemoryPlan::reprioritizeResources(Feature * feature, bool priority)
 {
-
+  log(thId, logTags::err, "MemoryPlan::reprioritizeResources() is not implementd.");
 }
 
 
 void MemoryPlan::removeResources(Feature * feature)
 {
-
+  log(thId, logTags::err, "MemoryPlan::removeResources() is not implementd.");
 }
 
 
 void MemoryPlan::moop()
 {
-
+  log(thId, logTags::err, "MemoryPlan::moop() is not implementd.");
 }
 
 
-optional<Subresource &> MemoryPlan::getSubresource(AllocAddress const & address)
+Subresource * MemoryPlan::getSubresource(AllocAddress const & address)
 {
   if (address.memoryTypeIdx < memoryTypes.size())
   {
@@ -695,12 +704,12 @@ optional<Subresource &> MemoryPlan::getSubresource(AllocAddress const & address)
       {
         auto & res = alloc.resources[address.resourceIdx];
         if (address.subresourceIdx < res.subresources.size())
-          { return res.subresources[address.subresourceIdx]; }
+          { return & res.subresources[address.subresourceIdx]; }
       }
     }
   }
 
-  return {};
+  return nullptr;
 }
 
 
@@ -749,8 +758,9 @@ void MemoryPlan::allocateStagingMemory()
 }
 
 
-optional<Resource &> MemoryPlan::allocateResource(
+Resource * MemoryPlan::allocateResource(
   std::variant<vk::Buffer, vk::Image> resourceObject, 
+  vk::MemoryPropertyFlagBits additionalMemoryProps,
   vk::MemoryRequirements const & reqs)
 {
   // get best memoryType
@@ -762,20 +772,22 @@ optional<Resource &> MemoryPlan::allocateResource(
       auto & memoryType = memoryTypes[i];
 
       // if we have room in this heap
-      auto resource = memoryType.allocateResource(resourceObject, reqs);
-      if (resource.has_value())
-        { return *resource; }
+      Resource * resource = memoryType.allocateResource(resourceObject, reqs);
+      if (resource)
+        { return resource; }
     }
   }
 
-  return {};
+  return nullptr;
 }
 
 
-void MemoryPlan::registerSubresource(Resource & ogResource, subresourceVariant subresourceView, string_view subresourceName, size_t offset, size_t size)
+Subresource & MemoryPlan::registerSubresource(Resource & ogResource, subresourceVariant subresourceView, string_view subresourceName, size_t offset, size_t size)
 {
   ogResource.subresources.emplace_back(Subresource {
-    subresourceView, string(subresourceName), offset, size });  
+    subresourceView, string(subresourceName), offset, size });
+  
+  return ogResource.subresources.back();
 }
 
 
@@ -831,9 +843,9 @@ size_t MemoryAlloc::getFreeBufferSize(size_t bufferAlignment)
 }
 
 
-optional<Resource &> MemoryType::allocateResource(std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryRequirements const & reqs)
+Resource * MemoryType::allocateResource(std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryRequirements const & reqs)
 {
-  optional<Resource &> res;
+  Resource * res;
   auto const & pdls = graphics->getPhysicalDeviceLimits();
 
   bool lastTypeIsImage = false;
@@ -845,25 +857,27 @@ optional<Resource &> MemoryType::allocateResource(std::variant<vk::Buffer, vk::I
     auto alloc = *it;
     if (resourceTypeIsImage)
     {
-      if (alloc.getFreeImageSize(reqs.alignment) >= padTo(reqs.size, max(pdls.bufferImageGranularity, reqs.alignment)))
+      if (alloc.getFreeImageSize(reqs.alignment) >= 
+        padTo(reqs.size, max(pdls.bufferImageGranularity, reqs.alignment)))
       {
-        res.emplace(alloc.resources.emplace_back(Resource {
+        res = & alloc.resources.emplace_back(Resource {
           resourceObject,
           alloc.getNextImageOffset(reqs.alignment),
           reqs.size, 
-          {}, true }));
+          {}, true });
         break;
       }
     }
     else
     {
-      if (alloc.getFreeBufferSize(reqs.alignment) >= padTo(reqs.size, max(pdls.bufferImageGranularity, reqs.alignment)))
+      if (alloc.getFreeBufferSize(reqs.alignment) >= 
+        padTo(reqs.size, max(pdls.bufferImageGranularity, reqs.alignment)))
       {
-        res.emplace(alloc.resources.emplace_back(Resource {
+        res = & alloc.resources.emplace_back(Resource {
           resourceObject,
           alloc.getNextBufferOffset(reqs.alignment),
           reqs.size, 
-          {}, true }));
+          {}, true });
         break;
       }
     }
@@ -875,7 +889,7 @@ optional<Resource &> MemoryType::allocateResource(std::variant<vk::Buffer, vk::I
 
   size_t allocSize = allocChunkSize;
   size_t attemptIdx = 0;
-  while (res.has_value() == false)
+  while (res == nullptr)
   {
     auto alloc = graphics->getDevice().allocateMemory(
       vk::MemoryAllocateInfo { allocSize, memoryTypeIdx });
@@ -893,7 +907,7 @@ optional<Resource &> MemoryType::allocateResource(std::variant<vk::Buffer, vk::I
     {
       log(thId, logTags::info, fmt::format("allocateMemory() size {}, type index {}, attempt {}.", allocSize, memoryTypeIdx, attemptIdx));
 
-      allocs.emplace_back(MemoryAlloc {
+      auto & newMemoryAlloc = allocs.emplace_back(MemoryAlloc {
         allocSize, reqs.size, alloc, { Resource {
           resourceObject,
           0,
@@ -901,8 +915,10 @@ optional<Resource &> MemoryType::allocateResource(std::variant<vk::Buffer, vk::I
           {}, true
         }}
       });
+
+      res = & newMemoryAlloc.resources.back();
     }
   }
   
-  return res;   // May not have a value, if the heap is full.
+  return res;   // May be nullptr, if the heap is full. Then we'll use a fallback heap.
 }

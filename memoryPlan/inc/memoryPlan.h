@@ -40,6 +40,9 @@ namespace overground
     size_t offset;
     size_t size;
     size_t refCount = 1;
+    bool loadFromAsset;
+    std::string assetName; // TODO: Explore storing an Asset * instead.
+    bool ready = false;
   };
 
   // TODO: There's a vk enum for this. Need it even? Have the variant.
@@ -78,7 +81,8 @@ namespace overground
     size_t allocChunkSize;
     std::vector<MemoryAlloc> allocs;
 
-    std::optional<Resource &> allocateResource(std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryRequirements const & reqs);
+    Resource * allocateResource(
+      std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryRequirements const & reqs);
   };
 
   struct AllocAddress
@@ -101,12 +105,12 @@ namespace overground
     void reprioritizeResources(Feature * feature, bool priority);
     void removeResources(Feature * feature);
     void moop();
-    optional<Subresource &> getSubresource(AllocAddress const & address);
+    Subresource * getSubresource(AllocAddress const & address);
 
   private:
     void allocateStagingMemory();
-    std::optional<Resource &> allocateResource(std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryRequirements const & reqs);
-    void registerSubresource(Resource & ogResource, subresourceVariant subresourceView, std::string_view subresourceName, size_t offset = 0, size_t size = 0);
+    Resource * allocateResource(std::variant<vk::Buffer, vk::Image> resourceObject, vk::MemoryPropertyFlagBits additionalMemoryProps, vk::MemoryRequirements const & reqs);
+    Subresource & registerSubresource(Resource & ogResource, subresourceVariant subresourceView, std::string_view subresourceName, size_t offset = 0, size_t size = 0);
 
     size_t numAllocRetries;
     size_t stagingSize;
